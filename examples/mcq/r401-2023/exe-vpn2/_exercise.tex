@@ -1,0 +1,38 @@
+%webamc CODE=r401/2023/vpn2
+%webamc TITLE=Tunnel VPN de niveau 2
+%webamc RND=0
+
+Soit le réseau ci-dessous avec les IP associées aux interfaces:
+
+\begin{center}
+  \begin{minipage}{0.69\textwidth}\input{exe-vpn2/reseau}\end{minipage}
+  \begin{minipage}{0.3\textwidth}
+    \begin{tabular}{|l|l|l|}
+      \hline
+      Hôte & Interface & IP
+      \\
+      \hline
+      client1 & eth0 & 10.1.0.1\\
+      vpn1 & eth0 & 10.1.0.100\\
+      routeur1 & eth0 & 10.1.0.254\\
+      \hline
+      client2 & eth0 & 10.2.0.1\\
+      vpn2 & eth0 & 10.2.0.100\\
+      routeur2 & eth0 & 10.2.0.254\\
+      \hline
+    \end{tabular}
+  \end{minipage}
+\end{center}
+
+On a mis en place un tunnel VPN entre vpn1 et vpn2 pour interconnecter
+les clients des deux réseaux locaux LAN1 et LAN2.
+
+On suppose dans cet exercice:
+\begin{itemize}
+\item que le tunnel est de {\em niveau 2} ;
+\item que vpn1 et vpn2 utilisent UDP pour transporter leurs données~;
+\item et enfin que le chiffrement n'altère pas la taille des données.
+\end{itemize}
+
+Rappels: en-tête + FCS ethernet = 26 octets ; en-tête IP = en-tête TCP
+= 20 octets ; et en-tête UDP = en-tête ICMP = 8 octets.

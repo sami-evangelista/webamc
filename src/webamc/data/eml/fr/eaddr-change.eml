@@ -1,0 +1,12 @@
+Subject: {service} - Modification d'adresse électronique
+Content-Type: text/plain; charset=utf-8
+
+Bonjour,
+
+Une demande de modification d'adresse électronique a été faite pour le
+compte {usr_id}. Veuillez ignorer ce message si vous n'êtes pas à
+l'origine de cette demande. Vous pouvez sinon accéder au formulaire de
+modification de votre adresse en suivant ce lien :
+{url}
+
+À bientôt !

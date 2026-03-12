@@ -1,0 +1,234 @@
+\NeedsTeXFormat{LaTeX2e}[1999/01/01]
+\ProvidesPackage{reseaux-tikz}[2011/03/04]
+
+\RequirePackage{ifmtarg}
+\RequirePackage{tikz}
+
+\usetikzlibrary{shapes}
+
+%  #1 = eloignement du label
+%  #2 = style/position du noeud
+%  #3 = nom du noeud
+%  #4 = angle du label
+%  #5 = label
+%  #6 = echelle de l'element
+%  #7 = fichier d'image de l'element
+\newcommand\elementReseau[7][1]{%
+  \node[#2] (#3) {\includegraphics[scale=#6]{#7}};%
+  \@ifmtarg{#4}{%
+  }{%
+    \pgfmathparse{#1 * (cos(#4) * 28.34) / 1.85}\let\x\pgfmathresult%
+    \pgfmathparse{#1 * (sin(#4) * 28.34) / 1.85}\let\y\pgfmathresult%
+    \node[
+      above of=#3,%
+      node distance={\y}%
+    ] (#3-lbl) {};%
+    \node[%
+      right of=#3-lbl,%
+      node distance={\x},%
+      align=center%
+    ] (#3-lbl) {\scriptsize #5};%
+  }%
+}
+\newcommand\machine[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.2}{ordi-3}%
+}
+\newcommand\vmachine[5][white]{%
+  \elementReseau[1.2]{%
+    draw,circle,inner sep=0pt,#2,fill=#1}{#3}{#4}{#5}{0.15}{ordi-3}%
+}
+\newcommand\serveur[5][0.05]{%
+  \elementReseau{#2}{#3}{#4}{#5}{#1}{serveur}%
+}
+\newcommand\switch[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.2}{switch}%
+}
+\newcommand\pabx[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.5}{pabx-ico}%
+}
+\newcommand\switchlong[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.75}{switch-long}%
+}
+\newcommand\routeur[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.1}{routeur}%
+}
+\newcommand\laptop[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.15}{laptop}%
+}
+\newcommand\imprimante[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.15}{imprimante}%
+}
+\newcommand\parefeu[5][0.9]{%
+  \elementReseau{#2}{#3}{#4}{#5}{#1}{fw}%
+}
+\newcommand\wifi[5][0.2]{%
+  \elementReseau{#2}{#3}{#4}{#5}{#1}{wifi}%
+}
+\newcommand\eclair[2]{%
+  \elementReseau{#1}{#2}{0}{}{0.3}{eclair}%
+}
+\newcommand\disque[2]{%
+  \elementReseau{#1}{#2}{0}{}{0.1}{hd}%
+}
+\newcommand\disquelbl[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.1}{hd}%
+}
+\newcommand\lan[4][0.34]{%
+  \node[#2] (#3) {\includegraphics[scale=#1]{nuage}};%
+  \node[text width=1cm,#2,text centered] {\small{#4}};%
+}
+\newcommand\petitlan[3]{%
+  \node[#1] (#2) {\includegraphics[scale=0.2]{nuage}};%
+  \node[text width=1cm,#1,text centered] {\small{#3}};%
+}
+\newcommand\internet[2]{%
+  \node[#1] (#2) {\includegraphics[scale=0.34]{nuage}};%
+  \node at (#2.center) {\small Internet};%
+}
+\newcommand\hub[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.2}{hub-ico}%
+}
+\newcommand\softphone[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.3}{phone}%
+}
+\newcommand\ipphone[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.06}{old-phone}%
+}
+\newcommand\analphone[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.04}{very-old-phone}%
+}
+\newcommand\letter[4]{%
+  \elementReseau{#1}{#2}{#3}{#4}{0.02}{letter}%
+}
+
+
+
+%%%%%
+% definition de styles
+\definecolor{darkolivegreen}{rgb}{.33333,.41961,.18431}
+\tikzstyle{frame}=[
+  very thick
+]
+\tikzstyle{sframe}=[
+  darkolivegreen,
+  frame
+]
+\tikzstyle{iframe}=[
+  blue!90,
+  frame
+]
+\tikzstyle{uframe}=[
+  red,
+  frame
+]
+\tikzstyle{condition}=[
+  draw=black,
+  fill=yellow!65,
+  thick,
+  rounded corners,
+  text width=1.5cm,
+  text centered,
+  text centered,
+  diamond,
+  aspect=5
+]
+\tikzstyle{instruction}=[
+  draw=black,
+  fill=cyan!65,
+  thick,
+  rounded corners,
+  text width=1.5cm,
+  text centered,
+  text centered
+]
+\tikzstyle{msg}=[
+  draw=black,
+  thick,
+  fill=yellow!65,
+  thick,
+  rounded corners,
+  text centered
+]
+\tikzstyle{station}=[
+  draw=black,
+  thick,
+  fill=blue!80,
+  circle,
+  text centered
+]
+\tikzstyle{station-em}=[
+  draw=black,
+  thick,
+  fill=yellow,
+  circle,
+  text centered
+]
+\tikzstyle{pont}=[
+  draw=black,
+  thick,
+  fill=blue!60,
+  circle,
+  text centered,
+  inner sep=1pt
+]
+\tikzstyle{switch}=[
+  draw=black,
+  thick,
+  fill=green!60,
+  text centered,
+  inner sep=0pt,
+  regular polygon,
+  regular polygon sides=6,
+  minimum width=0.8cm
+]
+\tikzstyle{machine}=[
+  draw=black,
+  thick,
+  fill=red!40,
+  rounded corners,
+  text centered,
+  inner sep=3pt
+]
+\tikzstyle{node}=[
+  draw=black,
+  thick,
+  fill=blue!40,
+  rounded corners,
+  text centered,
+  circle,
+  inner sep=5pt
+]
+\tikzstyle{edge}=[
+  draw=black,
+  very thick
+]
+\tikzstyle{tagged}=[
+  -,
+  ultra thick,
+  blue
+]
+\tikzstyle{untagged}=[
+  -,
+  very thick,
+  dashed
+]
+\tikzstyle{liaison}=[
+  draw=black,
+  very thick
+]
+\tikzstyle{cable}=[
+  draw=black,
+  very thick
+]
+\tikzstyle{envoi}=[
+  ->,
+  very thick,
+  blue,
+  >=stealth'
+]
+\tikzstyle{echange}=[
+  envoi,
+  <->
+]
+
+\endinput

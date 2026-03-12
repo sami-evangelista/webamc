@@ -1,0 +1,163 @@
+\NeedsTeXFormat{LaTeX2e}[1999/01/01]
+\ProvidesPackage{temp-diag}[2013/02/06]
+
+\RequirePackage{xargs}
+\RequirePackage{xkeyval}
+\RequirePackage{tikz}
+
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+
+\makeatletter
+
+%%%%%
+% define some counters and length
+\newcounter{@msg}
+\newcommand\diag@move[0]{10pt}
+
+%%%%%
+% define xkeys for messages
+\define@cmdkey[TempDiag]{msg}{sep}{}
+\define@cmdkey[TempDiag]{msg}{broken}{}
+\define@cmdkey[TempDiag]{msg}{number}{}
+\define@cmdkey[TempDiag]{msg}{both}{}
+\define@cmdkey[TempDiag]{msg}{shift}{}
+\presetkeys[TempDiag]{msg}{sep=5mm}{}
+\presetkeys[TempDiag]{msg}{broken=0}{}
+\presetkeys[TempDiag]{msg}{number=1}{}
+\presetkeys[TempDiag]{msg}{both=0}{}
+\presetkeys[TempDiag]{msg}{shift=0}{}
+% and diagrams
+\define@cmdkey[TempDiag]{diag}{sep}{}
+\define@cmdkey[TempDiag]{diag}{topsep}{}
+\define@cmdkey[TempDiag]{diag}{bottomsep}{}
+\define@cmdkey[TempDiag]{diag}{numbers}{}
+\define@cmdkey[TempDiag]{diag}{start}{}
+\presetkeys[TempDiag]{diag}{sep=5mm}{}
+\presetkeys[TempDiag]{diag}{topsep=3mm}{}
+\presetkeys[TempDiag]{diag}{bottomsep=3mm}{}
+\presetkeys[TempDiag]{diag}{numbers=1}{}
+\presetkeys[TempDiag]{diag}{start=0}{}
+
+
+%%%%%
+% draw a message between two temporal lines of the diagram
+%
+% #1 (opt.) = xkeys
+% #2 (opt.) = line style
+% #3 = source line
+% #4 = destination line
+% #5 = message label
+\newcommandx\tempDiagMsg[5][1=,2=]{
+  \tempDiagMoveLines{\diag@move}
+  \setkeys[TempDiag]{msg}{#1}
+  \tempDiagMoveLines{\cmdTempDiag@msg@shift}
+  \tempDiagMoveLine{#3}{-\cmdTempDiag@msg@shift}
+  \foreach \dest in {#4} {
+    \ifthenelse{\cmdTempDiag@msg@broken = 0}{
+      \ifthenelse{\cmdTempDiag@msg@both = 0}{
+        \def\msg@direction{msg}
+      }{
+        \def\msg@direction{msg-both}
+      }
+      \draw[\msg@direction,#2] (pt-#3.center) -- node[above=-3pt] {#5} (pt-\dest.center);
+    }{
+      \node (x) at ($(pt-#3) ! .5 ! (pt-\dest)$) {};
+      \draw[msg-broken,#2] (pt-#3.center) -- node[pos=1,above=-3pt] {#5} (x.center);
+    }
+  }
+  \renewcommand{\diag@move}{\cmdTempDiag@msg@sep}
+  % draw message number
+  \ifthenelse{\cmdTempDiag@diag@numbers = 1 \and \cmdTempDiag@msg@number = 1}{
+    \addtocounter{@msg}{1}
+    \ifthenelse{#3 < #4}
+               {\node[left of=pt-#3,number] {\arabic{@msg}};}
+               {\node[right of=pt-#3,number] {\arabic{@msg}};}
+  }{}
+  \tempDiagMoveLine{#3}{\cmdTempDiag@msg@shift}
+}
+
+
+%%%%%
+% move all temporal lines of the diagram
+%
+% #1 = distance of the move
+\newcommand\tempDiagMoveLines[1]{%
+  \foreach \i in {1, ..., \diag@lines}{%
+    \tempDiagMoveLine{\i}{#1}%
+  }%
+}
+
+
+%%%%%
+% move a single temporal line of the diagram
+%
+% #1 = line to move
+% #2 = distance of the move
+\newcommand\tempDiagMoveLine[2]{%
+  \node[below of=pt-#1,node distance=#2] (pt-#1) {};%
+}
+
+
+%%%%%
+% put a node above the top of a temporal line
+%
+% #1 = line number
+% #2 = distance from the line
+% #3 = id of the node
+% #4 = content of the node
+\newcommand\tempDiagNode[4]{%
+  \node[above of=start-#1,node distance=#2] (#3) {#4};%
+}
+
+%%%%%
+% environment to draw temporal diagrams
+%
+% #1 (opt.) = style of the tempDiag's tikzpicture
+% #2 (opt.) = xkeys of the diagram
+% #3 = number of temporal lines
+% #4 = length between two temporal lines
+\newenvironmentx{tempDiag}[4][1=,2=]{%
+  \shorthandoff{:!}%
+  % handle xkeys
+  \setkeys[TempDiag]{diag}{#2}%
+  \setcounter{@msg}{\cmdTempDiag@diag@start}%
+  \presetkeys[TempDiag]{msg}{sep=\cmdTempDiag@diag@sep}{}%
+  %
+  \def\diag@lines{#3}%
+  \renewcommand{\diag@move}{0pt}%
+  % define some tikz styles
+  \tikzstyle{line}=[-,ultra thick]%
+  \tikzstyle{msg}=[->,very thick]%
+  \tikzstyle{msg-both}=[<->,very thick]%
+  \tikzstyle{msg-broken}=[-Rays,very thick]%
+  \tikzstyle{number}=[%
+    font=\scriptsize,%
+    draw,%
+    circle,%
+    inner sep=1pt,%
+    minimum width=4mm,%
+    thick,%
+    node distance=3mm%
+  ]%
+  %
+  \begin{tikzpicture}[#1]%
+    \foreach \i in {1, ..., \diag@lines}{%
+      \ifthenelse{\i = 1}{%
+        \node (start-\i) {};%
+      }{%
+        \pgfmathparse{#4 * (\i - 1)}\let\dist\pgfmathresult%
+        \node[right of=start-1,node distance=\dist] (start-\i) {};%
+      }%
+      \node at (start-\i) (pt-\i) {};%
+    }%
+    \tempDiagMoveLines{\cmdTempDiag@diag@topsep}%
+}{%
+  \tempDiagMoveLines{\cmdTempDiag@diag@bottomsep}%
+  \foreach \i in {1, ..., \diag@lines}{%
+    \draw[-,line] (start-\i) -- (pt-\i);%
+  }%
+  \shorthandon{:!}%
+  \end{tikzpicture}%
+}
+\makeatother

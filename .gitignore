@@ -1,0 +1,11 @@
+*~
+*.amc
+*.aux
+*.out
+*.log
+*.toc
+*.egg-info
+build
+__pycache__
+dist
+tmp

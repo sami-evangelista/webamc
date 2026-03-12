@@ -1,0 +1,5 @@
+include src/webamc/data/css/*
+include src/webamc/data/eml/*/*
+include src/webamc/data/js/*
+include src/webamc/data/png/*
+include src/webamc/data/lang/*/*

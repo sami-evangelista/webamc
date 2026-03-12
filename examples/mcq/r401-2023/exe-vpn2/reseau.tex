@@ -1,0 +1,23 @@
+\begin{tikzpicture}
+  \machine{}{C1}{270}{client1}
+  \node[right of=C1,node distance=1cm] (pt) {};
+  \serveur{right of=C1,node distance=2cm}{V1}{270}{vpn1}
+  \petitlan{above of=pt,node distance=1.5cm}{L1}{\scriptsize LAN1}
+  \routeur{right of=L1,node distance=2cm}{R1}{90}{routeur1}
+  \draw[lien] (R1) -- node[pos=0.2,above] {\scriptsize eth0} (L1);
+  \draw[lien] (C1) -- node[pos=0.2,left] {\scriptsize eth0} (L1);
+  \draw[lien] (V1) -- node[pos=0.2,right] {\scriptsize eth0} (L1);
+  %
+  \lan{right of=R1,node distance=2cm}{I}{\scriptsize 1.2.3.0/24}
+  \routeur{right of=I,node distance=2cm}{R2}{90}{routeur2}
+  \draw[lien] (R1) -- node[pos=0.2,above] {\scriptsize eth1} (I);
+  \draw[lien] (R2) -- node[pos=0.2,above] {\scriptsize eth1} (I);
+  %
+  \petitlan{right of=R2,node distance=2cm}{L2}{\scriptsize LAN2}
+  \serveur{right of=V1,node distance=6cm}{V2}{270}{vpn2}
+  \machine{right of=V2,node distance=2cm}{C2}{270}{client2}
+  \draw[lien] (R2) -- node[pos=0.2,above] {\scriptsize eth0} (L2);
+  \draw[lien] (C2) -- node[pos=0.2,right] {\scriptsize eth0} (L2);
+  \draw[lien] (V2) -- node[pos=0.2,left] {\scriptsize eth0} (L2);
+  \draw[-,ultra thick,red] (V1) -- node[above] {\scriptsize tunnel VPN} (V2);
+\end{tikzpicture}

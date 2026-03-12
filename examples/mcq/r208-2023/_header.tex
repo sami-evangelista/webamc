@@ -1,0 +1,43 @@
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{multicol}
+\lstset{literate=%
+  {é}{{\'e}}1
+  {è}{{\`e}}1
+  {ô}{{\^o}}1
+  {î}{{\^i}}1
+  {ê}{{\^e}}1
+  {à}{{\`a}}1
+  {ç}{{\,c}}1
+  {â}{{\^a}}1
+}
+\lstset{
+  language=python,
+  basicstyle=\small\tt,
+  commentstyle=\it,
+  keywordstyle=\bf,
+  stringstyle=\color{black!50},
+  showstringspaces=false,
+  morekeywords={self},
+  escapeinside={(*}{*)}
+}
+\usepackage{fancybox}
+\usepackage{latexsym}
+\usepackage{pslatex}
+\usepackage{xifthen}
+\usepackage{wasysym}
+\usepackage[francais]{babel}
+\usepackage{fancybox}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{multicol}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{hyperref}
+\usepackage{geometry}
+\ifdefined\WEBAMC
+\geometry{hmargin=1cm,headheight=0cm,headsep=0cm,footskip=0cm,top=0cm,bottom=0cm}
+\else
+\geometry{hmargin=2cm,headheight=2cm,headsep=.3cm,footskip=1cm,top=3cm,bottom=2.5cm}
+\usepackage[francais,bloc,ensemble]{automultiplechoice}
+\usepackage{config-amc}
+\fi

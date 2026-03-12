@@ -1,0 +1,114 @@
+This section describes the database and web server configuration
+procedure. It has been realised on a {\em Debian 13} system and is
+intended for system administrators. It assumes that you have already
+installed the webamc package, following the instructions in
+Section~\ref{sec:install}.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Database creation}
+Once package has been installed, a database must be created. Right now
+the database cannot be created with the webamc package, so we will
+interact with the server using the
+\name{psql} client tool. First connect to the database server using
+\name{postgres} identity.
+\begin{bash}
+$ sudo -u postgres psql
+\end{bash}%$
+
+In the postgresql interpreter, create the database, a database user
+and grant this user all privileges on the created database:
+\begin{sql}
+create user webamc_user password 'webamc_password';
+create database webamc;
+alter database webamc owner to webamc_user;
+grant all privileges on database webamc to webamc_user;
+\end{sql}
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Database initialisation}
+The next step is to initialise the database: we have to create tables
+and put some initial data in these. This is done via the \name{webamc}
+tool provided by the package.
+
+The configuration of the webamc command-line tool and web interface is
+done via a JSON file defining several configuration parameters (e.g.,
+database access parameters). An example file can be found in the
+\file{examples/cfg} directory of the
+repository. Section~\ref{sec:config} describes the different
+configuration parameters.
+
+By default, the configuration file is loaded from the
+\file{.local/share/webamc/config.json} file in the home directory of
+the user.
+%%%%%%%%%%
+\subsubsection{Tables creation}
+First we need to initialise the database structure and create all its
+table:
+\begin{bash}
+$ webamc --config-file /path/to/my/config.json init
+\end{bash}%$
+The command normally silently terminates. An error will likely be due
+to a misconfiguration of the database access.
+%%%%%%%%%%
+\subsubsection{CSV files loading}
+The \command{webamc loadcsv} command can be used to load records in
+the database. To use it, simply type this command followed by the path
+of one (or more) CSV file(s).
+\begin{bash}
+$ webamc --config-file /path/to/my/config.json loadcsv *.csv
+\end{bash}
+
+The \command{webamc genexamples} command creates a bunch of example
+CSV files in the directory passed as argument.
+\begin{bash}
+$ mkdir csv && webamc genexamples csv
+$ ls csv
+00-usr.csv  01-cas_auth.csv  02-basic_auth.csv  03-tag.csv
+04-grp.csv  05-usr_grp.csv   06-tbl.csv         07-admin.csv
+$ webamc --config-file /path/to/my/config.json loadcsv csv/*.csv
+\end{bash}
+
+For a basic setup, you will at least need to insert a user with
+administration privileges and an authentication mode so that she/he
+can access the web interface. CSV files can also be loaded from the
+web interface. Section \ref{sec:csv} describes the structure of CSV
+files.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Web server execution and configuration}
+Once the webamc package is installed, you can simply launch webamc's
+web server via \texttt{uvicorn} and bind it to TCP port, e.g., 8008.
+\begin{bash}
+$ uvicorn webamc.www.app:app --port 8008
+\end{bash}%$
+
+You can also change set the {\tt CONFIG\_FILE} environment variable to
+specify the configuration file to load:
+
+\begin{bash}
+$ CONFIG_FILE=/path/to/my/config.json uvicorn webamc.www.app:app --port 8008
+\end{bash}%$
+
+The \file{webamc.service} file in the root directory of the repository
+contains a minimal service specification to interact with the service
+via systemd.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Apache configuration}
+Now that our server listens on the 8008 port, we configure apache to
+redirect requests addressed to our server to this port.  The first
+step is to enable the \texttt{proxy\_http} module of apache:
+
+\begin{bash}
+$ sudo a2enmod proxy
+$ sudo a2enmod proxy_http
+\end{bash}%$$
+
+Then we have to add one line in the configuration of apache's virtual
+host to pass our server all requests on paths starting by, e.g.,
+\file{/webamc}.
+
+\begin{bash}
+ProxyPass /webamc http://localhost:8008/
+\end{bash}
+
+Then restart apache:
+\begin{bash}
+$ sudo systemctl restart apache2.service
+\end{bash}

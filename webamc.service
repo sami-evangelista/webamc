@@ -1,0 +1,17 @@
+# A minimal systemd service description to launch/stop webamc server
+#
+# 1 - change paths in Environment and ExecStart settings
+# 2 - sudo cp webamc.service /etc/systemd/system/webamc.service
+# 3 - sudo /usr/lib/systemd/systemd install webamc.service
+# 4 - sudo systemctl restart webamc.service
+
+[Unit]
+Description=Webamc web server
+After=network.target
+
+[Service]
+Type=simple
+User=webamc
+Environment=CONFIG_FILE=/path/to/webamc/config.json
+ExecStart=/path/to/py3-venv/bin/uvicorn webamc.www.app:app --port 8008
+Restart=on-failure

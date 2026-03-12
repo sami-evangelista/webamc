@@ -1,0 +1,229 @@
+id;text
+col_desc_adm_id;#
+col_desc_adm_tbl;table
+col_desc_adm_usr;user
+col_desc_cas_enabled;enabled
+col_desc_cas_id;#
+col_desc_cas_login;cas identifier
+col_desc_cas_usr;user
+col_desc_exm_duration;duration
+col_desc_exm_mcq;mcq
+col_desc_exm_start;start
+col_desc_grp_id;#
+col_desc_grp_name;name
+col_desc_grp_parent;parent
+col_desc_itm_code;identifier
+col_desc_itm_date;creation date
+col_desc_itm_difficulty;difficulty
+col_desc_itm_rnd;random
+col_desc_itm_standalone;standalone
+col_desc_itm_title;title
+col_desc_itm_type;type
+col_desc_itm_usr;user
+col_desc_itm_visible;visible
+col_desc_loc_enabled;enabled
+col_desc_loc_id;#
+col_desc_loc_login;login
+col_desc_loc_password;password
+col_desc_loc_usr;user
+col_desc_mcq_mode;mode
+col_desc_tag_color;color
+col_desc_tag_desc;description
+col_desc_tag_id;#
+col_desc_tag_name;name
+col_desc_tbl_id;#
+col_desc_tbl_name;name
+col_desc_ugp_grp;group
+col_desc_ugp_id;#
+col_desc_ugp_right;right
+col_desc_ugp_usr;user
+col_desc_usr_code;identifier
+col_desc_usr_eaddr;email address
+col_desc_usr_fst_name;first name
+col_desc_usr_id;#
+col_desc_usr_name;name
+err_action_required;An action must be performed prior to this one.
+err_admin_empty_csv_file;The CSV file is empty.
+err_admin_no_right_to_update_table;You are not allowed to update this table.
+err_admin_table_undeterminable;Impossible to determine destination table.
+err_amc_not_installed;AMC executable does not seem to be installed.
+err_auth_wrong_credentials;Invalid password.
+err_check_log_file;An error occurred. Please check log file.
+err_db_invalid_query;Invalid query.
+err_db_invalid_values;Invalid values.
+err_missing_or_invalid_parameter;Missing or invalid parameter.
+err;Error.
+err_http_403;Unauthorized access !!!
+err_http_404;File not found !!!
+err_http_422;Invalid request !!!
+err_http_500;Server error !!!
+err_invalid_csv_file;Invalid CSV file.
+err_invalid_eaddr;Invalid email address.
+err_invalid_password_confirm;Passwords are different.
+err_invalid_project_code;Invalid project code.
+err_invalid_project_title;Invalid project title.
+err_invalid_tex_archive;Invalid tex archive.
+err_invalid_ticket;This ticket is not valid.
+err_io;IO error.
+err_item_admin_empty_archive;The archive is empty.
+err_mail_server;Impossible to connect to the mail server.
+err_missing_file;A file is missing to perform this operation.
+err_no_access;Access denied.
+err_not_a_zip_file;This does not look like a zip file.
+err_project_already_exists;A project with the same code already exists.
+err_unknown_eaddr;Unknown email address.
+err_wrong_credentials;Wrong credentials.
+info_all_answers_will_be_reset;All answers will be reset.
+info_exam_finished;Exam finished !
+info_no_exam_available;No exam available.
+info_no_mcq_available;No MCQ available.
+info_please_wait;Work in progress. Please wait.
+info_progress_saved;Progress saved.
+name_actions;actions
+name_archive;archive
+name_confirmation;confirmation
+name_copies;copies
+name_creation;creation
+name_dashboard;dashboard
+name_database;database
+name_details;details
+name_exam;exam
+name_exercise;exercise
+name_files;files
+name_groups;groups
+name_logs;log files
+name_mcq;MCQ
+name_minutes;minutes
+name_no;no
+name_page;page
+name_parameters;parameters
+name_question;question
+name_review;review
+name_rights;rights
+name_statement;statement
+name_submission;submission
+name_table;table
+name_tags;tags
+name_threshold;threshold
+name_type;type
+name_view;view
+name_yes;yes
+op_after;after
+op_before;before
+op_diff;different from
+op_eq;equals to
+op_gt;greater than
+op_like;contains
+op_lt;less than
+op_notlike;does not contain
+page_title_account_creation;account creation
+page_title_administration;administration
+page_title_administration_database;database
+page_title_administration_submit_form;submission
+page_title_authentication;authentication
+page_title_authentication_creation;account creation
+page_title_authentication_login_cas;server
+page_title_authentication_login_local;local
+page_title_authentication_password_change;password change
+page_title_authentication_server;server authentication
+page_title_eaddr_change;Email address change
+page_title_exam_creation;creation
+page_title_exam_dashboard;dashboard
+page_title_exam_database;database
+page_title_exam;exam
+page_title_filters;filters
+page_title_index;index
+page_title_item_database;database
+page_title_item_groups;groups
+page_title_item;MCQ
+page_title_item_pack;creation
+page_title_item_submit_form;submission
+page_title_password_change;password change
+page_title_profile_group;group membership
+page_title_profile_personal_data;Personal data
+page_title_profile;profile
+page_title_project;AMC projects
+page_title_project_inbox;MCQ corrections
+page_title_project_main;AMC projects
+page_title_signout;signout
+page_title_ticket_error;ticket error
+param_err_invalid_duplicate_value;%s: duplicate value
+param_err_invalid_null_value;%s: value expected
+param_err_invalid_value;%s: invalid value
+param_seq_authentify_with_server;Authentify with server %s.
+param_seq_next_question;next question (%s)
+param_seq_previous_question;previous question (%s)
+param_seq_registrations_done;%s registration(s) done
+param_seq_switch_mode;switch mode (%s)
+param_seq_users_registered;%s user(s) registered for this exam
+qst_clean_project_files_confirmation;Do you confirm the deletion of this project files ?
+qst_delete_project_confirmation;Do you confirm the deletion of this project ?
+qst_exam_deletion_confirmation;Do you confirm the deletion of this exam ?
+qst_item_deletion_confirmation;Do you confirm the deletion of this item ?
+qst_item_row_confirmation;Do you confirm the deletion of this row ?
+qst_mcq_form_confirmation;Do you confirm the submission of your answers ?
+qst_restart_mcq_confirmation;Would you like to restart the MCQ ?
+seq_administrate_this_mcq;administrate this MCQ
+seq_analyse_answer_sheets;analyse answer sheets
+seq_associate_automatic;associate students and sheets (automatic)
+seq_associate_manual;associate students and sheets (manual)
+seq_clean_files;clean files
+seq_compile_latex;compile latex
+seq_compute_scores;compute scores
+seq_confirmation_request;confirmation request
+seq_csv_column_eaddr;column with student email address in student list
+seq_csv_column_id;column with student ID in student list
+seq_csv_file;CSV file
+seq_delete_project;delete this project
+seq_enter_new_eaddr;type your new email address
+seq_error_messages;error message(s)
+seq_export_scores;export scores
+seq_extract_answer_sheets;extract individual sheets
+seq_extract_layout_data;extract layout data
+seq_extract_scoring_data;extract scoring data
+seq_generate_sheets;generate sheets
+seq_generate_annotated_sheets;generate annotated sheets
+seq_information_messages;information message(s)
+seq_items_found;item(s) found
+seq_latex_id;student ID in latex file
+seq_manual_association;manual association
+seq_new_project;new project
+seq_new_row;new row
+seq_no_available_file;no available file
+seq_no_name;no name image
+seq_records_found;record(s) found
+seq_select_an_exam;select an exam
+seq_select_a_project;select a project
+seq_submission_result;submission result
+seq_upload_answer_sheets;upload answer sheets
+seq_upload_latex_archive;upload latex archive
+seq_upload_student_list;upload student list
+seq_warning_messages;warning message(s)
+seq_zip_file;ZIP file
+succ_account_created;Account successfuly created.
+succ_eaddr_changed;Email address successfuly changed.
+succ_loggin;Login successful.
+succ_password_changed;Password successfuly changed.
+succ;Success.
+succ_ticket_account_creation_sent;Account creation link sent.
+succ_ticket_eaddr_change_sent;Email address change link sent.
+succ_ticket_password_change_sent;Password change link sent.
+tbl_desc_admin;admin
+tbl_desc_cas_auth;cas_auth
+tbl_desc_grp;grp
+tbl_desc_local_auth;local_auth
+tbl_desc_tag;tag
+tbl_desc_tbl;tbl
+tbl_desc_usr_grp;usr_grp
+tbl_desc_usr;usr
+verb_administrate;administrate
+verb_answer;answer
+verb_cancel;cancel
+verb_clean;clean
+verb_delete;delete
+verb_filter;filter
+verb_send;send
+verb_start;start
+verb_validate;validate
+warning_exam_deletion_forbidden;Warning: this exam cannot be deleted as users have been registered for it.
+warning_page_wip;Warning: the development of this page is work in progress.

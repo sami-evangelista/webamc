@@ -1,0 +1,18 @@
+\begin{question}{linux/bases/droits/chmod-02}
+  Quelle commande permet de retirer le droit en lecture sur le fichier
+  {\tt fic} à {\em tous les utilisateurs autres que son
+    propriétaire}~? Les autres droits ne devront pas être modifiés par
+  la commande.
+  \begin{reponses}
+    \bonne{\texttt{chmod go-r fic}}
+    \mauvaise{\texttt{chmod -r fic}}
+    \mauvaise{\texttt{chmod o-4 fic}}
+    \mauvaise{\texttt{chmod o-1 fic}}
+    \mauvaise{\texttt{chmod o-r fic}}
+    \mauvaise{\texttt{chmod g-r fic}}
+    \mauvaise{\texttt{chmod 333 fic}}
+    \mauvaise{\texttt{chmod 111 fic}}
+    \lastchoices
+    \mauvaise{Aucune des réponses précédentes ne convient.}
+  \end{reponses}
+\end{question}

@@ -1,0 +1,14 @@
+\begin{question}{r401/2023/nat/postrouting}
+  On veut maintenant mettre en place des règles de translation
+  d'adresse sur fw pour que le réseau 10.1.0.0/24 (celui de Alice)
+  utilise l'IP publique de fw (1.2.3.2). Quelle commande faut-il
+  rajouter pour cela au script ?
+  \begin{reponses}
+    \bonne{{\small\tt    iptables -t nat -A POSTROUTING -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\small\tt iptables -t nat -A PREROUTING  -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\small\tt iptables -t nat -A FORWARD     -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\small\tt iptables -t nat -A POSTROUTING -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\small\tt iptables -t nat -A PREROUTING  -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\small\tt iptables -t nat -A FORWARD     -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+  \end{reponses}
+\end{question}

@@ -1,0 +1,419 @@
+This section describes how the webamc command-line tool can be used to
+prepare, compile and submit MCQ that can be loaded via the web
+interface. It assumes that you have already installed the webamc
+package, following the instructions in Section~\ref{sec:install}.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Structuring tex files for webamc}
+\label{subsec:submission/structuring}
+MCQ submitted to the web interface may be of two forms:
+\begin{itemize}
+\item either a list of questions ;
+\item or a list of exercises, each exercise being a list of questions.
+\end{itemize}
+From now on, the term {\em component} will be used to denote either an
+MCQ, or an exercise, or a question. In addition to all components that
+are part of it, an MCQ or an exercise may have a statement,
+explaining, e.g., the context of all its components. This is the
+purpose of files \file{\_mcq.tex} and \file{\_exercise.tex} to contain
+this statements.
+
+The following rules must be respected so that webamc can correctly
+compile your code:
+\begin{itemize}
+\item The content of an MCQ or an exercise must be placed in a single
+  directory.
+\item To be recognised as an MCQ directory, the directory must contain
+  an \file{\_mcq.tex} file containing the MCQ statement even if it is
+  empty.
+\item Likewise, to be recognised as an exercise directory, the
+  directory must contain an \file{\_exercise.tex} file containing the
+  exercise statement even if it is empty.
+\item Questions must be placed in files of which the name is prefixed
+  by \file{qst-}.
+\end{itemize}
+
+This is, for example, the directory structure of an MCQ containing
+five question files:
+\begin{mdframed}[style=defaultstyle]
+\dirtree{%
+.1 some\_mcq.
+.2 \_header.tex.
+.2 \_mcq.tex.
+.2 qst-aaa.tex.
+.2 qst-bbb.tex.
+.2 qst-ccc.tex.
+.2 qst-ddd.tex.
+.2 qst-eee.tex.
+}
+\end{mdframed}
+
+This is another example of the directory structure of a two exercises
+MCQ (the first one with 2 question files and the second one with three
+question files):
+\begin{mdframed}[style=defaultstyle]
+\dirtree{%
+.1 some\_other\_mcq.
+.2 \_header.tex.
+.2 \_mcq.tex.
+.2 exe-fst.
+.3 \_exercise.tex.
+.3 qst-fst-1.tex.
+.3 qst-fst-2.tex.
+.2 exe-snd.
+.3 \_exercise.tex.
+.3 qst-snd-1.tex.
+.3 qst-snd-2.tex.
+.3 qst-snd-3.tex.
+}
+\end{mdframed}
+
+More complex examples may be found in the examples \file{examples/mcq}
+directory.
+
+You may also submit directories that do not contain any MCQ but only
+question files. This is useful if you, for example, wish to record
+some questions in the database before creating question packs (see
+Section~\ref{subsec:submission/json-file-format}) that may contain
+these question.
+
+Note that all the file names listed above (\file{\_header.tex},
+\file{\_exercise.tex}, \ldots) are only default names and may be
+redefined through configuration files (see
+Section~\ref{subsec:submission/configuration} for further details).
+%%%%%%%%%%
+\subsubsection{Header tex file - \file{\_header.tex}}
+An \file{\_header.tex} file may contain latex code that will be placed
+in the preamble of the latex document generated on-the-fly for each
+component of the directory. Typically, you will write in this file all
+\verb+\usepackage{...}+ instructions required to compile latex files
+in this directory. A directory inherits from any \file{\_header.tex}
+contained in any of its ancestor directory. For example, let's
+consider this directory structure:
+\begin{mdframed}[style=defaultstyle]
+\dirtree{%
+.1 some\_dir.
+.2 \_header.tex~~~~~(content: \texttt{\textbackslash{}usepackage\{packa\}}).
+.2 another\_dir.
+.3 \_header.tex~~~~~(content: \texttt{\textbackslash{}usepackage\{packb\}}).
+.3 \_exercise.tex~~~~~(content: This is a new exercise).
+}
+\end{mdframed}
+When compiling the exercise file \file{\_exercise.tex}, the latex
+document compiled will contain the following code:
+\begin{tex}
+\documentclass{article}
+\def\WEBAMC{1}
+\usepackage{packa}
+\usepackage{packb}
+\begin{document}
+This is a new exercise
+\end{document}
+\end{tex}
+%%%%%%%%%%
+\subsubsection{Exercise tex file - \file{\_exercise.tex}}
+An \file{\_exercise.tex} contains the tex code of an exercise
+preamble, that is, the exercise statement required for the
+understanding of the questions enclosed in this exercise. The
+\name{CODE} attribute must be defined in this file (see
+Section~\ref{subsec:submission/metadata}).
+%%%%%%%%%%
+\subsubsection{MCQ tex file - \file{\_mcq.tex}}
+An \file{\_mcq.tex} contains the tex code of an MCQ preamble, that is
+the MCQ statement required for the understanding of the components
+(questions or exercises) enclosed in this MCQ. The \name{CODE} and
+\name{TITLE} attributes must be defined in this file (see
+Section~\ref{subsec:submission/metadata}).
+%%%%%%%%%%
+\subsubsection{Webamc metadata file - \file{\_webamc.tex}}
+The content of this file is never compiled by webamc, but it may be
+used to set some attributes for all the components enclosed in the
+directory. For instance, if an MCQ directory contains a
+\file{\_webamc.tex} file with the single line below:
+\begin{tex}
+%webamc RND=1
+\end{tex}
+then this means that the content of all components of the MCQ (i.e.,
+its exercises, the questions within its exercises, and the answers of
+all its questions) will be organised randomly.
+
+As for \file{\_header.tex} files, a directory inherits from any
+\file{\_webamc.tex} contained in any of its ancestor directory.
+%%%%%%%%%%
+\subsubsection{Question pack file - \file{\_pack.json}}
+This is a JSON file containing the description of a pack of questions
+that can be used to form an exercise or an MCQ. Please consult this
+Section~\ref{subsec:submission/json-file-format} for further help on
+the JSON file format.
+%%%%%%%%%%
+\subsubsection{Question file - \file{qst-XXX.tex}}
+Any tex file which name starts with prefix \file{qst-} is considered
+by webamc as a question file, that is, a file containing questions. A
+question file may contain any tex code, but only the code enclosed
+within questions will be compiled by webamc, e.g., tex code between
+questions will be ignored.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Basics on compilation}
+Right now, the compilation of the tex files that are part of your MCQ
+is done on the client side using the \name{webamc} command line
+tool. This has the advantage to alleviate the server but, since tex
+files are compiled once before submitting the MCQ to the web
+interface, this prevents MCQ from being dynamic.
+
+When analysing your tex files, each question and each answer of your
+MCQ will be compiled separately in order to a generate a separate png
+file. For example, let's say your MCQ contains the following question:
+\begin{tex}
+\begin{questionmult}{math-sqrt}
+    $\sqrt{81}$ = ?
+    \begin{reponses}
+    \bonne{9}
+    \bonne{$3^2$}
+    \mauvaise{19}
+    \mauvaise{6}
+    \mauvaise{8}
+    \end{reponses}
+\end{questionmult}
+\end{tex}
+
+Then webamc will on-the-fly generate and compile 6 tex documents (1
+for the question statement and 1 for each answer) to produce 6 png
+files. As a consequence, question and answer statements must be fully
+context independent (e.g., with no \verb+\label{...}+ in it).
+
+When compiling a latex file, webamc will define in the document's
+preamble a macro called \verb+WEBAMC+ as follows:
+\begin{tex}
+\def\WEBAMC{1}
+\end{tex}
+
+This may be useful if you want to write latex code specific for the
+web version of your MCQ, for example:
+\begin{tex}
+\ifdefined\WEBAMC
+(Nota: This is the web version of ...)
+\fi
+\end{tex}
+
+It is also very important to note that during compilation, all files
+are compiled from the directory in which the \file{\_mcq.tex} file is
+located. Therefore all paths that may appear in your question files
+(e.g., if you include graphics in your questions) must be relative to
+that directory.
+
+However, if you compile a directory that does not contain an
+\file{\_mcq.tex} file but only, e.g., question files, each question
+file is then compiled from the directory it is located in.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Webamc metadata}
+\label{subsec:submission/metadata}
+Several component attributes can be set directly in tex files with
+specific comments. Webamc will consider as an attribute definition any
+comment that starts at column one and that follows this pattern:
+\begin{tex}
+%webamc ATTRIBUTE_NAME=ATTRIBUTE_VALUE
+\end{tex}
+Note that once loaded in the web interface all these attributes
+(except the \name{CODE}) can be modified through the web interface.
+%%%%%%%%%%
+\subsubsection{Attribute list}
+%%%%%
+\paragraph{Attribute \name{CODE}}
+This defines the code of the component. Codes must be unique and not
+null. Therefore this attribute is mandatory in exercise tex files
+(\file{\_exercise.tex}) and MCQ tex files (\file{\_mcq.tex}). For a
+question, the code is directly extracted from the tex code (i.e.,
+\verb+id-qst+ in \verb+\begin{question}{id-qst}+).
+%%%%%
+\paragraph{Attribute \name{DIFFICULTY}}
+This defines the difficulty of the component. It is an integer ranging
+from 1 to 5. This is useful if you want to create question packs based
+on their difficulty (see this
+Section~\ref{subsec:submission/json-file-format}).
+%%%%%
+\paragraph{Attribute \name{RND}}
+This defines whether or not the component content (e.g., questions of
+an exercise or answers of a question) is randomized. Accepted values
+are \verb+0+ and \verb+1+. Default value is \verb+0+.
+%%%%%
+\paragraph{Attribute \name{STANDALONE}}
+Only valid for questions (for now), this defines whether or not the
+question is a standalone question that can be selected in question
+packs. Non standalone questions are typically context dependent
+questions (e.g., questions based on an exercise statement).  Accepted
+values are \verb+0+ and \verb+1+. Questions that are not part of an
+exercise or an MCQ are always considered as standalone
+questions. Otherwise, the default value is \verb+0+.
+%%%%%
+\paragraph{Attribute \name{TAG}}
+This adds a tag to the component. Several tags can be added through
+repeated assignments to that attribute. This is useful if you want to
+create question packs based on their tags (see this
+Section~\ref{subsec:submission/json-file-format}).
+%%%%%
+\paragraph{Attribute \name{TITLE}}
+This defines the title of the component that will appear in the web
+interface. Note that any tex macro appearing in it will be ignored,
+i.e., not compiled, and will appear as such in the web interface. This
+attribute is mandatory in MCQ tex files (\file{\_mcq.tex}).
+%%%%%
+\paragraph{Attribute \name{VISIBLE}}
+This defines the visibility of the component. A non visible component
+will not appear in the web interface, except for the user that
+submitted it. Default value is \verb+1+.
+%%%%%%%%%%
+\subsubsection{Attribute validity}
+Some attributes are mandatory in some files whereas some others may be
+meaningless in others. The table below synthesises attribute
+availability in the different tex files analysed by webamc. In this
+table:
+\begin{itemize}
+\item 0 means that, if present in the file, the attribute will be
+  ignored ;
+\item 1 means that the attribute will be considered in the file
+  although it is not mandatory ;
+\item and 2 means that the attribute is mandatory in the file.
+\end{itemize}
+
+\begin{center}
+  \begin{tabular}{lrrrrr}
+    & \file{\_exercise.tex} & \file{\_header.tex}
+    & \file{\_mcq.tex} & \file{\_webamc.tex} & \file{qst-XXX.tex}\\
+    \hline
+    \name{CODE}       & 2 & 0 & 2 & 0 & 0\\
+    \name{DIFFICULTY} & 1 & 0 & 1 & 1 & 1\\
+    \name{RND}        & 1 & 0 & 1 & 1 & 1\\
+    \name{STANDALONE} & 0 & 0 & 0 & 1 & 1\\
+    \name{TAG}        & 1 & 0 & 1 & 1 & 1\\
+    \name{TITLE}      & 1 & 0 & 2 & 0 & 0\\
+    \name{VISIBLE}    & 1 & 0 & 1 & 1 & 1\\
+  \end{tabular}
+\end{center}
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Component compilation and submission}
+The \command{webamc compile} command takes two arguments:
+\begin{itemize}
+\item a directory containing some component(s) to compile ;
+\item and the name of the zip archive (without the \file{.zip} suffix)
+  that you will get in output.
+\end{itemize}
+
+You will find several examples in the \file{examples} directory of the
+package. Note that this process may take a while (typically a few
+minutes for large MCQ) since, as said above, webamc will compile each
+component and each answer separately. The zip archive you get in output
+can be submitted through the web interface.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{JSON file format for question packs}
+\label{subsec:submission/json-file-format}
+When present in an exercise or an MCQ directory, a \file{\_pack.json}
+file specifies that this one is composed of a set of standalone
+questions (i.e., questions for which the \name{STANDALONE} attribute
+has been set to \verb+1+). The purpose of the \file{\_pack.json} is to
+specify how to pick these questions. It consists basically of a
+sequence of operations successively applied. Available operations are:
+\begin{itemize}
+\item \verb+all+: select all available questions
+\item \verb+sort+: sort questions (by \verb+difficulty+ or by
+  \verb+code+)
+\item \verb+shuf+: select questions randomly
+\item \verb+head+: select the first questions from those selected so far
+\item \verb+with-code+: select questions based on their codes
+\item \verb+with-difficulty+: select questions based on their
+  difficulty
+\item \verb+with-tag+: select questions based on their tags
+\end{itemize}
+
+An operation is specified with a dictionary having the following keys:
+\begin{itemize}
+\item \verb+op+: the operation realised, among those listed above
+\item \verb+arg+: for some operations, specify an argument (e.g., the
+  number of questions selected for operation \verb+head+)
+\item \verb+rev+: for \verb+with-XXX+ operations, operate a negation
+  during the selection (e.g., to select questions that do {\em not}
+  have a specific tag)
+\item \verb+content+: questions on which this operation is realised,
+  also specified using an operation dictionary. By default all
+  available questions are taken.
+\end{itemize}
+  
+Here are a few examples:
+
+\begin{itemize}
+\item select all available questions from the database:
+  \lstinputlisting[language=json]{../examples/mcq/packs/all/_pack.json}
+
+\item select all available questions from the database and order them
+  randomly:
+  \lstinputlisting[language=json]{../examples/mcq/packs/shuf/_pack.json}
+
+\item randomly pick 5 questions:
+  \lstinputlisting[language=json]{../examples/mcq/packs/pick/_pack.json}
+
+\item take all questions with tag \name{réseaux} and with a difficulty
+  of 4 or 5 and shuffle them:
+  \lstinputlisting[language=json]{../examples/mcq/packs/tags/_pack.json}
+
+\item take all questions that do not have the \name{linux} tag:
+  \lstinputlisting[language=json]{../examples/mcq/packs/tags-rev/_pack.json}
+
+\item take all questions having the \name{réseaux} tag and sort them
+  by \verb+difficulty+:
+  \lstinputlisting[language=json]{../examples/mcq/packs/sort/_pack.json}
+\end{itemize}
+
+It is also possible to realise the union of several selections using
+lists of operations. For example, this specifies a question pack with
+all questions having the \name{linux} tag or with a difficulty level
+strictly less than 3 ordered randomly.
+\lstinputlisting[language=json]{../examples/mcq/packs/union/_pack.json}
+
+Last, note that the web interface also provides a form to directly
+create question packs rather than specifying them with a JSON file.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Compilation configuration}
+\label{subsec:submission/configuration}
+Several configuration parameters alter the compilation process.
+Therefore after installation you may wish to check your configuration
+file, although the default values should work
+fine. Section~\ref{sec:config} also gives the default configuration.
+
+These parameters configure the way the tex-to-pdf compiler is invoked:
+\begin{itemize}
+\item \texttt{tex2pdf\_exe}: name of the executable (that can be found
+  in your \name{PATH} environment variable), or absolute path of the
+  executable that will be used to compile tex files to pdf files
+\item \texttt{tex2pdf\_exe\_args}: argument list given to this
+  executable. The two following strings {\em must} appear in this
+  list:
+  \begin{itemize}
+  \item \texttt{\{out\_dir\}}: placeholder for the directory name in
+    which the tex-to-pdf compiler will store output file
+  \item \texttt{\{tex\_file\}}: placeholder for the input tex file
+  \end{itemize}
+\item \texttt{log\_file}: path of the log file in which webamc will
+  store compilation results
+\end{itemize}
+
+You may also change the name of the default file names that webamc
+will handle (as described in
+Section~\ref{subsec:submission/structuring}) by changing these
+configuration parameters:
+\begin{itemize}
+\item \texttt{json\_file\_pack}
+\item \texttt{tex\_file\_exercise}
+\item \texttt{tex\_file\_header}
+\item \texttt{tex\_file\_mcq}
+\item \texttt{tex\_file\_question\_prefix}
+\item \texttt{tex\_file\_webamc}
+\end{itemize}
+
+You can also specify which tex macros or environments will be handled
+by webamc with these configuration parameters:
+\begin{itemize}
+\item \texttt{tex\_envs\_choices}
+\item \texttt{tex\_envs\_question}
+\item \texttt{tex\_envs\_question\_mult}
+\item \texttt{tex\_macros\_choice}
+\item \texttt{tex\_macros\_choice\_correct}
+\item \texttt{tex\_macros\_lastchoices}
+\end{itemize}

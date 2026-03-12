@@ -1,0 +1,11 @@
+{
+   "op": "shuf",
+   "content": {
+      "op": "with-difficulty",
+      "arg": [4, 5],
+      "content":{
+         "op": "with-tag",
+         "arg": ["linux"]
+      }
+   }
+}

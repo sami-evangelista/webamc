@@ -1,0 +1,12 @@
+\begin{question}{r203/2023/dhcp/route}
+  Sur le relai, est-il nécessaire d'ajouter une route, et si oui avec
+  quelle commande ?
+  \begin{reponses}[2]
+    \bonne{oui:    {\tt ip route add default via @R(eth0)}}
+    \mauvaise{oui: {\tt ip route add default via @R(eth1)}}
+    \mauvaise{oui: {\tt ip route add default via @dhcp(eth0)}}
+    \mauvaise{oui: {\tt ip route add default via @relai(eth0)}}
+    \lastchoices
+    \mauvaise{non: cette route lui est fournie par le DHCP}
+  \end{reponses}
+\end{question}

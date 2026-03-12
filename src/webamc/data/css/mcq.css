@@ -1,0 +1,122 @@
+:root {
+    --color-status-rule-background: #BBBBDD;
+    --color-status-rule-border: #000000;
+    --color-status-wrong: red;
+    --color-status-correct: green;
+    --color-status-unfilled: lightgray;
+    --color-status-filled: blue;
+    --color-status-current: yellow;
+}
+
+/* status for choices and questions */
+.status-rule {
+    border-color: var(--color-status-rule-border);
+    background-color: var(--color-status-rule-background);
+    display: table;
+    margin: 0 auto;
+    position: sticky;
+    top: -10px;
+    border: 4px solid;
+    border-radius: 5px;
+    padding: 6px;
+    & td {
+	padding: 1px;
+    }
+}
+.status-box {
+    width: 10px;
+    height: 10px;
+}
+.status-box-question {
+    border: 3px solid;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.status-box-choice {
+}
+.status-box-choice-set {
+    border: 3px solid;
+    border-radius: 4px;
+}
+.status-wrong {
+    background-color: var(--color-status-wrong);
+}
+.status-correct {
+    background-color: var(--color-status-correct);
+}
+.status-unfilled {
+    background-color: var(--color-status-unfilled);
+}
+.status-filled {
+    background-color: var(--color-status-filled);
+}
+.status-current {
+    border-color: var(--color-status-current);
+}
+
+/* questions */
+.question {
+    margin: 0.5em 0em 0em 0em;
+}
+.question-number {
+    font-weight: bold;
+    font-size: x-large;
+    color: var(--color-struct);
+    cursor: pointer;
+}
+.question-body {
+    margin: 1em 0em 1em 2em;
+}
+.question-body-admin {
+    border: 4px solid;
+    padding: 4px;
+    border-radius: 5px;
+    border: solid 4px;
+}
+
+/* exercises */
+.exercise {
+    margin: 2em 0em 0em 0em;
+}
+.exercise-title {
+    font-weight: bold;
+    font-size: xx-large;
+    color: var(--color-struct);
+    cursor: pointer;
+}
+.exercise-body {
+    margin: 1em 0em 2em 2em;
+}
+
+/* exam timer */
+#exam-timer {
+    z-index: 99;
+    position: fixed;
+    right: 5px;
+    top: 5px;
+    width: 30px;
+    height: 50px;
+    background-color: #00ff00;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    line-height: 50px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    border-color: var(--color-status-rule-border);
+    border: 4px solid;
+    border-radius: 5px;
+    &::before {
+	content: var(--url-timer-img);
+    }
+    &:hover {
+	width: 150px;
+	& #exam-timer-text {
+	    display: inline-block;
+	}
+    }
+}
+#exam-timer-text {
+    display: none;
+}

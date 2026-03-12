@@ -1,0 +1,11 @@
+\begin{question}{r401/2023/ids/rule-xmas}
+  Quelle règle snort permet de détecter un scan XMAS (bits P, U et F
+  activés) en provenance du réseau 2.4.8.0/24 ?
+  \begin{reponses}
+    \bonne{{\tt alert tcp 2.4.8.0/24 any -> any any (flags: "PUF";)}}
+    \mauvaise{{\tt alert udp 2.4.8.0/24 any -> any any (flags: "PUF";)}}
+    \mauvaise{{\tt alert icmp 2.4.8.0/24 any -> any any (flags: "PUF";)}}
+    \mauvaise{{\tt alert udp 2.4.8.0/24 any -> any any (content: "PUF";)}}
+    \mauvaise{{\tt alert tcp any any -> 2.4.8.0/24 any (content: "PUF";)}}
+  \end{reponses}
+\end{question}

@@ -1,0 +1,7 @@
+{
+   "op": "head",
+   "arg": 5,
+   "content": {
+      "op": "shuf"
+   }
+}

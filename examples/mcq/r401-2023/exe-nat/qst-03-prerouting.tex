@@ -1,0 +1,14 @@
+\begin{question}{r401/2023/nat/prerouting}
+  Après avoir mis en place la translation avec la commande précédente,
+  on veut qu'un serveur TCP s'exécutant sur 10.1.0.1 et écoutant sur
+  le port 25 soit accessible depuis le réseau public
+  (1.2.3.0/24). Quelle commande faut-il rajouter pour cela au script ?
+  \begin{reponses}
+    \bonne{{\tt    iptables -t nat -A PREROUTING  -i eth1 -p tcp -{}-{}dport 25 -j DNAT -{}-{}to 10.1.0.1}}
+    \mauvaise{{\tt iptables -t nat -A POSTROUTING -i eth1 -p tcp -{}-{}dport 25 -j DNAT -{}-{}to 10.1.0.1}}
+    \mauvaise{{\tt iptables -t nat -A PREROUTING  -o eth0 -p tcp -{}-{}dport 25 -j DNAT -{}-{}to 10.1.0.1}}
+    \mauvaise{{\tt iptables -t nat -A PREROUTING  -i eth1 -p tcp -{}-{}dport 25 -j SNAT -{}-{}to 10.1.0.1}}
+    \mauvaise{{\tt iptables -t nat -A POSTROUTING -i eth1 -p tcp -{}-{}dport 25 -j SNAT -{}-{}to 10.1.0.1}}
+    \mauvaise{{\tt iptables -t nat -A FORWARD     -i eth1 -p tcp -{}-{}dport 25 -j SNAT -{}-{}to 10.1.0.1}}
+  \end{reponses}
+\end{question}

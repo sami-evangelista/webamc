@@ -1,0 +1,14 @@
+\begin{question}{r401/2023/vpn2/icmp}
+  L'hôte client1 envoie un message ICMP encapsulant 100 octets de
+  données. Quelle sera, en octets, la taille de la trame contenant ce
+  message sur le tunnel ?
+  \begin{reponseshoriz}
+    \bonne{208}% Ether/IP/UDP/Ether/IP/ICMP/100
+    \mauvaise{182} % Ether/IP/UDP/IP/ICMP/100
+    \mauvaise{154} % Ether/IP/ICMP/100
+    \mauvaise{162} % Ether/IP/UDP/ICMP/100
+    \mauvaise{228} % Ether/IP/UDP/Ether/IP/TCP/ICMP/100
+    \mauvaise{202} % Ether/IP/UDP/IP/TCP/ICMP/100
+    \mauvaise{une autre valeur}
+  \end{reponseshoriz}
+\end{question}

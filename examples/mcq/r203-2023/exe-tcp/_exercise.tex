@@ -1,0 +1,32 @@
+%webamc CODE=r203/2023/tcp
+%webamc TITLE=TCP
+%webamc RND=0
+
+On considère dans cet exercice un processus $C$ qui s'adresse
+successivement à deux serveurs TCP $S_1$ et $S_2$. Le premier lui
+refuse la connexion, et le second accepte. Dans son échange avec
+$S_2$, $C$ envoie une requête de 100 octets à laquelle $S_2$ répond
+par 1470 octets de données. $S_2$ met ensuite fin à la connexion.
+
+Voici les chronogrammes retraçant les échanges entre $C$ et $S_1$ (à
+gauche) et entre $C$ et $S_2$ (à droite).
+
+\begin{minipage}[t]{.40\textwidth}
+  \begin{center}~\\\input{exe-tcp/diag1}\end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{.40\textwidth}
+  \begin{center}~\\\input{exe-tcp/diag2}\end{center}
+\end{minipage}
+
+Les paquets contenant les données (requête et réponse) sont les
+paquets 4, 6 et 8. Les autres paquets servent uniquement à contrôler
+l'échange (connexion, déconnexion, \ldots).  On rappelle que:
+\begin{itemize}
+\item {\em Seq} = numéro de séquence d'envoi, {\em SeqA} = numéro de
+  séquence d'acquittement ;
+\item en-tête IP = 20 octets, en-tête TCP = 20 octets, en-tête UDP = 8
+  octets, et en-tête + FCS ethernet = 26 octets ;
+\item une trame Ethernet ne peut pas encapsuler plus de 1~500 octets.
+\end{itemize}
+

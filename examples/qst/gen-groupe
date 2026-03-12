@@ -1,0 +1,4 @@
+#!/bin/bash
+
+find . -name qst*tex -exec echo "\element{questions}{\input{{}}}" \; \
+     > questions.tex 

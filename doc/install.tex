@@ -1,0 +1,58 @@
+This section describes the installation procedure for the webamc
+package. This procedure has been realised on {\em Debian 13}.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Dependencies installation}
+We will first update the system.
+\begin{bash}
+$ sudo apt update
+$ sudo apt upgrade
+\end{bash}
+
+For a basic use of webamc you will need a python3 environment and
+optionally the git system (if you wish to install webamc from the
+development version).
+\begin{bash}
+$ sudo apt install python3 python3-pip python3-venv git
+\end{bash}%$
+
+If you install webamc on the web server side you will need the apache
+web server, the postgresql database manager, and the wsgi module so
+that our web server can execute our python scripts.
+\begin{bash}
+$ sudo apt install apache2 postgresql libapache2-mod-wsgi-py3 libpq-dev
+\end{bash}%$
+
+Now if you install webamc on the client side (i.e., to compile latex
+MCQ that you intend to load to the web interface) you will need
+a tex system able to compile tex files to pdf files:
+\begin{bash}
+$ sudo apt install texlive-latex-base texlive-extra-utils
+\end{bash}%$
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Webamc installation}
+We will run python in a virtual environment \file{py3-venv} that we
+create here in \file{/home/webamc}:
+\begin{bash}
+$ whoami 
+webamc
+$ cd
+$ pwd
+/home/webamc
+$ python3 -m venv py3-venv
+\end{bash}%$
+
+We then activate the virtual environment.
+\begin{bash}
+$ source py3-venv/bin/activate
+\end{bash}%$
+
+We can finally install webamc either from the repository:
+\begin{bash}
+(py3-venv) $ git clone [*{\TOOLURLGIT}*]
+(py3-venv) $ cd webamc
+(py3-venv) $ pip3 install .
+\end{bash}%$
+or from the last available release:
+\begin{bash}
+(py3-venv) $ pip3 install [*{\TOOLURLRELEASE}*]
+\end{bash}

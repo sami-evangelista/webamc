@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=3cm]
+  \machine{}{B}{270}{bob}
+  \petitlan{right of=B}{L1}{}
+  \routeur{right of=L1}{R}{90}{fw}
+  \petitlan{right of=R}{L2}{}
+  \machine{right of=L2}{A}{270}{alice}
+  %
+  \draw[lien] (B) -- node[pos=0.2,above] {\scriptsize 1.2.3.1} (L1);
+  \draw[lien] (R) -- node[pos=0.2,above] {\scriptsize 1.2.3.2} node[pos=0.2,below] {\scriptsize eth1} (L1);
+  \draw[lien] (R) -- node[pos=0.2,above] {\scriptsize 10.1.0.254} node[pos=0.2,below] {\scriptsize eth0} (L2);
+  \draw[lien] (A) -- node[pos=0.2,above] {\scriptsize 10.1.0.1} (L2);
+\end{tikzpicture}

@@ -1,0 +1,16 @@
+\begin{question}{r203/2023/ssh/cmd-ssh2}
+  Alice est connectée sur sa machine en tant qu'utilisateur
+  alice. Quelle commande peut-elle exécuter pour ouvrir une session
+  SSH en tant qu'utilisateur {\em root} sur la machine de Bob
+  (1.2.3.4) ?
+  \begin{reponses}[2]
+    \mauvaise{{\tt ssh 1.2.3.4}}
+    \mauvaise{{\tt ssh root 1.2.3.4}}
+    \mauvaise{{\tt ssh 1.2.3.4:root}}
+    \mauvaise{{\tt ssh @1.2.3.4}}
+    \mauvaise{{\tt ssh 1.2.3.4@root}}
+    \mauvaise{{\tt /etc/init.d/sshd root@1.2.3.4}}
+    \lastchoices
+    \bonne{ARNC}
+  \end{reponses}
+\end{question}

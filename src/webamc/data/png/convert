@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SIZES="24 32 48 64"
+for png in *[a-z].png
+do
+    for size in $SIZES
+    do
+        out=${png%.png}-$size.png
+        [ -e $out ] && continue
+        cmd="convert -resize x$size -background transparent $png $out"
+        echo $cmd
+        eval $cmd
+    done
+done

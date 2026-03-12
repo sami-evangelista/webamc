@@ -1,0 +1,75 @@
+{
+  "base_url": "https://www.example.com",
+  "auth_account_creation_enabled": true,
+  "auth_cas_enabled": true,
+  "auth_local_enabled": true,
+  "cas_server": "https://cas.example.com",
+  "cas_server_name": "CAS example server",
+  "cas_version": 2,
+  "date_format": null,
+  "date_locale": "en",
+  "datetime_format": null,
+  "db_port": 5432,
+  "db_host": "localhost",
+  "db_name": "webamc",
+  "db_password": "webamc_password",
+  "db_user": "webamc_user",
+  "debug": true,
+  "icon_size": 24,
+  "json_file_pack": "_pack.json",
+  "key_qst_next": "d",
+  "key_qst_prev": "q",
+  "key_switch_mode": "m",
+  "lang": "en",
+  "log_file": null,
+  "mails_dir": null,
+  "password_ticket_validity": 3600,
+  "projects_dir": "/var/www/amc-projects",
+  "root_path": "/webamc",
+  "secret_key": "abcdefghij0123456789",
+  "service_name": "Webamc",
+  "smtp_auth": true,
+  "smtp_eaddr_from": "no-reply@example.com",
+  "smtp_host": "mail.example.com",
+  "smtp_password": "smtp_password",
+  "smtp_port": 465,
+  "smtp_user": "smtp_user",
+  "tex2pdf_exe": "pdflatex",
+  "tex2pdf_exe_args": [
+    "-output-directory={out_dir}",
+    "{tex_file}"
+  ],
+  "tex_envs_choices": [
+    "choices",
+    "choiceshoriz",
+    "reponses",
+    "reponseshoriz"
+  ],
+  "tex_envs_question": [
+    "question",
+    "questionmult"
+  ],
+  "tex_envs_question_mult": [
+    "questionmult"
+  ],
+  "tex_file_exercise": "_exercise.tex",
+  "tex_file_header": "_header.tex",
+  "tex_file_mcq": "_mcq.tex",
+  "tex_file_question_prefix": "qst-",
+  "tex_file_webamc": "_webamc.tex",
+  "tex_macros_choice": [
+    "bonne",
+    "correctchoice",
+    "mauvaise",
+    "wrongchoice"
+  ],
+  "tex_macros_choice_correct": [
+    "bonne",
+    "correctchoice"
+  ],
+  "tex_macros_lastchoices": [
+    "alafin",
+    "lastchoices"
+  ],
+  "ticket_length": 64
+}

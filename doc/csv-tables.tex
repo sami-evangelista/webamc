@@ -1,0 +1,150 @@
+\subsection{Table \texttt{usr}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table defines users.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{usr\_code} --- 
+    unique user code
+    
+\item\texttt{usr\_eaddr} --- 
+    unique electronic address
+    
+\item\texttt{usr\_fst\_name} --- 
+    first name
+    
+\item\texttt{usr\_name} --- 
+    name
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{local\_auth}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table controls local system authentication. Each row gives
+    access to one user. The login used by the user to authenticate is
+    her/his code. An empty password prevents the user from logging
+    meaning that he/she has to first reset his/her password. If not
+    empty, the password is given plain.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{loc\_login} --- 
+    login of the user
+    
+\item\texttt{loc\_usr} --- 
+    user which is granted access (references {\tt usr.usr\_code})
+    
+\item\texttt{loc\_enabled} --- 
+    1 if local authentication is enabled for the user, 0 otherwise
+    
+\item\texttt{loc\_password} --- 
+    plain-text password
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{cas\_auth}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table controls CAS authentication. Each row gives access to
+    one user.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{cas\_usr} --- 
+    user which is granted access (references {\tt usr.usr\_code})
+    
+\item\texttt{cas\_enabled} --- 
+    1 is CAS authentication enabled for the user, 0 otherwise
+    
+\item\texttt{cas\_login} --- 
+    login of the user on the CAS server
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{tag}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table defines tags that can be associated to MCQ items (e.g.,
+    questions).
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{tag\_name} --- 
+    unique tag name
+    
+\item\texttt{tag\_desc} --- 
+    tag description (possibly empty)
+    
+\item\texttt{tag\_color} --- 
+    tag color of the form \verb+#RRGGBB+ (possibly empty)
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{tbl}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table contains the list of names of tables which can be
+    administrated through the web interface, i.e., for which CSV file
+    submission is allowed.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{tbl\_name} --- 
+    unique table name
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{admin}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table defines grants administration privileges to users on
+    tables.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{adm\_usr} --- 
+    user which is granted admin right (references {\tt usr.usr\_code})
+    
+\item\texttt{adm\_tbl} --- 
+    table on which this right admin right is granted (references
+    {\tt tbl.tbl\_name})
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{grp}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table defines user groups.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{grp\_name} --- 
+    unique group name
+    
+\item\texttt{grp\_parent} --- 
+    parent group name (possibly empty, references {\tt grp.grp\_name})
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{usr\_grp}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table defines group memberships.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{ugp\_usr} --- 
+    user (references {\tt usr.usr\_code})
+    
+\item\texttt{ugp\_grp} --- 
+    group (references {\tt grp.grp\_name})
+    
+\item\texttt{ugp\_right} --- 
+    right given to the user on the group: 1 for view (right to view
+    MCQ submitted for that group), 2 for submit (right to submit MCQ
+    for that group)
+    
+\end{itemize}
+\end{itemize}

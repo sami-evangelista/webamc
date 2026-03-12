@@ -1,0 +1,12 @@
+Subject: {service} - Création d'un compte
+Content-Type: text/plain; charset=utf-8
+
+Bonjour,
+
+Une demande de création de compte a été faite depuis l'adresse
+{eaddr}. Veuillez ignorer ce message si vous n'êtes pas à l'origine de
+cette demande. Vous pouvez sinon accéder au formulaire de création de
+votre compte en suivant ce lien :
+{url}
+
+À bientôt !

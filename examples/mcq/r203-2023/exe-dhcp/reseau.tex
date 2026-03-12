@@ -1,0 +1,18 @@
+\begin{tikzpicture}[node distance=1.5cm]
+  \switch{}{S1}{90}{switch\textsubscript{1}}
+  \node[below of=S1] (pt) {};
+  \machine{left of=pt}{anna}{270}{anna}
+  \serveur{right of=pt}{relai}{270}{relai}
+  \routeur{right of=S1,node distance=2.5cm}{R}{90}{R}
+  \switch{right of=R,node distance=2.5cm}{S2}{90}{switch\textsubscript{2}}
+  \node[below of=S2] (pt) {};
+  \machine{left of=pt}{eve}{270}{eve}
+  \serveur{right of=pt}{dhcp}{270}{dhcp}
+  %
+  \draw[liaison] (S1) -- node[pos=0.8,left] {\scriptsize eth0} (anna);
+  \draw[liaison] (S1) -- node[pos=0.8,right] {\scriptsize eth0} (relai);
+  \draw[liaison] (S1) -- node[pos=0.8,above] {\scriptsize eth0} (R);
+  \draw[liaison] (S2) -- node[pos=0.8,above] {\scriptsize eth1} (R);
+  \draw[liaison] (S2) -- node[pos=0.8,left] {\scriptsize eth0} (eve);
+  \draw[liaison] (S2) -- node[pos=0.8,right] {\scriptsize eth0} (dhcp);
+\end{tikzpicture}

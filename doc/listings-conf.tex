@@ -1,0 +1,49 @@
+% global listings configuration
+\lstset{
+  basicstyle=\tt\small,
+  commentstyle={\tt\it\color{red}},
+  keywordstyle={\tt\color{blue}},
+  frame=single,
+  frameround=tttt,
+  breaklines=true,
+  numberstyle={\color{violet}},
+  stringstyle={\color{black!80}},
+  escapeinside={[*}{*]}
+}
+\newcommand\inline[0]{%
+  basicstyle=\tt,%
+  backgroundcolor=\color{gray}%
+}
+
+% bash environment
+\lstnewenvironment{bash}{\lstset{language=bash}}{}
+\newcommand\inlinebash[2][]{\lstinline[language=bash,\inline,#2]{#1}}
+
+% sql environment
+\lstnewenvironment{sql}{\lstset{language=sql}}{}
+
+% tex environment
+\lstnewenvironment{tex}{\lstset{language=TeX}}{}
+
+% python environment
+\lstnewenvironment{python}{\lstset{language=python}}{}
+
+% json environment
+\lstdefinelanguage{json}{
+  morestring=[b]",
+  stringstyle={\color{violet!80}},
+  morekeywords={false,null,true}
+}
+
+\lstset{literate=%
+  {À}{{\`A}}1
+  {é}{{\'e}}1
+  {è}{{\`e}}1
+  {ô}{{\^o}}1
+  {î}{{\^i}}1
+  {ê}{{\^e}}1
+  {à}{{\`a}}1
+  {ù}{{\`u}}1
+  {â}{{\^a}}1
+  {ç}{{\c{c}}}1
+}

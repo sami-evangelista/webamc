@@ -1,0 +1,52 @@
+[build-system]
+requires = [
+  "setuptools>=61.0"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "webamc"
+dynamic = [
+  "version"
+]
+description = "A python package to publish AMC latex MCQ through the web."
+authors = [
+  { name="Sami Evangelista", email="sami.evangelista@lipn.univ-paris13.fr" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+  "Framework :: FastAPI",
+  "Intended Audience :: Education",
+  "Programming Language :: Python",
+  "Operating System :: OS Independent"
+]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+scripts.webamc = "webamc.cli:main"
+dependencies = [
+  "babel>=2.17.0",
+  "psycopg2>=2.9.9",
+  "setuptools>=66.1.1",
+  "sqlalchemy>=2.0.29",
+  "sqlalchemy-utils>=0.41.2",
+  "a2wsgi>=1.10.10",
+  "fastapi[all]>=0.115.13",
+  "itsdangerous>=2.2.0",
+  "pillow>=11.3.0",
+  "pydantic>=2.11.7",
+  "pymupdf>=1.25.2",
+  "python-cas>=1.0.0",
+  "uvicorn>=0.35.0",
+  "texsoup>=0.3.1"
+]
+
+[tool.setuptools]
+packages.find = {where = ["src"]}
+dynamic.version = {attr = "webamc.VERSION"}
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning"
+]

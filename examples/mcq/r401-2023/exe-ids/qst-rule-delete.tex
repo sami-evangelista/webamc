@@ -1,0 +1,11 @@
+\begin{question}{r401/2023/ids/rule-delete}
+  Quelle règle snort permet de détecter une requête HTTP de type
+  DELETE sur une ressource du répertoire \texttt{/img} ?
+  \begin{reponses}
+    \bonne{\tt alert tcp any any -> any 80 (content: "DELETE"; uricontent: "/img";)}
+    \mauvaise{\tt alert udp,tcp any any -> any 80 (content: "DELETE /img";)}
+    \mauvaise{\tt alert tcp any any -> any any (dport: http; uricontent: "DELETE /img";)}
+    \mauvaise{\tt alert http any any -> any 80 (content: "DELETE"; uricontent: "/img";)}
+    \mauvaise{aucune proposition ne convient}
+  \end{reponses}
+\end{question}

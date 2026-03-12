@@ -1,0 +1,5 @@
+/* style for the group tree structure */
+.group-tree {
+    list-style-type: none;
+    position: relative;
+}

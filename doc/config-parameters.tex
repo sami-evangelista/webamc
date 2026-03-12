@@ -1,0 +1,298 @@
+{\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item{\tt{auth\_account\_creation\_enabled}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  true if account creation is allowed via the web UI
+  \item Type:  {\tt{bool}}
+  \item Default value:  {\tt{true}}
+  \end{itemize}
+\item{\tt{auth\_cas\_enabled}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  true if authentication through the CAS server is enabled
+  \item Type:  {\tt{bool}}
+  \item Default value:  {\tt{true}}
+  \end{itemize}
+\item{\tt{auth\_local\_enabled}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  true if local system authentication is enabled
+  \item Type:  {\tt{bool}}
+  \item Default value:  {\tt{true}}
+  \end{itemize}
+\item{\tt{base\_url}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  base URL of your web site
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"https://www.example.com"}}
+  \end{itemize}
+\item{\tt{cas\_server}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  URL of the CAS server
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"https://cas.example.com"}}
+  \end{itemize}
+\item{\tt{cas\_server\_name}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  a description of the CAS server (e.g. Arkham university CAS server)
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"CAS example server"}}
+  \end{itemize}
+\item{\tt{cas\_version}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  version of the CAS server (2 or 3)
+  \item Type:  {\tt{int}}
+  \item Default value:  {\tt{2}}
+  \end{itemize}
+\item{\tt{date\_format}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  date format (null for default format) in the babel package syntax
+  \item Type:  {\tt{null | string}}
+  \item Default value:  {\tt{null}}
+  \end{itemize}
+\item{\tt{date\_locale}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  date locale in the babel package syntax
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"en"}}
+  \end{itemize}
+\item{\tt{datetime\_format}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  datetime format (null for default format) in the babel package syntax
+  \item Type:  {\tt{null | string}}
+  \item Default value:  {\tt{null}}
+  \end{itemize}
+\item{\tt{db\_host}}~~~cli: \cmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  name/IP of the host hosting the database server
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"localhost"}}
+  \end{itemize}
+\item{\tt{db\_name}}~~~cli: \cmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  name of the database
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"webamc"}}
+  \end{itemize}
+\item{\tt{db\_password}}~~~cli: \cmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  password of the database user
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"webamc\_password"}}
+  \end{itemize}
+\item{\tt{db\_port}}~~~cli: \cmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  network port used by the database server
+  \item Type:  {\tt{null | int}}
+  \item Default value:  {\tt{5432}}
+  \end{itemize}
+\item{\tt{db\_user}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  database user
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"webamc\_user"}}
+  \end{itemize}
+\item{\tt{debug}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  if true exception tracebacks will be displayed in web browser
+  \item Type:  {\tt{bool}}
+  \item Default value:  {\tt{true}}
+  \end{itemize}
+\item{\tt{icon\_size}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  size of icons in the web interface (24, 32, 48, or 64)
+  \item Type:  {\tt{int}}
+  \item Default value:  {\tt{24}}
+  \end{itemize}
+\item{\tt{json\_file\_pack}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  json file of a question pack in an MCQ or exercise directory
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"\_pack.json"}}
+  \end{itemize}
+\item{\tt{key\_qst\_next}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  key used in the web interface to move to the next question
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"d"}}
+  \end{itemize}
+\item{\tt{key\_qst\_prev}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  key used in the web interface to move to the previous question
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"q"}}
+  \end{itemize}
+\item{\tt{key\_switch\_mode}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  key used in the web interface for switching fillin mode
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"m"}}
+  \end{itemize}
+\item{\tt{lang}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  language of the web interface
+  \item Type:  {\tt{"en" | "fr"}}
+  \item Default value:  {\tt{"en"}}
+  \end{itemize}
+\item{\tt{log\_file}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  path of the log file used to store compilation result
+  \item Type:  {\tt{null | string}}
+  \item Default value:  {\tt{null}}
+  \end{itemize}
+\item{\tt{mails\_dir}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  directory in which mails are stored
+  \item Type:  {\tt{null | string}}
+  \item Default value:  {\tt{null}}
+  \end{itemize}
+\item{\tt{password\_ticket\_validity}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  lifespan of a password regeneration ticket, in seconds
+  \item Type:  {\tt{int}}
+  \item Default value:  {\tt{3600}}
+  \end{itemize}
+\item{\tt{projects\_dir}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  directory in which user projects will be stored
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"/var/www/amc-projects"}}
+  \end{itemize}
+\item{\tt{root\_path}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  root path of webamc on the webserver
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"/webamc"}}
+  \end{itemize}
+\item{\tt{secret\_key}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  secret key of webamc service
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"abcdefghij0123456789"}}
+  \end{itemize}
+\item{\tt{service\_name}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  human readable name of the service that will appear in the UI
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"Webamc"}}
+  \end{itemize}
+\item{\tt{smtp\_auth}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  true if the SMTP server requires authentication
+  \item Type:  {\tt{bool}}
+  \item Default value:  {\tt{true}}
+  \end{itemize}
+\item{\tt{smtp\_eaddr\_from}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  email address that will be appear in the Form field of mails sent
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"no-reply@example.com"}}
+  \end{itemize}
+\item{\tt{smtp\_host}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  name/IP of the host hosting the SMTP server
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"mail.example.com"}}
+  \end{itemize}
+\item{\tt{smtp\_password}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  password used to connect to the SMTP server
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"smtp\_password"}}
+  \end{itemize}
+\item{\tt{smtp\_port}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  port the SMTP server listens to
+  \item Type:  {\tt{int}}
+  \item Default value:  {\tt{465}}
+  \end{itemize}
+\item{\tt{smtp\_user}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  user account used to connect to the SMTP server
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"smtp\_user"}}
+  \end{itemize}
+\item{\tt{tex2pdf\_exe}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  name or absolute path of the tex-to-pdf compiler
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"pdflatex"}}
+  \end{itemize}
+\item{\tt{tex2pdf\_exe\_args}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  list of arguments that must be passed to tex2pdf\_exe
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["-output-directory=\{out\_dir\}", "\{tex\_file\}"]}}
+  \end{itemize}
+\item{\tt{tex\_envs\_choices}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex environments for choice lists
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["choices", "choiceshoriz", "reponses", "reponseshoriz"]}}
+  \end{itemize}
+\item{\tt{tex\_envs\_question}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex environments for questions
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["question", "questionmult"]}}
+  \end{itemize}
+\item{\tt{tex\_envs\_question\_mult}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex environments for question with multiple correct choices
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["questionmult"]}}
+  \end{itemize}
+\item{\tt{tex\_file\_exercise}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex file of an exercise directory
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"\_exercise.tex"}}
+  \end{itemize}
+\item{\tt{tex\_file\_header}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex file with headers to be used for all tex files of a directory
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"\_header.tex"}}
+  \end{itemize}
+\item{\tt{tex\_file\_mcq}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex file of an MCQ directory
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"\_mcq.tex"}}
+  \end{itemize}
+\item{\tt{tex\_file\_question\_prefix}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  prefix (possibly empty) of tex files containing questions
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"qst-"}}
+  \end{itemize}
+\item{\tt{tex\_file\_webamc}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex file in a directory containing webamc meta-data
+  \item Type:  {\tt{string}}
+  \item Default value:  {\tt{"\_webamc.tex"}}
+  \end{itemize}
+\item{\tt{tex\_macros\_choice}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex macros for choices
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["bonne", "correctchoice", "mauvaise", "wrongchoice"]}}
+  \end{itemize}
+\item{\tt{tex\_macros\_choice\_correct}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex macros for correct choices
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["bonne", "correctchoice"]}}
+  \end{itemize}
+\item{\tt{tex\_macros\_lastchoices}}~~~cli: \cmark~web: \xmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  tex macros for last choices
+  \item Type:  {\tt{list of (string)}}
+  \item Default value:  {\tt{["alafin", "lastchoices"]}}
+  \end{itemize}
+\item{\tt{ticket\_length}}~~~cli: \xmark~web: \cmark
+  \begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+  \item Description:  length of tickets (e.g., password change ticket) generated
+  \item Type:  {\tt{int}}
+  \item Default value:  {\tt{64}}
+  \end{itemize}
+\end{itemize}}

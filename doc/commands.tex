@@ -1,0 +1,25 @@
+\newcommand\Section[3]{%
+  \newpage%
+  \section{#3}%
+  \label{sec:#1}%
+  \input{#2}%
+}
+\definecolor{darkblue}{rgb}{0.1,0.1,0.6}
+\definecolor{lightblue}{rgb}{0.2,0.2,0.8}
+\definecolor{purple}{rgb}{0.6,0.2,0.6}
+
+\newcommand\file[1]{{\color{darkblue}\texttt{#1}}}
+\newcommand\name[1]{{\color{purple}\texttt{#1}}}
+\newcommand\command[1]{{\color{lightblue}\texttt{#1}}}
+
+\mdfdefinestyle{defaultstyle}{
+  leftmargin=25mm,
+  rightmargin=25mm,
+  innerleftmargin=0mm,
+  innerrightmargin=0mm,
+  innertopmargin=1mm,
+  innerbottommargin=1mm,
+  roundcorner=10pt,
+  linewidth=2pt,
+  linecolor=black
+}

@@ -1,0 +1,18 @@
+\begin{question}{r203/2023/ssh/cmd-scp1}
+  Alice a un compte sur la machine de Bob (1.2.3.4) et dans son
+  répertoire personnel sur cette machine, elle a un fichier nommé
+  \texttt{fic}. Elle est actuellement connectée sur sa machine en tant
+  qu'utilisateur alice. Quelle commande peut-elle exécuter pour copier
+  le fichier \texttt{fic} dans le répertoire \texttt{/tmp} de sa
+  machine ?
+  \begin{reponses}[3]
+    \bonne{{\tt scp 1.2.3.4:fic /tmp}}
+    \mauvaise{{\tt scp 1.2.3.4@fic /tmp}}
+    \mauvaise{{\tt ssh 1.2.3.4 cp fic /tmp}}
+    \mauvaise{{\tt scp fic@1.2.3.4 /tmp}}
+    \mauvaise{{\tt scp /tmp 1.2.3.4:fic}}
+    \mauvaise{{\tt cd tmp ; scp 1.2.3.4:fic}}
+    \lastchoices
+    \mauvaise{ARNC}
+  \end{reponses}
+\end{question}

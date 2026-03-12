@@ -1,0 +1,25 @@
+%webamc CODE=r203/2023/dhcp
+%webamc TITLE=DHCP
+%webamc RND=0
+
+\noindent\begin{minipage}{.42\textwidth}
+  On considère dans cet exercice le réseau de la figure ci-contre. Ce
+  réseau est décomposé en deux sous-réseaux interconnectés par un
+  routeur R. L'hôte relai est un relai DHCP pour son sous-réseau et
+  l'hôte dhcp et un serveur DHCP pour tout le réseau. Les hôtes anna
+  et eve sont configurées dynamiquement.
+\end{minipage}
+\begin{minipage}{.57\textwidth}
+  \begin{center}\centering\input{exe-dhcp/reseau}\end{center}
+\end{minipage}
+
+Anna demande un bail. On capture alors les messages DHCP
+ci-dessous. Seul le début de l'échange est représenté.
+\begin{center}\input{exe-dhcp/diagramme}\end{center}
+
+Voici les options (en hexadécimal) inclues dans le message 1:
+\begin{center}\tt 35 01 01 33 01 06 37 03 2a 0f 01 ff\end{center}
+
+Voici les options (en hexadécimal) inclues dans le message 3:
+\begin{center}\tt 35 01 02 33 01 03 36 04 0f 01 00 20 01 04 ff ff f0 00 2a 04 0f 01 06 2a ff\end{center}
+                  

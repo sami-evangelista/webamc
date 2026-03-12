@@ -1,0 +1,13 @@
+\begin{question}{r203/2023/ssh/mitm}
+  A ouvre une connexion SSH chez B (10.0.0.1). On note X le fichier
+  des hôtes connus par A et K la clé reçue par A à la connexion. Dans
+  quelle situation ssh préviendra-t-il qu'une attaque {\em
+    man-in-the-middle} est peut-être en cours ?
+  \begin{reponses}[2]
+    \bonne{si K n'est pas la clé associée à 10.0.0.1 dans X}
+    \mauvaise{si l'IP 10.0.0.1 n'apparaît pas dans X}
+    \mauvaise{si K est associée à une autre IP ($\neq$ de 10.0.0.1) dans X}
+    \lastchoices
+    \mauvaise{ARNC}
+  \end{reponses}
+\end{question}

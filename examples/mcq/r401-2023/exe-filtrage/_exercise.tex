@@ -1,0 +1,15 @@
+%webamc CODE=r401/2023/filtrage
+%webamc TITLE=Filtrage avec iptables
+
+Soit le réseau suivant:
+\begin{center}\input{exe-filtrage/reseau}\end{center}
+
+On exécute sur le routeur fw le script ci-dessous.
+\lstinputlisting[basicstyle=\small\tt]{exe-filtrage/fw.sh}
+
+Une fois le script exécuté, indiquez, pour toutes les questions de cet
+exercice, si la commande fonctionne (oui) ou pas (non). On considérera
+qu'une commande fonctionne si aucun des paquets transmis lors de son
+exécution n'est filtré par fw. On supposera que toutes les conditions
+sont par ailleurs remplies pour que les commandes fonctionnent
+(adresses et routes bien configurées, serveurs en écoute, \ldots).

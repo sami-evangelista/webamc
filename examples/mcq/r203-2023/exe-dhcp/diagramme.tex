@@ -1,0 +1,14 @@
+\begin{tempDiag}[>=stealth'][start=1,numbers=1]{5}{3cm}
+  \tempDiagNode{1}{10pt}{relai}{relai}
+  \tempDiagNode{2}{10pt}{anna}{anna}
+  \tempDiagNode{3}{10pt}{routeur}{R}
+  \tempDiagNode{4}{10pt}{dhcp}{dhcp}
+  \tempDiagNode{5}{10pt}{eve}{eve}
+  %
+  \tempDiagMsg[shift=10,number=0]{2}{1,3}{}
+  \node[right of=pt-2] (pt) {};
+  \node[above of=pt,number,node distance=5mm] {1};
+  \tempDiagMsg{1}{3,4}{}
+  \tempDiagMsg{4}{3,1}{}
+  \tempDiagMsg{1}{2}{}
+\end{tempDiag}

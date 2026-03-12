@@ -1,0 +1,17 @@
+\begin{question}{linux/bases/droits/chmod-01}
+  Quelle commande permet d'ajouter le droit en exécution sur le
+  fichier {\tt fic} à {\em tous les utilisateurs du système}~? Les
+  autres droits ne devront pas être modifiés par la commande.
+  \begin{reponses}
+    \bonne{\texttt{chmod ugo+x fic}}
+    \mauvaise{\texttt{chmod 777 fic}}
+    \mauvaise{\texttt{chmod 111 fic}}
+    \mauvaise{\texttt{chmod +e fic}}
+    \mauvaise{\texttt{chmod o+x fic}}
+    \mauvaise{\texttt{chmod o+e fic}}
+    \mauvaise{\texttt{chmod u+x fic}}
+    \mauvaise{\texttt{chmod u+e fic}}
+    \lastchoices
+    \mauvaise{Aucune des réponses précédentes ne convient.}
+  \end{reponses}
+\end{question}

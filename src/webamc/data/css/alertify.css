@@ -1,0 +1,51 @@
+.alertify .ajs-handle {
+    display: none;
+    background-image: none;
+    cursor: auto;
+}
+.alertify-notifier .ajs-message {
+    border: 5px solid;
+    border-radius: 10px;
+    &.ajs-error {
+	background-color: #FF9999;
+	border-color: #AA4444;
+	color: #000000;
+    };
+    &.ajs-custom {
+	background-color: #7777CC;
+	border-color: #5555BB;
+	color: #000000;
+    };
+}
+
+.ajs-dialog.please_wait {
+    border: 5px solid;
+    border-radius: 10px;
+    background-color: var(--color-document-background);
+    text-align: center;
+}
+
+/* confirmation box styling */
+.webamc_confirm .ajs-header {
+    background-color: #7777CC;
+}
+.webamc_confirm .ajs-footer {
+    background-color: #7777CC;
+}
+.webamc_confirm .ajs-footer .ajs-buttons .ajs-button.yes-btn {
+    background-color: #aaccaa;
+    border: 3px solid;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.webamc_confirm .ajs-footer .ajs-buttons .ajs-button.no-btn {
+    background-color: #ccaaaa;
+    border: 3px solid;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.ajs-dialog.webamc_confirm {
+    border: 5px solid;
+    border-radius: 10px;
+    background-color: var(--color-document-background);
+}

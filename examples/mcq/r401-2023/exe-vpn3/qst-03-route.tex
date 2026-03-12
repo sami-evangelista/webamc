@@ -1,0 +1,22 @@
+\begin{question}{r401/2023/vpn3/route}
+  Quel route faut-il ajouter sur client1 (avec {\tt route add}) pour
+  qu'il puisse communiquer avec client2 par le tunnel (Dans ces
+  commandes \texttt{N} doit être remplacé par le masque choisi
+  précédemment.) ?
+  \begin{multicols}{3}
+    \begin{reponses}
+      \bonne{\small 10.2.0.0/N via 10.1.0.100}
+      
+      \mauvaise{aucune route n'est nécessaire}
+      
+      \mauvaise{\small 10.0.0.0/N via 10.1.0.1}
+      
+      \mauvaise{\small 10.0.0.0/N via 10.1.0.100}
+      
+      \mauvaise{\small 10.0.0.0/N via 10.1.0.254}
+      
+      \mauvaise{\small 10.2.0.0/N via 10.1.0.254}
+      
+    \end{reponses}
+  \end{multicols}
+\end{question}

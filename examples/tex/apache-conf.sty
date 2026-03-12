@@ -1,0 +1,34 @@
+\ProvidesPackage{apache-conf}
+\RequirePackage{listings}
+\lstdefinelanguage{apacheConf}{
+  morecomment=[l]{\#},
+  basicstyle=\tt\scriptsize,
+  keywordstyle=\color{blue}\textbf,
+  alsoletter=-,
+  morekeywords={
+    AddHandler,
+    AuthName,
+    AuthType,
+    AuthUserFile,
+    BalancerMember,
+    CustomLog,
+    Directory,
+    DirectoryIndex,
+    DocumentRoot,
+    ErrorDocument,
+    ErrorLog,
+    Include,
+    Options,
+    Proxy,
+    ProxyPass,
+    Require,
+    ServerName,
+    User,
+    VirtualHost
+  },
+  frame=single,
+  breaklines=true,
+  escapeinside={\%*}{*)}
+}
+
+\endinput

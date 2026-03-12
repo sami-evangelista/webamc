@@ -1,0 +1,15 @@
+\begin{question}{r203/2023/ssh/cle}
+  Pour éviter d'avoir à saisir son mot de passe à chaque fois qu'elle
+  ouvre une session SSH chez Bob, Alice met en place une
+  authentification par clé. Ses clés publique et privée sont
+  respectivement $K^{U}_A$ et $K^{R}_A$. Les clés publique et privée
+  de Bob sont respectivement $K^{U}_B$ et $K^{R}_B$. Que doit-elle
+  faire ? (Dans les réponses \texttt{A} est le fichier
+  \texttt{authorized\_keys}.)
+  \begin{reponses}[2]
+    \bonne{copier $K^{U}_A$ dans \texttt{A} sur la machine de Bob}
+    \mauvaise{copier $K^{R}_A$ dans \texttt{A} sur la machine de Bob}
+    \mauvaise{copier $K^{U}_B$ dans \texttt{A} sur sa machine}
+    \mauvaise{copier $K^{R}_B$ dans \texttt{A} sur sa machine}
+  \end{reponses}
+\end{question}
