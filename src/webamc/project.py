@@ -29,7 +29,10 @@ action_t = tp.Literal[
     "extract-answer-sheets",
     "generate-sheets",
     "new",
-    "send-annotated-sheets"
+    "send-annotated-sheets",
+    "upload-answer-sheets",
+    "upload-project-archive",
+    "upload-student-list"
 ]
 
 data_t = tp_ext.TypedDict(
@@ -116,65 +119,64 @@ ZIP_ANNOTATED_SHEETS = "annotated-sheets.zip"
 ZIP_SHEETS = "sheets.zip"
 ZIP_TEX = "tex.zip"
 
-VIEWABLE_FILES = [
-    ZIP_TEX,
-    PDF_SUBJECT,
-    ZIP_SHEETS,
-    PDF_CORRECTION,
-    PDF_ANSWER_SHEETS,
-    CSV_STUDENT_LIST,
-    ODS_SCORES,
-    ZIP_ANNOTATED_SHEETS,
-    JSON_STATUS,
-    LOG_COMPILATION,
-    LOG_SHEETS_GENERATION,
-    LOG_SCORING_DATA_EXTRACTION,
-    LOG_LAYOUT_DATA_EXTRACTION,
-    LOG_ANSWER_SHEETS_EXTRACTION,
-    LOG_ANSWER_SHEETS_ANALYSIS,
-    LOG_SCORES_COMPUTATION,
-    LOG_AUTOMATIC_SHEETS_ASSOCIATION,
-    LOG_MANUAL_SHEETS_ASSOCIATION,
-    LOG_SCORES_EXPORT,
-    LOG_ANNOTATION
-]
-
-ACTION_DEP: dict[action_t, list[action_t]] = {
-    "extract-layout-data": ["compile"],
-    "generate-sheets": ["extract-layout-data"],
-    "extract-answer-sheets": ["extract-layout-data"],
-    "analyse-answer-sheets": ["extract-answer-sheets"],
-    "extract-scoring-data": ["analyse-answer-sheets"],
-    "compute-scores": ["extract-scoring-data"],
-    "associate-automatic": ["compute-scores"],
-    "associate-manual": ["compute-scores"],
-    "associate-manual-prepare": ["compute-scores"],
-    "export-scores": ["compute-scores"],
-    "annotate": ["compute-scores"],
-    "send-annotated-sheets": ["compute-scores"]
+ACTION_FILES: dict[action_t, list[str]] = {
+    "annotate": [ZIP_ANNOTATED_SHEETS],
+    "compile": [PDF_SUBJECT, PDF_CORRECTION],
+    "export-scores": [ODS_SCORES],
+    "generate-sheets": [ZIP_SHEETS],
+    "upload-answer-sheets": [PDF_ANSWER_SHEETS],
+    "upload-project-archive": [ZIP_TEX],
+    "upload-student-list": [CSV_STUDENT_LIST]
 }
 
-FILE_DEP: dict[action_t, list[str]] = {
-    "compile": [os.path.join(DIR_TEX, TEX_MAIN)],
-    "generate-sheets": [PDF_SUBJECT],
-    "extract-layout-data": [PDF_SUBJECT],
-    "extract-answer-sheets": [PDF_ANSWER_SHEETS],
-    "analyse-answer-sheets": [PDF_ANSWER_SHEETS],
-    "extract-scoring-data": [PDF_SUBJECT],
-    "compute-scores": [PDF_ANSWER_SHEETS],
-    "associate-automatic": [CSV_STUDENT_LIST],
-    "associate-manual": [],
-    "associate-manual-prepare": [CSV_STUDENT_LIST],
-    "export-scores": [PDF_ANSWER_SHEETS, CSV_STUDENT_LIST],
-    "annotate": [PDF_ANSWER_SHEETS, CSV_STUDENT_LIST],
-    "send-annotated-sheets": [PDF_ANSWER_SHEETS, CSV_STUDENT_LIST]
-}
-
-DATA_DEP: dict[action_t, list[str]] = {
-    "associate-automatic": ["amc_code", "id_key"],
-    "associate-manual-prepare": ["id_key"],
-    "annotate": ["id_key"],
-    "send-annotated-sheets": ["eaddr"]
+ACTION_DEP: dict[
+    action_t, list[tuple[tp.Literal["action", "file", "data"], str]]
+] = {
+    "analyse-answer-sheets": [
+        ("action", "extract-answer-sheets")
+    ],
+    "annotate": [
+        ("action", "export-scores"),
+        ("data", "id_key")
+    ],
+    "associate-automatic": [
+        ("action", "compute-scores"),
+        ("file", CSV_STUDENT_LIST),
+        ("data", "amc_code"),
+        ("data", "id_key")
+    ],
+    "associate-manual-prepare": [
+        ("action", "compute-scores"),
+        ("file", CSV_STUDENT_LIST),
+        ("data", "id_key")
+    ],
+    "compile": [
+        ("file", ZIP_TEX)
+    ],
+    "compute-scores": [
+        ("action", "extract-scoring-data")
+    ],
+    "export-scores": [
+        ("action", "compute-scores"),
+        ("file", CSV_STUDENT_LIST)
+    ],
+    "extract-answer-sheets": [
+        ("action", "extract-layout-data"),
+        ("file", PDF_ANSWER_SHEETS)
+    ],
+    "extract-layout-data": [
+        ("action", "compile")
+    ],
+    "extract-scoring-data": [
+        ("action", "analyse-answer-sheets")
+    ],
+    "generate-sheets": [
+        ("action", "extract-layout-data")
+    ],
+    "send-annotated-sheets": [
+        ("action", "annotate"),
+        ("data", "eaddr")
+    ]
 }
 
 NOT_CLEANABLE = [
@@ -284,6 +286,12 @@ def run_cmd(
     return "err_check_log_file"
 
 
+def get_status(ucode: str, pcode: str) -> status_t:
+    json_file = get_path(ucode, pcode, JSON_STATUS)
+    with open(json_file) as fd:
+        return tp.cast(status_t, json.loads(fd.read()))
+
+
 def get_status_and_files(
         ucode: str,
         pcode: str
@@ -298,9 +306,7 @@ def get_status_and_files(
         if os.path.isfile(get_path(ucode, pcode, file_name)):
             files.append(file_id)
     json_file = get_path(ucode, pcode, JSON_STATUS)
-    with open(json_file) as fd:
-        status = tp.cast(status_t, json.loads(fd.read()))
-    return status, files
+    return get_status(ucode, pcode), files
 
 
 def json_serialise(obj: object) -> str:
@@ -313,15 +319,6 @@ def update_status(ucode: str, pcode: str, status: status_t) -> None:
     to_write = json.dumps(status, indent=3, default=json_serialise)
     with open(get_path(ucode, pcode, JSON_STATUS), "w") as fd:
         fd.write(to_write)
-
-
-def file_path_to_file_id(file_path: str) -> None | file_id_t:
-    file_map: dict[str, file_id_t] = {
-        TEX_MAIN: "project_archive",
-        CSV_STUDENT_LIST: "student_list",
-        PDF_ANSWER_SHEETS: "answer_sheets"
-    }
-    return file_map.get(os.path.basename(file_path))
 
 
 def prerequisites(
@@ -338,20 +335,21 @@ def prerequisites(
     while todo != list():
         next_todo = todo[0]
         del todo[0]
-        pre = [
-            a for a in ACTION_DEP.get(next_todo, list())
-            if not status["actions"][a]
-        ]
-        pre_actions = list(pre) + pre_actions
-        pre_files = pre_files.union(
-            f for f in FILE_DEP.get(next_todo, list())
-            if not os.path.isfile(get_path(ucode, pcode, f))
-        )
-        for p in DATA_DEP.get(action, list()):
-            val = data[p]  # type: ignore
-            if val == "" or val is None:
-                pre_data.add(p)
-        todo = todo + list(pre)
+        new_pre_actions = list()
+        for t, dep in ACTION_DEP.get(next_todo, list()):
+            if t == "action":
+                act = tp.cast(action_t, dep)
+                if not status["actions"][act]:
+                    new_pre_actions.append(act)
+            elif t == "file":
+                if not os.path.isfile(get_path(ucode, pcode, dep)):
+                    pre_files.add(dep)
+            elif t == "data":
+                val = data[dep]  # type: ignore
+                if val == "" or val is None:
+                    pre_data.add(dep)
+        pre_actions = new_pre_actions + pre_actions
+        todo = todo + list(new_pre_actions)
     return data, status, pre_actions, pre_files, pre_data
 
 
@@ -374,9 +372,8 @@ def check_action_dependency(
     ids = list()
     for f in pre_files:
         errs.append("err_missing_file")
-        file_id = file_path_to_file_id(f)
-        if file_id is not None:
-            ids.append(f"label-file-{file_id}")
+        label_id = "label-file-" + f.replace(".", "-")
+        ids.append(label_id)
     for p in pre_data:
         errs.append("err_missing_or_invalid_parameter")
         ids.append(p)
@@ -739,12 +736,12 @@ def zip_pdfs(
 def action_upload(
         ucode: str,
         pcode: str,
-        file_id: file_id_t,
+        action: action_t,
         file_name: str
 ) -> types.oper_code_t:
-    if file_id == "answer_sheets":
+    if action == "upload-answer-sheets":
         dst = PDF_ANSWER_SHEETS
-    elif file_id == "student_list":
+    elif action == "upload-student-list":
         with open(file_name) as fd:
             try:
                 read = csv.DictReader(fd, delimiter=CSV_DELIMITER)
@@ -753,7 +750,7 @@ def action_upload(
             except UnicodeDecodeError:
                 return "err_invalid_csv_file"
         dst = CSV_STUDENT_LIST
-    elif file_id == "project_archive":
+    elif action == "upload-project-archive":
         try:
             with zipfile.ZipFile(file_name) as zf:
                 if os.path.join(DIR_TEX, TEX_MAIN) not in zf.namelist():
@@ -771,21 +768,27 @@ def action_upload(
             return "err_not_a_zip_file"
         dst = ZIP_TEX
     shutil.copyfile(file_name, get_path(ucode, pcode, dst))
+    status = get_status(ucode, pcode)
+    status["actions"][action] = True
+    status["history"].append((action, datetime.datetime.now(), True))
+    update_status(ucode, pcode, status)
     return "succ"
     
 
 def list_files(
         ucode: str,
-        pcode: str
-) -> list[tuple[str, int, datetime.datetime]]:
+        pcode: str,
+        action: action_t
+) -> list[tuple[str, None | datetime.datetime]]:
     result = list()
     pdir = get_path(ucode, pcode)
-    for f in VIEWABLE_FILES:
+    for f in ACTION_FILES.get(action, list()):
         path = get_path(ucode, pcode, f)
-        if os.path.isfile(path):
-            mtime = datetime.datetime.fromtimestamp(os.path.getmtime(path))
-            size = os.path.getsize(path)
-            result.append((f, size, mtime))
+        if not os.path.isfile(path):
+            fdata: None | datetime.datetime = None
+        else:
+            fdata = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+        result.append((f, fdata))
     return result
 
 

@@ -54,8 +54,7 @@ const project_delete = function () {
 
 
 const project_init = function () {
-    project_init_params();
-    project_init_files();
+    project_init_data();
     project_init_status();
 }
 
@@ -68,21 +67,8 @@ const project_init_status = function () {
             const actions = response["result"]["status"]["actions"];
             const files = response["result"]["files"];
             for(const [a, s] of Object.entries(actions)) {
-                const src = base_img_src(
-                    s ? 'checkbox-checked' : 'checkbox-unchecked'
-                );
-                $('#img-status-' + a).attr('src', src);
-            }
-            for(const f of [
-                'answer_sheets',
-                'project_archive',
-                'student_list'
-            ]) {
-                const src = base_img_src(
-                    files.includes(f)
-                        ? 'checkbox-checked' : 'checkbox-unchecked'
-                );
-                $('#img-status-' + f).attr('src', src);
+                const status = s ? '&check;' : '&cross;';
+                $('#status-action-' + a).html(status);
             }
         };
         const data = {
@@ -93,23 +79,7 @@ const project_init_status = function () {
 }
 
 
-const project_init_files = function () {
-    const project_code = $('#project_code').val();
-    const div_files = $('#div-files');
-    if(project_code != '' && project_code != null) {
-        const url = Constants.path_project_page_files;
-        const success = function(html) {
-	    div_files.html(html);
-        };
-        const data = {
-            'project_code': project_code
-        };
-	xhr_post(url, success, data, 'html');
-    }
-}
-
-
-const project_init_params = function () {
+const project_init_data = function () {
     const project_code = $('#project_code').val();
     if(project_code != '' && project_code != null) {
         const url = Constants.path_project_oper_get_data;
@@ -144,7 +114,7 @@ const project_load_project = function () {
 }
 
 
-const project_upload_action = function (file_id) {
+const project_upload_action = function (action, file_id) {
     if(project_computing) {
         return;
     }
@@ -159,7 +129,7 @@ const project_upload_action = function (file_id) {
             project_end_computation();
         }
         project_start_computation();
-        form_data.append('file_id', file_id);
+        form_data.append('action', action);
         form_data.append('file_content', file_content);
         form_data.append('project_code', project_code);
         $.ajax({
@@ -267,7 +237,7 @@ const project_associate_manual = function (student, copy) {
 
 
 const project_submit_data = function () {
-    const data = base_input_values('#table-action-params');
+    const data = base_input_values('#table-action-data');
     data['code'] = $('#project_code').val();
     xhr_post(
         Constants.path_project_oper_set_data,

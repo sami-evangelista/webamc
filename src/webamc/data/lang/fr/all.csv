@@ -160,8 +160,8 @@ qst_mcq_form_confirmation;Confirmez-vous l'envoi de vos réponses ?
 qst_restart_mcq_confirmation;Voulez vous recommencer ce QCM ?
 seq_administrate_this_mcq;administrer ce QCM
 seq_analyse_answer_sheets;analyser les réponses
-seq_associate_automatic;associer étudiantes et feuilles de réponses (mode automatique)
-seq_associate_manual;associer étudiantes et feuilles de réponses (mode manuel)
+seq_associate_automatic;associer étudiantes et copies (mode automatique)
+seq_associate_manual;associer étudiantes et copies (mode manuel)
 seq_authentify_with_server;S'authentifier via
 seq_clean_files;nettoyer les fichiers
 seq_compile_latex;compiler le code latex
@@ -192,7 +192,7 @@ seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;envoyer les copies annotées
 seq_submission_result;résultat de la soumission
-seq_upload_answer_sheets;envoyer le fichier PDF contenant les réponses scannées
+seq_upload_answer_sheets;envoyer le fichier PDF des copies scannées
 seq_upload_latex_archive;envoyer l'archive ZIP du code latex
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
 seq_warning_messages;message(s) d'avertissement

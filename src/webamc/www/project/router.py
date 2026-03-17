@@ -50,16 +50,6 @@ def route_project_page_project(
     return project.page(ctx, args)
 
 
-@router.post("/project/page/files")
-def route_project_page_files(
-        req: fa.Request,
-        args: args_project_code_t
-) -> fa.Response:
-    from .page import files
-    ctx = context.Context(req)
-    return files.page(ctx, args)
-
-
 @router.get("/project/page/get-file")
 def route_project_page_get_file(
         req: fa.Request,
@@ -95,13 +85,13 @@ def route_project_page_manual_association(
 @router.post("/project/oper/upload")
 def route_project_oper_upload(
         req: fa.Request,
-        file_id: proj.file_id_t = fa.Form(...),
+        action: proj.action_t = fa.Form(...),
         file_content: fa.UploadFile = fa.File(...),
         project_code: str = fa.Form(...)
 ) -> fa.Response:
     from .oper import upload
     ctx = context.Context(req)
-    return upload.data(ctx, file_id, file_content, project_code)
+    return upload.data(ctx, action, file_content, project_code)
 
 
 @router.post("/project/oper/action")

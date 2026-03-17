@@ -2,6 +2,7 @@
 
 from webamc.www.all import *
 from webamc.www.project import router
+from webamc.util import fmt, io
 from webamc import project as proj
 
 
@@ -10,63 +11,112 @@ def page(
         args: router.args_project_code_t
 ) -> fa.Response:
     trs: list[he.Element] = list()
-
-    def new_basic_action(
-            action: None | proj.action_t,
-            txt: str,
-            js: None | str = None
+        
+    def list_files(
+            action: proj.action_t
     ) -> None:
-        nonlocal trs
-        span = he.Span(he.Txt(txt))
-        if action is None:
-            img: he.Element = he.Empty()
-        else:
-            img = he.Img(
-                src=base.static_img_src("checkbox-unchecked"),
-                id_=f"img-status-{action}"
+        trs_files = list()
+        for f, fdata in proj.list_files(
+            session.usr_code(ctx),
+            args["project_code"],
+            action
+        ):
+            ext = io.get_file_extension(f)
+            try:
+                doc_types: dict[str, types.static_img_t] = {
+                    ".pdf": "doc-pdf",
+                    ".ods": "doc-table",
+                    ".zip": "doc-archive"
+                }
+                png = doc_types[ext]
+            except KeyError:
+                png = "doc-text"
+            if fdata is None:
+                img = base.static_img(png, title=f, class_="warning")
+            else:
+                href = base.mkuri(
+                    "/project/page/get-file",
+                    project_code=args["project_code"],
+                    file_name=f
+                )
+                title = f"{f}  --  {fmt.fmt_datetime(fdata)}"
+                img = base.static_img(png, title=title, href=href)
+            span_id = "label-file-" + f.replace(".", "-")
+            span = he.Span(
+                he.Str(f),
+                id_=span_id
             )
-            span["id"] = f"label-action-{action}"
-        if js is None:
-            assert action is not None
-            js = f"project_basic_action('{action}');"
-        a = base.static_img(
-            "checkmark",
-            "verb_start",
-            js=js
-        )
+            tr = he.Tr(
+                he.Td(img),
+                he.Td(span)
+            )
+            trs_files.append(tr)
+        table = he.Table(*trs_files)
         tr = he.Tr(
-            he.Td(img),
-            he.Td(span),
-            he.Td(a),
+            he.Td(),
+            he.Td(table),
             he.Td()
         )
         trs.append(tr)
 
+    def action_label(
+            action: proj.action_t,
+            txt: str
+    ) -> he.Element:
+        result = he.Element(
+            he.Span(
+                he.Txt(txt),
+                id_=f"label-action-{action}"
+            ),
+            he.Str(" "),
+            he.Span(id_=f"status-action-{action}")
+        )
+        return result
+
+    def new_basic_action(
+            action: proj.action_t,
+            txt: str,
+            js: None | str = None
+    ) -> None:
+        if js is None:
+            js = f"project_basic_action('{action}');"
+        a = base.static_img(
+            "play",
+            "verb_start",
+            js=js,
+            id_=f"action-{action}"
+        )
+        tr = he.Tr(
+            he.Td(a),
+            he.Td(action_label(action, txt)),
+            he.Td()
+        )
+        trs.append(tr)
+        list_files(action)
+
     def new_upload_action(
+            action: proj.action_t,
             file_id: proj.file_id_t,
             txt: str
     ) -> None:
-        img = he.Img(
-            src=base.static_img_src("checkbox-unchecked"),
-            id_=f"img-status-{file_id}"
-        )
         input_file = he.Input(
             type_="file",
             id_=file_id,
-            name=file_id,
+            name=file_id
         )
         a = base.static_img(
             "upload",
             "verb_send",
-            js=f"project_upload_action('{file_id}')"
+            js=f"project_upload_action('{action}', '{file_id}')",
+            id_=f"action-{action}"
         )
         tr = he.Tr(
-            he.Td(img),
-            he.Td(he.Span(he.Txt(txt), id_=f"label-file-{file_id}")),
-            he.Td(input_file),
-            he.Td(a)
+            he.Td(a),
+            he.Td(action_label(action, txt)),
+            he.Td(input_file)
         )
         trs.append(tr)
+        list_files(action)
 
     # delete link
     a_delete = base.static_img(
@@ -75,9 +125,8 @@ def page(
             js="project_delete()"
         )
     tr = he.Tr(
-        he.Td(),
-        he.Td(he.Txt("seq_delete_project")),
         he.Td(a_delete),
+        he.Td(he.Txt("seq_delete_project")),
         he.Td()
     )
     trs.append(tr)
@@ -89,15 +138,15 @@ def page(
             js="project_clean_files()"
         )
     tr = he.Tr(
-        he.Td(),
-        he.Td(he.Txt("seq_clean_files")),
         he.Td(a_clean),
+        he.Td(he.Txt("seq_clean_files")),
         he.Td()
     )
     trs.append(tr)
 
     # div with actions
     new_upload_action(
+        "upload-project-archive",
         "project_archive",
         "seq_upload_latex_archive"
     )
@@ -114,6 +163,7 @@ def page(
         "seq_generate_sheets"
     )
     new_upload_action(
+        "upload-answer-sheets",
         "answer_sheets",
         "seq_upload_answer_sheets"
     )
@@ -134,6 +184,7 @@ def page(
         "seq_compute_scores"
     )
     new_upload_action(
+        "upload-student-list",
         "student_list",
         "seq_upload_student_list"
     )
@@ -142,7 +193,7 @@ def page(
         "seq_associate_automatic"
     )
     new_basic_action(
-        None,
+        "associate-manual-prepare",
         "seq_associate_manual",
         "project_manual_association_open()"
     )
@@ -168,7 +219,7 @@ def page(
         table_actions
     )
 
-    # div with parameters
+    # div with data
     input_title = he.Input(
         name="title",
         id_="title",
@@ -212,27 +263,22 @@ def page(
                 ("seq_csv_column_eaddr", input_eaddr)
         ]
     ]
-    table_parameters = he.Table(
+    table_data = he.Table(
         *trs,
         class_="table-form",
-        id_="table-action-params"
+        id_="table-action-data"
     )
-    a_submit_parameters = base.static_img(
+    a_submit_data = base.static_img(
         "checkmark",
         "verb_send",
-        js="project_submit_params()",
+        js="project_submit_data()",
         style="position: absolute; top: 5px; right: 5px;"
     )
-    div_parameters = he.Div(
+    div_data = he.Div(
         he.H2(he.Txt("name_parameters")),
-        table_parameters,
-        a_submit_parameters,
+        table_data,
+        a_submit_data,
         style="position: relative;"
-    )
-
-    # div with files
-    div_files = he.Div(
-        id_="div-files"
     )
 
     # div manual association
@@ -249,8 +295,7 @@ def page(
     )
     div_right = he.Div(
         div_manual_assoc,
-        div_parameters,
-        div_files,
+        div_data,
         id_="div-right",
         style="min-width: 400px; position: relative;"
     )
@@ -259,6 +304,7 @@ def page(
         div_left,
         div_separator,
         div_right,
+        he.Script("project_manual_association_close()"),
         style="display: flex;"
     )
     script_init = he.Script("project_init()")

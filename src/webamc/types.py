@@ -201,6 +201,7 @@ static_img_t = tp.Literal[
     "password",
     "person",
     "person-add",
+    "play",
     "projects",
     "settings",
     "server",
