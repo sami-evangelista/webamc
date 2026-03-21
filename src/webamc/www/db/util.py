@@ -328,6 +328,9 @@ def get_attributes(
 
 # columns that are visible from the web interface
 cols_visible = {
+    "atr_id",
+    "atr_code",
+    "atr_desc",
     "adm_id",
     "adm_tbl",
     "adm_usr",
@@ -355,6 +358,9 @@ cols_visible = {
     "tag_desc",
     "tag_name",
     "tbl_name",
+    "uat_usr",
+    "uat_attr",
+    "uat_value",
     "ugp_grp",
     "ugp_id",
     "ugp_right",
@@ -363,12 +369,14 @@ cols_visible = {
     "usr_eaddr",
     "usr_fst_name",
     "usr_id",
-    "usr_name"
+    "usr_name",
 }
 
 
 # columns that can be updated from the web interface
 cols_updatable = {
+    "atr_code",
+    "atr_desc",
     "adm_tbl",
     "adm_usr",
     "loc_enabled",
@@ -391,6 +399,9 @@ cols_updatable = {
     "tag_desc",
     "tag_name",
     "tbl_name",
+    "uat_usr",
+    "uat_attr",
+    "uat_value",
     "ugp_grp",
     "ugp_right",
     "ugp_usr",

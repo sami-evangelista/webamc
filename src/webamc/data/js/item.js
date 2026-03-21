@@ -94,7 +94,7 @@ const item_new_item_admin = function (db_itm_id, tags, grps, init_grps) {
         const del_grp_fun = function (db_grp_id, callback) {
             const where = [
                 { 'col': 'mgp_grp', 'op': '=', 'val': db_grp_id },
-                { 'col': 'mgp_mcq',  'op': '=', 'val': db_itm_id }
+                { 'col': 'mgp_mcq', 'op': '=', 'val': db_itm_id }
             ];
             xhr_db_delete('mcq_grp', where, callback);
         };

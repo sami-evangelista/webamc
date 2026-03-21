@@ -7,7 +7,9 @@ import string
 from webamc import db, config, VERSION, DATE
 from webamc.all import *
 from webamc.util import termout
-from webamc.actions import check, loadcsv, compile as comp, genexamples, gendoc
+from webamc.actions import (
+    check, checklang, loadcsv, compile as comp, genexamples, gendoc
+)
 
 
 def command_check(args: argparse.Namespace) -> None:
@@ -15,6 +17,10 @@ def command_check(args: argparse.Namespace) -> None:
         check.action(args.input)
     else:
         termout.error(f"directory not found: {args.input}")
+
+
+def command_checklang(args: argparse.Namespace) -> None:
+    checklang.action()
 
 
 def command_gendoc(_: argparse.Namespace) -> None:
@@ -112,6 +118,13 @@ def get_argparser() -> argparse.ArgumentParser:
         help="ouput directory in which files will be generated"
     )
     sub_parser.set_defaults(command=command_genexamples)
+
+    # action checklang
+    sub_parser = sub_parsers.add_parser(
+        "checklang",
+        help="check language files for missing texts"
+    )
+    sub_parser.set_defaults(command=command_checklang)
 
     # action gendoc
     sub_parser = sub_parsers.add_parser(

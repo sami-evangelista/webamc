@@ -15,9 +15,10 @@ def data(
     with tempfile.NamedTemporaryFile(mode="wb", delete=False) as tmp_file:
         tmp_file.write(content)
         tmp_file.close()
-        upload_result = project.action_upload(
+        upload_result = project.Project(
             session.usr_code(ctx),
             project_code,
+        ).action_upload(
             action,
             tmp_file.name
         )

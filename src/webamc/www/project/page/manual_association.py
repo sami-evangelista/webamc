@@ -9,26 +9,12 @@ def page(
         ctx: context.Context,
         args: router.args_page_manual_association_t
 ) -> fa.Response:
-    usr_code = session.usr_code(ctx)
-    project_code = args["project_code"]
+    proj = project.Project(session.usr_code(ctx), args["project_code"])
     action_params = args["action_params"]
-    _, _, _, check_result = project.check_action_dependency(
-        usr_code,
-        project_code,
-        "associate-manual-prepare"
-    )
-    if check_result is not None:
-        codes, ids = check_result
-        response: types.json_response_t = {
-            "success": False,
-            "msgs": [lang.txt(c) for c in codes],
-            "result": ids
-        }
-        return fa.responses.JSONResponse(response)
-
-    associations = project.list_associations(usr_code, project_code)
-    students = project.list_students_from_csv(
-        usr_code, project_code
+    associations = proj.list_associations()
+    users = proj.list_students(ctx.dbs)
+    users.sort(
+        key=lambda row: (row[0].usr_name, row[0].usr_fst_name)
     )
     trs: list[he.Tr] = list()
     js = list()
@@ -42,7 +28,7 @@ def page(
         else:
             img_uri = base.mkuri(
                 "/project/page/get-file",
-                project_code=project_code,
+                project_code=proj.pcode,
                 file_name=name_file
             )
             img = he.Img(
@@ -58,16 +44,25 @@ def page(
         first = False
 
         tds = list()
-        options = [he.Option(he.Str(""), value="")] + [
-            he.Option(he.Str(name), value=id_) for id_, name in students
+        options = [
+            he.Option(
+                he.Str(
+                    user[0].usr_name.upper() + " " +
+                    user[0].usr_fst_name.title() + " - " +
+                    user[0].usr_eaddr
+                ),
+                value=user[1].uat_value
+            )
+            for user in users
         ]
-        select_student = he.Select(
+        options.insert(0, he.Option(he.Str(""), value=""))
+        select_user = he.Select(
             *options,
             id_=f"assoc-{page}-{copy}",
             onchange=f"project_associate_manual({page}, {copy})"
         )
         tds.append(he.Td(he.Empty()))
-        tds.append(he.Td(select_student))
+        tds.append(he.Td(select_user))
         trs.append(he.Tr(*tds))
 
         assoc = manual if manual is not None else auto

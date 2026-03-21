@@ -50,7 +50,7 @@ def page(
     ]
     img_add = base.static_img(
         "checkmark",
-        "verb_creation",
+        "verb_create",
         js="admin_add_row(tbl_name, tbl_cols)"
     )
     tds.append(he.Td(img_add))

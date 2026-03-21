@@ -11,16 +11,13 @@ def page(
         project_code: str,
         file_name: str
 ) -> fa.Response:
-    file_data = project.get_file(
-        session.usr_code(ctx),
-        project_code,
-        file_name
-    )
+    proj = project.Project(session.usr_code(ctx), project_code)
+    file_data = proj.get_file(file_name)
     if file_data is None:
         return base.page_error(ctx, 404)
-    path, file_name = file_data
+    path, name = file_data
     return fa.responses.FileResponse(
         path,
         media_type=mtype.get_media_type(path),
-        filename=file_name
+        filename=name
     )

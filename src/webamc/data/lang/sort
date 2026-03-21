@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# sort all csv files on text id
+#
+
+for i in */*csv
+do
+    tmp=$(mktemp)
+    (echo "id;text" ; tail +2 $i | sort -u) &> $tmp
+    mv $tmp $i
+done

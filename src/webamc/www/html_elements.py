@@ -122,7 +122,7 @@ class Empty(Element):
     def __str__(self) -> str:
         return ""
 class Txt(Element):
-    def __init__(self, id_: str, fmt: bool=True):
+    def __init__(self, id_: types.txt_t, fmt: bool=True):
         self.id_ = id_
         self.fmt = fmt
     def __str__(self) -> str:

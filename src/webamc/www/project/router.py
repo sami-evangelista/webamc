@@ -46,8 +46,8 @@ def route_project_page_project(
         args: args_project_code_t
 ) -> fa.Response:
     from .page import project
-    ctx = context.Context(req)
-    return project.page(ctx, args)
+    with context.Context(req) as ctx:
+        return project.page(ctx, args)
 
 
 @router.get("/project/page/get-file")
@@ -78,8 +78,8 @@ def route_project_page_manual_association(
         args: args_page_manual_association_t
 ) -> fa.Response:
     from .page import manual_association
-    ctx = context.Context(req)
-    return manual_association.page(ctx, args)
+    with context.Context(req) as ctx:
+        return manual_association.page(ctx, args)
 
 
 @router.post("/project/oper/upload")
@@ -100,8 +100,8 @@ def route_project_oper_action(
         args: args_oper_action_t
 ) -> fa.Response:
     from .oper import action
-    ctx = context.Context(req)
-    return action.data(ctx, args)
+    with context.Context(req) as ctx:
+        return action.data(ctx, args)
 
 
 @router.post("/project/oper/get-status")
@@ -114,20 +114,10 @@ def route_project_oper_get_status(
     return get_status.data(ctx, args)
 
 
-@router.post("/project/oper/get-data")
-def route_project_oper_get_data(
-        req: fa.Request,
-        args: args_project_code_t
-) -> fa.Response:
-    from .oper import get_data
-    ctx = context.Context(req)
-    return get_data.data(ctx, args)
-
-
 @router.post("/project/oper/set-data")
 def route_project_oper_set_data(
         req: fa.Request,
-        args: dict[str, str]
+        args: dict[str, tp.Any]
 ) -> fa.Response:
     from .oper import set_data
     ctx = context.Context(req)

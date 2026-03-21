@@ -1,61 +1,65 @@
 id;text
 col_desc_adm_id;#
 col_desc_adm_tbl;table
-col_desc_adm_usr;user
-col_desc_cas_enabled;enabled
+col_desc_adm_usr;utilisateur
+col_desc_atr_code;code
+col_desc_atr_desc;description
+col_desc_atr_id;#
+col_desc_cas_enabled;activé
 col_desc_cas_id;#
-col_desc_cas_login;cas identifier
-col_desc_cas_usr;user
-col_desc_exm_duration;duration
-col_desc_exm_mcq;mcq
-col_desc_exm_start;start
+col_desc_cas_login;identifiant CAS
+col_desc_cas_usr;utilisateur
+col_desc_exm_duration;durée
+col_desc_exm_mcq;QCM
+col_desc_exm_start;début
 col_desc_grp_id;#
-col_desc_grp_name;name
+col_desc_grp_name;nom
 col_desc_grp_parent;parent
-col_desc_itm_code;identifier
-col_desc_itm_date;creation date
-col_desc_itm_difficulty;difficulty
-col_desc_itm_rnd;random
-col_desc_itm_standalone;standalone
-col_desc_itm_title;title
+col_desc_itm_code;identifiant
+col_desc_itm_date;date de création
+col_desc_itm_difficulty;difficulté
+col_desc_itm_rnd;aléatoire
+col_desc_itm_standalone;autonome
+col_desc_itm_title;titre
 col_desc_itm_type;type
-col_desc_itm_usr;user
+col_desc_itm_usr;utilisateur
 col_desc_itm_visible;visible
-col_desc_loc_enabled;enabled
+col_desc_loc_enabled;activé
 col_desc_loc_id;#
 col_desc_loc_login;login
-col_desc_loc_password;password
-col_desc_loc_usr;user
+col_desc_loc_password;mot de passe
+col_desc_loc_usr;utilisateur
 col_desc_mcq_mode;mode
-col_desc_tag_color;color
+col_desc_tag_color;couleur
 col_desc_tag_desc;description
 col_desc_tag_id;#
-col_desc_tag_name;name
+col_desc_tag_name;nom
 col_desc_tbl_id;#
-col_desc_tbl_name;name
-col_desc_ugp_grp;group
+col_desc_tbl_name;nom
+col_desc_uat_attr;attribut
+col_desc_uat_usr;utilisateur
+col_desc_uat_value;valeur
+col_desc_ugp_grp;groupe
 col_desc_ugp_id;#
-col_desc_ugp_right;right
-col_desc_ugp_usr;user
-col_desc_usr_code;identifier
-col_desc_usr_eaddr;email address
-col_desc_usr_fst_name;first name
+col_desc_ugp_right;droit
+col_desc_ugp_usr;utilisateur
+col_desc_usr_code;code
+col_desc_usr_eaddr;adresse électronique
+col_desc_usr_fst_name;prénom
 col_desc_usr_id;#
-col_desc_usr_name;name
+col_desc_usr_name;nom
 err_action_required;Une action est nécessaire avant de pouvoir réaliser celle-ci.
 err_admin_empty_csv_file;Le fichier CSV est vide.
 err_admin_no_right_to_update_table;Vous n'avez pas le droit de modifier cette table.
 err_admin_table_undeterminable;Impossible de déterminer la table de destination.
 err_amc_not_installed;Impossible de trouver AMC sur le système.
 err_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
-err_db_invalid_query;Requêtes invalides.
 err_db_invalid_values;Valeurs invalides.
 err;Erreur.
 err_http_403;Accès interdit !!!
 err_http_404;Ressource non trouvée !!!
 err_http_422;Requête invalide !!!
 err_http_500;Erreur du serveur !!!
-err_invalid_csv_file;Le fichier CSV est invalide.
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
 err_invalid_project_code;Le code du project est invalide.
@@ -66,7 +70,6 @@ err_item_admin_empty_archive;L'archive est vide.
 err_mail_server;Impossible de se connecter au serveur de messagerie.
 err_missing_file;Un fichier est nécessaire pour pouvoir réaliser cette action.
 err_missing_or_invalid_parameter;Paramètre manquant ou invalide.
-err_no_access;Accès refusé.
 err_not_a_zip_file;Le fichier fourni n'est pas une archive ZIP.
 err_project_already_exists;Un projet avec le même code existe déjà.
 err_unknown_eaddr;Adresse électronique inconnue.
@@ -77,18 +80,13 @@ info_no_mcq_available;Aucun QCM n'est disponible.
 info_please_wait;Opération en cours. Veuillez patienter.
 info_progress_saved;Progression sauvegardée.
 name_actions;actions
-name_archive;archive
 name_confirmation;confirmation
 name_copies;copies
-name_creation;création
 name_dashboard;tableau de bord
-name_database;base de données
 name_details;détails
 name_exam;examen
 name_exercise;exercice
-name_files;fichiers
 name_groups;groupes
-name_logs;fichiers de log
 name_mcq;QCM
 name_minutes;minutes
 name_no;non
@@ -101,8 +99,8 @@ name_statement;énoncé
 name_submission;soumission
 name_table;table
 name_tags;tags
-name_title;titre
 name_threshold;seuil
+name_title;titre
 name_type;type
 name_view;vue
 name_yes;oui
@@ -117,8 +115,8 @@ op_notlike;ne contient pas
 page_title_administration;administration
 page_title_administration_database;base de données
 page_title_administration_submit_form;soumission
+page_title_authentication_account_creation;création d'un compte
 page_title_authentication;authentification
-page_title_authentication_creation;création d'un compte
 page_title_authentication_login_cas;serveur CAS
 page_title_authentication_login_local;locale
 page_title_authentication_password_change;modification de mot de passe
@@ -127,20 +125,19 @@ page_title_exam_creation;création
 page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
 page_title_exam;examen
-page_title_filters;filtres
 page_title_index;index
 page_title_item_database;base de données
 page_title_item_groups;groupes
-page_title_item;QCM
 page_title_item_pack;création
+page_title_item;QCM
 page_title_item_submit_form;soumission
 page_title_password_change;changement de mot de passe
 page_title_profile_group;groupes
 page_title_profile_personal_data;informations personnelles
 page_title_profile;profil
-page_title_project;projets AMC
 page_title_project_inbox;QCM papier corrigés
 page_title_project_main;projets AMC
+page_title_project;projets AMC
 page_title_signout;déconnexion
 page_title_ticket_error;erreur de ticket
 param_err_invalid_duplicate_value;%s: valeur en double
@@ -151,7 +148,7 @@ param_seq_previous_question;question précédente (%s)
 param_seq_registrations_done;%s enregistrement(s) effectué(s)
 param_seq_switch_mode;modifier le mode (%s)
 param_seq_users_registered;%s utilisatrice(s) enregistrée(s) pour cet examen
-qst_clean_project_files_confirmation;Confirmez-vous la suppression des fichiers de ce projet ?
+qst_clean_project_associations_confirmation;Confirmez-vous la suppression des associations copie/étudiante ?
 qst_delete_project_confirmation;Confirmez-vous la suppression de ce projet ?
 qst_exam_deletion_confirmation;Confirmez-vous la suppression de cet examen ?
 qst_item_deletion_confirmation;Confirmez-vous la suppression de cet élément ?
@@ -162,36 +159,28 @@ seq_administrate_this_mcq;administrer ce QCM
 seq_analyse_answer_sheets;analyser les réponses
 seq_associate_automatic;associer étudiantes et copies (mode automatique)
 seq_associate_manual;associer étudiantes et copies (mode manuel)
+seq_association_attr;attribut utilisé pour l'association automatique
+seq_association_source;groupe(s) des étudiantes
 seq_authentify_with_server;S'authentifier via
-seq_clean_files;nettoyer les fichiers
+seq_clean_associations;supprimer les associations étudiante/copie
 seq_compile_latex;compiler le code latex
-seq_compute_scores;calculer les notes
 seq_confirmation_request;demande de confirmation
-seq_csv_column_eaddr;colonne CSV contenant les adresses électroniques des étudiantes
-seq_csv_column_id;colonne CSV contenant les identifiants des étudiantes
 seq_csv_file;fichier CSV
 seq_delete_project;supprimer ce projet
 seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
 seq_error_messages;message(s) d'erreur
-seq_export_scores;exporter les notes dans un fichier ODS
-seq_extract_answer_sheets;extraire les réponses des copies scannées
-seq_extract_layout_data;extraire les données de mise en page
-seq_extract_scoring_data;extraire les données du barème
-seq_generate_annotated_sheets;générer les copies annotées
-seq_generate_sheets;générer les copies individuelles
+seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;message(s) d'information
 seq_items_found;élément(s) trouvés
 seq_latex_id;identifiant étudiant dans le code latex
 seq_manual_association;association manuelle
 seq_new_project;nouveau projet
 seq_new_row;nouvelle ligne
-seq_no_available_file;aucun fichier disponible
 seq_no_name;pas de fichier d'image
 seq_records_found;enregistrement(s) trouvés
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;envoyer les copies annotées
-seq_submission_result;résultat de la soumission
 seq_upload_answer_sheets;envoyer le fichier PDF des copies scannées
 seq_upload_latex_archive;envoyer l'archive ZIP du code latex
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
@@ -199,24 +188,29 @@ seq_warning_messages;message(s) d'avertissement
 seq_zip_file;fichier ZIP
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse életronique modifiée avec succès.
-succ_loggin;Connexion réussie.
+succ_login;Connexion réussie.
 succ_password_changed;Mot de passe modifié avec succès.
+succ_project_created;Projet créé avec succès.
 succ;Succès.
 succ_ticket_account_creation_sent;Un message avec un lien de création vous a été envoyé.
 succ_ticket_eaddr_change_sent;Un message avec un lien de modification vous a été envoyé.
 succ_ticket_password_change_sent;Un message avec un lien de modification vous a été envoyé.
 tbl_desc_admin;admin
+tbl_desc_attr;attr
 tbl_desc_cas_auth;cas_auth
 tbl_desc_grp;grp
 tbl_desc_local_auth;local_auth
 tbl_desc_tag;tag
 tbl_desc_tbl;tbl
+tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
+verb_add;ajouter
 verb_administrate;administrer
 verb_answer;répondre
 verb_cancel;annuler
-verb_clean;nettoyer
+verb_close;fermer
+verb_create;créer
 verb_delete;supprimer
 verb_filter;filtrer
 verb_send;envoyer

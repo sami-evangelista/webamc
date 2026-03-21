@@ -47,11 +47,8 @@ err_admin_empty_csv_file;The CSV file is empty.
 err_admin_no_right_to_update_table;You are not allowed to update this table.
 err_admin_table_undeterminable;Impossible to determine destination table.
 err_amc_not_installed;AMC executable does not seem to be installed.
-err_auth_wrong_credentials;Invalid password.
 err_check_log_file;An error occurred. Please check log file.
-err_db_invalid_query;Invalid query.
 err_db_invalid_values;Invalid values.
-err_missing_or_invalid_parameter;Missing or invalid parameter.
 err;Error.
 err_http_403;Unauthorized access !!!
 err_http_404;File not found !!!
@@ -61,37 +58,30 @@ err_invalid_csv_file;Invalid CSV file.
 err_invalid_eaddr;Invalid email address.
 err_invalid_password_confirm;Passwords are different.
 err_invalid_project_code;Invalid project code.
-err_invalid_project_title;Invalid project title.
 err_invalid_tex_archive;Invalid tex archive.
 err_invalid_ticket;This ticket is not valid.
 err_io;IO error.
 err_item_admin_empty_archive;The archive is empty.
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
-err_no_access;Access denied.
+err_missing_or_invalid_parameter;Missing or invalid parameter.
 err_not_a_zip_file;This does not look like a zip file.
 err_project_already_exists;A project with the same code already exists.
 err_unknown_eaddr;Unknown email address.
 err_wrong_credentials;Wrong credentials.
-info_all_answers_will_be_reset;All answers will be reset.
 info_exam_finished;Exam finished !
 info_no_exam_available;No exam available.
 info_no_mcq_available;No MCQ available.
 info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 name_actions;actions
-name_archive;archive
 name_confirmation;confirmation
 name_copies;copies
-name_creation;creation
 name_dashboard;dashboard
-name_database;database
 name_details;details
 name_exam;exam
 name_exercise;exercise
-name_files;files
 name_groups;groups
-name_logs;log files
 name_mcq;MCQ
 name_minutes;minutes
 name_no;no
@@ -105,6 +95,7 @@ name_submission;submission
 name_table;table
 name_tags;tags
 name_threshold;threshold
+name_title;title
 name_type;type
 name_view;view
 name_yes;yes
@@ -116,22 +107,19 @@ op_gt;greater than
 op_like;contains
 op_lt;less than
 op_notlike;does not contain
-page_title_account_creation;account creation
 page_title_administration;administration
 page_title_administration_database;database
 page_title_administration_submit_form;submission
+page_title_authentication_account_creation;account creation
 page_title_authentication;authentication
-page_title_authentication_creation;account creation
 page_title_authentication_login_cas;server
 page_title_authentication_login_local;local
 page_title_authentication_password_change;password change
-page_title_authentication_server;server authentication
 page_title_eaddr_change;Email address change
 page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
 page_title_exam_database;database
 page_title_exam;exam
-page_title_filters;filters
 page_title_index;index
 page_title_item_database;database
 page_title_item_groups;groups
@@ -150,13 +138,12 @@ page_title_ticket_error;ticket error
 param_err_invalid_duplicate_value;%s: duplicate value
 param_err_invalid_null_value;%s: value expected
 param_err_invalid_value;%s: invalid value
-param_seq_authentify_with_server;Authentify with server %s.
 param_seq_next_question;next question (%s)
 param_seq_previous_question;previous question (%s)
 param_seq_registrations_done;%s registration(s) done
 param_seq_switch_mode;switch mode (%s)
 param_seq_users_registered;%s user(s) registered for this exam
-qst_clean_project_files_confirmation;Do you confirm the deletion of this project files ?
+qst_clean_project_associations_confirmation;Do you confirm the deletion of student/sheet associations ?
 qst_delete_project_confirmation;Do you confirm the deletion of this project ?
 qst_exam_deletion_confirmation;Do you confirm the deletion of this exam ?
 qst_item_deletion_confirmation;Do you confirm the deletion of this item ?
@@ -167,7 +154,8 @@ seq_administrate_this_mcq;administrate this MCQ
 seq_analyse_answer_sheets;analyse answer sheets
 seq_associate_automatic;associate students and sheets (automatic)
 seq_associate_manual;associate students and sheets (manual)
-seq_clean_files;clean files
+seq_authentify_with_server;Authentify with server
+seq_clean_associations;clean student/sheet associations
 seq_compile_latex;compile latex
 seq_compute_scores;compute scores
 seq_confirmation_request;confirmation request
@@ -181,20 +169,19 @@ seq_export_scores;export scores
 seq_extract_answer_sheets;extract individual sheets
 seq_extract_layout_data;extract layout data
 seq_extract_scoring_data;extract scoring data
-seq_generate_sheets;generate sheets
 seq_generate_annotated_sheets;generate annotated sheets
+seq_generate_sheets;generate sheets
 seq_information_messages;information message(s)
 seq_items_found;item(s) found
 seq_latex_id;student ID in latex file
 seq_manual_association;manual association
 seq_new_project;new project
 seq_new_row;new row
-seq_no_available_file;no available file
 seq_no_name;no name image
 seq_records_found;record(s) found
 seq_select_an_exam;select an exam
 seq_select_a_project;select a project
-seq_submission_result;submission result
+seq_send_annotated_sheets;send annotated sheets
 seq_upload_answer_sheets;upload answer sheets
 seq_upload_latex_archive;upload latex archive
 seq_upload_student_list;upload student list
@@ -202,8 +189,9 @@ seq_warning_messages;warning message(s)
 seq_zip_file;ZIP file
 succ_account_created;Account successfuly created.
 succ_eaddr_changed;Email address successfuly changed.
-succ_loggin;Login successful.
+succ_login;Login successful.
 succ_password_changed;Password successfuly changed.
+succ_project_created;Project created successfuly.
 succ;Success.
 succ_ticket_account_creation_sent;Account creation link sent.
 succ_ticket_eaddr_change_sent;Email address change link sent.
@@ -216,10 +204,12 @@ tbl_desc_tag;tag
 tbl_desc_tbl;tbl
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
+verb_add;add
 verb_administrate;administrate
 verb_answer;answer
 verb_cancel;cancel
-verb_clean;clean
+verb_close;close
+verb_create;create
 verb_delete;delete
 verb_filter;filter
 verb_send;send

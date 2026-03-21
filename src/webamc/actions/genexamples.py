@@ -60,9 +60,15 @@ def action(out_dir: str) -> None:
             open(path("04-grp.csv"), "w", encoding="utf-8") as fd_grp,
             open(path("05-usr_grp.csv"), "w", encoding="utf-8") as fd_ugp,
             open(path("06-tbl.csv"), "w", encoding="utf-8") as fd_tbl,
-            open(path("07-admin.csv"), "w", encoding="utf-8") as fd_adm
+            open(path("07-admin.csv"), "w", encoding="utf-8") as fd_adm,
+            open(path("08-attr.csv"), "w", encoding="utf-8") as fd_att,
+            open(path("09-usr_attr.csv"), "w", encoding="utf-8") as fd_uat
     ):
+        uid = 0
+
         def new_usr(usr_code: str, tbls: None | list[str] = None) -> None:
+            nonlocal uid
+            uid = uid + 1
             while True:
                 usr_fst_name = pick_fst_name()
                 usr_name = pick_name()
@@ -77,6 +83,8 @@ def action(out_dir: str) -> None:
             password = ROOT_PASSWORD if usr_code == "root" else ""
             fd_loc.write(f"1;{usr_code};{usr_code};{password}\n")
             fd_cas.write(f"1;{usr_code};{usr_code}\n")
+            fd_uat.write(f"UID;{usr_code};{str(uid).zfill(8)}\n")
+            fd_uat.write(f"RID;{usr_code};{str(uid).zfill(8)[::-1]}\n")
             if tbls is not None:
                 for tbl in tbls:
                     fd_adm.write(f"{usr_code};{tbl}\n")
@@ -92,6 +100,10 @@ def action(out_dir: str) -> None:
         fd_ugp.write("ugp_usr;ugp_grp;ugp_right\n")
         fd_tbl.write("tbl_name\n")
         fd_adm.write("adm_usr;adm_tbl\n")
+        fd_att.write("atr_code;atr_desc\n")
+        fd_att.write("UID;User ID\n")
+        fd_att.write("RID;Reversed user ID\n")
+        fd_uat.write("uat_attr;uat_usr;uat_value\n")
 
         all_tables = [
             "admin",
@@ -101,7 +113,9 @@ def action(out_dir: str) -> None:
             "tag",
             "usr",
             "usr_grp",
-            "tbl"
+            "tbl",
+            "attr",
+            "usr_attr"
         ]
         for tbl in all_tables:
             fd_tbl.write(tbl + "\n")

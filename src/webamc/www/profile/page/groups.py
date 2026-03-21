@@ -9,7 +9,7 @@ def page(ctx: context.Context) -> he.Element:
         if not session.has_submission_right(ctx):
             return he.Empty()
         elements: list[he.Element] = list()
-        rmap = {
+        rmap: dict[types.usr_right_t, types.txt_t] = {
             types.USR_RIGHT_VIEW: "name_view",
             types.USR_RIGHT_SUBMIT: "name_submission"
         }

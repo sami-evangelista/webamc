@@ -6,6 +6,7 @@ Init some files according to src/webamc/config.py:
 - doc/config.tex - tex file listing configuration parameters
 - doc/tool-settings.tex - tex file defining some setting constants
 - doc/csv-desc.tex - tex file containing database table descriptions
+- doc/db.dot - database relational schema
 - examples/cfg/default.json - default configuration file
 
 Script must be launched from the package repository.
@@ -16,7 +17,7 @@ import types as _types
 
 import webamc
 from webamc.all import *
-from webamc.db import util, doc
+from webamc.db import util, doc, dotify
 from webamc.util import termout
 
 
@@ -119,3 +120,9 @@ def action() -> None:
                 )
             w("\\end{itemize}\n")
             w("\\end{itemize}\n")
+
+    # doc/db.dot
+    f = "doc/db.dot"
+    termout.info(f"generate {f}")
+    with open(f, "w", encoding="utf-8") as fd:
+        fd.write(dotify.gen_dot() + "\n")

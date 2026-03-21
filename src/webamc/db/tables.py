@@ -19,6 +19,8 @@ now = sa.func.now()  # pylint: disable=not-callable
 # definition of some foreign key column types
 class RefUsr(ct.ForeignKey):
     pass
+class RefAttr(ct.ForeignKey):
+    pass
 class RefTbl(ct.ForeignKey):
     pass
 class RefSubmission(ct.ForeignKey):
@@ -73,6 +75,26 @@ class Usr(Base):
     usr_eaddr: str = CO(ct.Eaddr, nullable=False, unique=True)
     usr_fst_name: str = CO(ct.FstName, nullable=False)
     usr_name: str = CO(ct.Name, nullable=False)
+
+
+class Attr(Base):
+    __tablename__ = "attr"
+    atr_id: int = CO(ct.Integer, primary_key=True)
+    atr_code: str = CO(ct.String, nullable=False, unique=True)
+    atr_desc: str = CO(ct.String, nullable=False, unique=True)
+
+
+class UsrAttr(Base):
+    __tablename__ = "usr_attr"
+    uat_id: int = CO(ct.Integer, primary_key=True)
+    uat_usr: int = CO(RefUsr, nullable=False)
+    uat_attr: int = CO(RefAttr, nullable=False)
+    uat_value: str = CO(ct.String, nullable=False)
+    __table_args__ = (
+        UC("uat_usr", "uat_attr"),
+        FK(["uat_usr"], ["usr.usr_id"], ondelete="CASCADE"),
+        FK(["uat_attr"], ["attr.atr_id"], ondelete="CASCADE"),
+    )
 
 
 class Ticket(Base):
@@ -340,12 +362,14 @@ class McqGrp(Base):
 
 TBL_CODES: dict[str, list[str]] = {
     "admin": ["adm_usr", "adm_tbl"],
+    "attr": ["atr_code"],
     "local_auth": ["loc_login"],
     "cas_auth": ["cas_login"],
     "grp": ["grp_name"],
     "tag": ["tag_name"],
     "tbl": ["tbl_name"],
     "usr": ["usr_code"],
+    "usr_attr": ["uat_usr", "uat_attr"],
     "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"]
 }
 
@@ -353,6 +377,8 @@ TBL_CODES: dict[str, list[str]] = {
 # define attributes of foreign keys
 RefUsr.col = Usr.usr_id
 RefUsr.fmt = lambda usr: str(usr.usr_code)
+RefAttr.col = Attr.atr_id
+RefAttr.fmt = lambda attr: str(attr.atr_code)
 RefTbl.col = Tbl.tbl_id
 RefTbl.fmt = lambda tbl: str(tbl.tbl_name)
 RefSubmission.col = Submission.sub_id

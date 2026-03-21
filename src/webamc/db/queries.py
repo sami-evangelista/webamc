@@ -195,8 +195,6 @@ def gen_pack_questions(
             result: Query[tables.Item] = traverse(spec[0])
             for c in spec[1:]:
                 result = result.union(traverse(c))
-
-            print(result)
             return result
         oper = spec.get("op", "all")
         if oper == "all":

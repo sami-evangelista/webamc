@@ -7,7 +7,7 @@ def data(
         ctx: context.Context,
         zip_file: fa.UploadFile
 ) -> types.json_response_t:
-    def error_result(err: str) -> types.json_response_t:
+    def error_result(err: types.txt_t) -> types.json_response_t:
         return {
             "success": False,
             "msgs": [lang.txt(err)],

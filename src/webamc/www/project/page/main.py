@@ -17,7 +17,7 @@ def page(ctx: context.Context) -> fa.Response:
     options = [he.Option()]
     options += [
         he.Option(he.Str(p), value=p)
-        for p, d in project.list_projects(session.usr_code(ctx))
+        for p, d in project.Project.list_projects(session.usr_code(ctx))
     ]
     select_projects = he.Select(
         *options,

@@ -18,7 +18,7 @@ sub_page_spec_t = tuple[types.static_img_t, sub_page_generator_t]
 page_layout_t = tp_ext.TypedDict(
     "page_layout_t",
     {
-        "title": str,
+        "title": types.txt_t,
         "path": types.path_t,
         "default": str,
         "sub_pages": dict[str, sub_page_spec_t]
@@ -50,7 +50,9 @@ def page(
     if not session.is_logged_in(ctx):
         div_menu: he.Element = he.Empty()
     else:
-        imgs_data: list[tuple[types.static_img_t, str, types.path_t]] = list()
+        imgs_data: list[
+            tuple[types.static_img_t, types.txt_t, types.path_t]
+        ] = list()
         if session.active_registration(ctx) is None:
             if not project.inbox_empty(session.usr_eaddr(ctx)):
                 imgs_data += [
@@ -202,7 +204,7 @@ def page_error(
         ctx: context.Context,
         code: int
 ) -> fa.Response:
-    body = he.Txt(f"err_http_{code}")
+    body = he.Txt(tp.cast(types.txt_t, f"err_http_{code}"))
     result = page(ctx, str(code), body)
     result.status_code = code
     return result
@@ -248,16 +250,17 @@ def static_img_src(
 
 def static_img(
         img: types.static_img_t,
-        title: str,
+        title: types.txt_t,
         href: str = "",
         js: str = "",
         size: None | int = None,
+        title_args: None | tuple[str] = None,
         **kwargs: str
 ) -> he.Element:
     result: he.Element
     src = static_img_src(img, size)
-    title = lang.txt(title)
-    result = he.Img(src=src, title=title, alt=title, **kwargs)
+    title_str = lang.txt(title, title_args)
+    result = he.Img(src=src, title=title_str, alt=title_str, **kwargs)
     if href != "":
         result["class"] += " btn"
         result["onclick"] = f"base_relocate('{href}')"
@@ -298,8 +301,10 @@ def gen_composite_page(
         wip: bool = False,
         sub_page_args: None | dict[str, tp.Any] = None
 ) -> fa.Response:
-    def sub_page_title(sub_page: str) -> str:
-        return layout["title"] + "_" + sub_page.replace("-", "_")
+    def sub_page_title(sub_page: str) -> types.txt_t:
+        return tp.cast(
+            types.txt_t, layout["title"] + "_" + sub_page.replace("-", "_")
+        )
     body: he.Element
     title = lang.txt(layout["title"])
     if sub_page is None:
@@ -383,7 +388,7 @@ def gen_css_dyn() -> str:
 def wrap_code(code: types.oper_code_t, result: tp.Any = None) -> fa.Response:
     response: types.json_response_t = {
         "success": not code.startswith("err"),
-        "msgs": [lang.txt(code)],
+        "msgs": [lang.txt(types.oper_code_to_txt(code))],
         "result": result
     }
     return fa.responses.JSONResponse(response)

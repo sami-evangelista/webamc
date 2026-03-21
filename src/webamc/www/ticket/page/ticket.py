@@ -142,6 +142,6 @@ def _page_account_creation(
     )
     return base.page(
         ctx,
-        str(he.Txt("page_title_account_creation")),
+        str(he.Txt("page_title_authentication_account_creation")),
         div
     )

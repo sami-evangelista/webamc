@@ -3,15 +3,23 @@
 import csv
 import os
 import posixpath
+import typing as tp
 from importlib import resources
 
 from webamc.util import io
+from webamc import types
 
 
-texts: dict[str, str]
+texts: dict[types.txt_t, str]
 texts_loaded: bool = False
 
 
+def reset() -> None:
+    global texts_loaded, texts
+    texts_loaded = False
+    texts = dict()
+
+    
 def load_texts() -> None:
     from webamc import config
     global texts_loaded, texts
@@ -32,11 +40,24 @@ def load_texts() -> None:
                     path.open(encoding="utf-8") as fd
             ):
                 reader = csv.DictReader(fd, delimiter=";")
-                texts = dict({
-                    txt["id"]: txt["text"] for txt in reader
-                }, **texts)
+                for txt in reader:
+                    texts[tp.cast(types.txt_t, txt["id"])] = txt["text"]
 
 
-def txt(id_: str) -> str:
+def txt(id_: types.txt_t, args: None | tuple[str] = None) -> str:
     load_texts()
-    return texts.get(id_, id_)
+    if id_ not in texts:
+        return id_
+    txt = texts[id_]
+    if args is None:
+        return txt
+    return txt % args
+
+
+def exists(id_: types.txt_t) -> bool:
+    load_texts()
+    return id_ in texts
+
+
+def all_texts() -> list[str]:
+    return sorted(texts)

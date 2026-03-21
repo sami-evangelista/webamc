@@ -129,20 +129,30 @@ def page(
 
     # side buttons
     cfg = config.CONFIG
-    txt_next = lang.txt("param_seq_next_question") % cfg["key_qst_next"]
-    txt_prev = lang.txt("param_seq_previous_question") % cfg["key_qst_prev"]
-    txt_mode = lang.txt("param_seq_switch_mode") % cfg["key_switch_mode"]
-    btns = [
-        ("arrow-right", txt_next, "mcq_move_qst_next()"),
-        ("arrow-left", txt_prev, "mcq_move_qst_prev()"),
-        ("switch-mode", txt_mode, "mcq_switch_mode()")
+    btns: list[
+        tuple[types.static_img_t, types.txt_t, None | tuple[str], str]
+    ] = [
+        ("arrow-right",
+         "param_seq_next_question",
+         (cfg["key_qst_next"], ),
+         "mcq_move_qst_next()"),
+        #
+        ("arrow-left",
+         "param_seq_previous_question",
+         (cfg["key_qst_prev"], ),
+         "mcq_move_qst_prev()"),
+        #
+        ("switch-mode",
+         "param_seq_switch_mode",
+         (cfg["key_switch_mode"], ),
+         "mcq_switch_mode()")
     ]
     if exam is None:
-        btns.append(("checkmark", "verb_send", "mcq_validate()"))
+        btns.append(("checkmark", "verb_send", None, "mcq_validate()"))
     
     side_buttons = [
-        base.static_img(tp.cast(types.static_img_t, img), txt, js=js)
-        for (img, txt, js) in btns
+        base.static_img(img, title, title_args=title_args, js=js)
+        for (img, title, title_args, js) in btns
     ]
 
     return base.page(
@@ -251,7 +261,7 @@ def _form_question(
     if item.itm_title is not None:
         lbl = f"{lbl} - {item.itm_title}"
     lbl_status = he.Span(
-        he.Txt(lbl),
+        he.Str(lbl),
         id_=f"qst_{item.itm_id}_label",
         class_="question-number"
     )

@@ -77,7 +77,7 @@ def page(
         # div containing details on the exam
         p_attrs = [
             he.P(
-                he.Txt(f"col_desc_{attr}"),
+                he.Txt(tp.cast(types.txt_t, f"col_desc_{attr}")),
                 he.Br(),
                 www_db_util.get_attribute(
                     ctx, attr, getattr(exam, attr), exam.exm_id,
