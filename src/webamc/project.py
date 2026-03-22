@@ -101,7 +101,7 @@ file_status_t = tp.TypedDict(
 status_t = tp_ext.TypedDict(
     "status_t", {
         "done": dict[action_t, bool],
-        "doable": dict[action_t, bool],
+        "doable": dict[action_t, tuple[bool, list[tuple[str, str]]]],
         "history": list[tuple[action_t, datetime.datetime, bool]],
         "data": data_t,
         "files": dict[file_t, file_status_t]
@@ -405,22 +405,24 @@ class Project:
             }
         return result
 
-    def doable(self) -> dict[action_t, bool]:
-        # update doable actions
+    def doable(self) -> dict[action_t, tuple[bool, list[tuple[str, str]]]]:
         files = self.files()
         result = dict()
         for act in types.literal_type_values(action_t):
             doable = True
+            missing = list()
             for dep_type, dep in ACTION_DEP[act]:
+                ok = True
                 if dep_type == "file":
-                    f = tp.cast(file_t, dep)
-                    doable = doable and files[f]["exists"]
+                    ok = files[tp.cast(file_t, dep)]["exists"]
                 elif dep_type == "action":
-                    a = tp.cast(action_t, dep)
-                    doable = doable and self.done[a]
+                    ok = self.done[dep]
                 elif dep_type == "data":
-                    doable = doable and self.data.get(dep) is not None
-            result[act] = doable
+                    ok = self.data.get(dep) not in (None, "")
+                doable = doable and ok
+                if not ok:
+                    missing.append((str(dep_type), str(dep)))
+            result[act] = (doable, missing)
         return result
 
     def status(self) -> status_t:

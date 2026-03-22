@@ -1,4 +1,7 @@
 id;text
+err_file_required;Un fichier est requis pour réaliser cette action.
+err_data_required;Un paramètre est requis pour réaliser cette action.
+err_action_required;Une action est requise pour réaliser celle-ci.
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;utilisateur
@@ -48,7 +51,6 @@ col_desc_usr_eaddr;adresse électronique
 col_desc_usr_fst_name;prénom
 col_desc_usr_id;#
 col_desc_usr_name;nom
-err_action_required;Une action est nécessaire avant de pouvoir réaliser celle-ci.
 err_admin_empty_csv_file;Le fichier CSV est vide.
 err_admin_no_right_to_update_table;Vous n'avez pas le droit de modifier cette table.
 err_admin_table_undeterminable;Impossible de déterminer la table de destination.

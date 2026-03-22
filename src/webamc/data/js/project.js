@@ -25,6 +25,47 @@ const project_end_computation = function () {
 }
 
 
+const project_highlight_errors = function (ids) {
+    for(const id of ids) {
+        $('#' + id).addClass('error');
+    }
+    setTimeout(
+        function() {
+            for(const id of ids) {
+                $('#' + id).removeClass('error');
+            }
+        },
+        base_tooltip_time * 1000
+    );
+}
+
+
+const project_check_doable = function (action) {
+    if(project_status.doable[action][0]) {
+        return true;
+    }
+    let msgs = [];
+    let ids = [];
+    for(const [dep_type, dep] of project_status.doable[action][1]) {
+        let id;
+        if(dep_type == 'file') {
+            msgs.push(Lang['err_file_required']);
+            id = 'label-file-' + dep;
+        } else if(dep_type == 'action') {
+            msgs.push(Lang['err_action_required']);
+            id = 'label-action-' + dep;
+        } else if(dep_type == 'data') {
+            msgs.push(Lang['err_data_required']);
+            id = dep;
+        }
+        ids.push(id);
+    }
+    project_highlight_errors(ids);
+    base_report(msgs, false);
+    return false;
+}
+
+
 const project_new = function () {
     const data = {
         'action': 'new',
@@ -98,7 +139,7 @@ const project_init = function () {
         }
 
         // doable
-        for(const [act, d] of Object.entries(doable)) {
+        for(const [act, [d, msgs]] of Object.entries(doable)) {
             const img = $('#img-action-' + act);
             if(d) {
                 img.removeClass('warning');
@@ -121,64 +162,46 @@ const project_load_project = function () {
         div_project.html('');
     } else {
         const url = Constants.path_project_page_project;
-        const success = function(html) {
-	    div_project.html(html);
-        };
-        const data = {
-            'project_code': project_code
-        };
+        const success = function(html) { div_project.html(html); };
+        const data = { 'project_code': project_code };
 	xhr_post(url, success, data, 'html');
     }
 }
 
 
 const project_upload_action = function (action, file_id) {
-    if(project_computing) {
+    const file_content = $('#' + file_id).prop('files')[0];
+    if(project_computing
+       || !project_check_doable(action)
+       || !file_content) {
         return;
     }
-    const file_content = $('#' + file_id).prop('files')[0];
     const project_code = $('#project_code').val();
-    if(file_content) {
-        const form_data = new FormData();
-        const url = Constants.path_project_oper_upload;
-        const success = function(response) {
-            base_report(response.msgs, response.success);
-            project_init();
-            project_end_computation();
-        }
-        project_start_computation();
-        form_data.append('action', action);
-        form_data.append('file_content', file_content);
-        form_data.append('project_code', project_code);
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: form_data,
-            processData: false,
-            contentType: false,
-	    error: xhr_error,
-	    success: success
-        });
+    const form_data = new FormData();
+    const url = Constants.path_project_oper_upload;
+    const success = function(response) {
+        base_report(response.msgs, response.success);
+        project_init();
+        project_end_computation();
     }
+    project_start_computation();
+    form_data.append('action', action);
+    form_data.append('file_content', file_content);
+    form_data.append('project_code', project_code);
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: form_data,
+        processData: false,
+        contentType: false,
+	error: xhr_error,
+	success: success
+    });
 }
 
-
-const project_handle_action_response = function (response) {
-    base_report(response.msgs, response.success);
-    if(!response.success) {
-        for(const id of response.result) {
-            $('#' + id).addClass('error');
-        }
-        setTimeout(function() {
-            for(const id of response.result) {
-                $('#' + id).removeClass('error');
-            }
-        }, base_tooltip_time * 1000);
-    }
-}
 
 const project_basic_action = function (action, params = null) {
-    if(project_computing) {
+    if(project_computing || !project_check_doable(action)) {
         return;
     }
     const url = Constants.path_project_oper_action;
@@ -193,7 +216,7 @@ const project_basic_action = function (action, params = null) {
         }
     }
     const success = function(response) {
-        project_handle_action_response(response);
+        base_report(response.msgs, response.success);
         if(action != 'associate-manual') {
             project_init();
         }
@@ -205,12 +228,15 @@ const project_basic_action = function (action, params = null) {
 
 
 const project_manual_association_open = function () {
+    if(!project_check_doable('associate-manual-prepare')) {
+        return;
+    }
     const project_code = $('#project_code').val();
     const div_manual_association = $('#div-manual-association');
     if(project_code != '' && project_code != null) {
         const url = Constants.path_project_page_manual_association;
         const success = function(response) {
-            project_handle_action_response(response);
+            base_report(response.msgs, response.success);
             if(response.success) {
 	        div_manual_association.html(response.result);
                 div_manual_association.toggle();
@@ -254,12 +280,20 @@ const project_associate_manual = function (student, copy) {
 
 const project_submit_data = function () {
     const data = base_input_values('#table-action-data');
+    const handle_response = function (response) {
+        base_report(response.msgs, response.success);
+        if(response.success) {
+            project_init();
+        } else {
+            project_highlight_errors(response.result);
+        }
+    }
     delete data[project_groups.select_id()];
     data['code'] = $('#project_code').val();
     data['groups'] = project_groups.value;
     xhr_post(
         Constants.path_project_oper_set_data,
-        project_handle_action_response,
+        handle_response,
         data
     );
 }

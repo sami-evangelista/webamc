@@ -53,6 +53,12 @@ def page(
         )
         trs.append(tr)
 
+    def label_action(action: proj.action_t, txt: types.txt_t) -> he.Element:
+        return he.Span(
+            he.Txt(txt),
+            id_=f"label-action-{action}"
+        )
+
     def new_basic_action(
             action: proj.action_t,
             txt: types.txt_t,
@@ -70,7 +76,7 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(he.Txt(txt)),
+            he.Td(label_action(action, txt)),
             he.Td()
         )
         trs.append(tr)
@@ -94,7 +100,7 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(he.Txt(txt)),
+            he.Td(label_action(action, txt)),
             he.Td(input_file)
         )
         trs.append(tr)
