@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc import project
 
@@ -25,9 +23,11 @@ def page(ctx: context.Context) -> fa.Response:
         id_="project_code",
         onchange="project_load_project()"
     )
+    span_new = he.Span(he.Txt("seq_new_project"))
+    base.mkhelp(span_new, "seq_new_project", "project_new")
     table = he.Table(
         he.Tr(
-            he.Td(he.Txt("seq_new_project")),
+            he.Td(span_new),
             he.Td(input_new_project_code),
             he.Td(a_new)
         ),

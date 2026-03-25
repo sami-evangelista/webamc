@@ -80,23 +80,6 @@ const project_new = function () {
 }
 
 
-const project_delete = function () {
-    const go = function () {
-        const data = {
-            'action': 'delete',
-            'action_params': {},
-            'project_code': $('#project_code').val()
-        };
-        const success = function(_) {
-            const url = Constants.path_project_page_main;
-            base_relocate(url);
-        };
-        xhr_post_oper(Constants.path_project_oper_action, data, success);
-    };
-    base_ask_confirmation(Lang['qst_delete_project_confirmation'], go);
-}
-
-
 const project_init = function () {
     const project_code = $('#project_code').val();
     if(project_code == '' || project_code == null) {
@@ -109,14 +92,14 @@ const project_init = function () {
         const done = project_status.done;
         const doable = project_status.doable;
         const files = project_status.files;
+        const groups = data['groups'] ? data['groups'] : [];
 
         // data
 	for(const [key, val] of Object.entries(data)) {
             $('#' + key).val(val);
         }
         project_groups = new GrpTable(
-            'div-grps', project_usr_groups, data['groups'],
-            true, null, true, null
+            'div-grps', project_usr_groups, groups, true, null, true, null
         );
 
         // files
@@ -124,8 +107,7 @@ const project_init = function () {
             const exists = fdata['exists'];
             const img = $('#img-file-' + f);
             if(exists) {
-                const uri = fdata['uri'];
-                const js = 'base_relocate(\'' + uri + '\')';
+                const js = 'base_relocate(\'' + fdata['uri'] + '\')';
                 img.removeClass('warning')
                     .addClass('btn')
                     .attr('onclick', 'javascript:' + js)
@@ -182,53 +164,65 @@ const project_upload_action = function (action, file_id) {
     const success = function(response) {
         base_report(response.msgs, response.success);
         project_init();
-        project_end_computation();
     }
     project_start_computation();
     form_data.append('action', action);
     form_data.append('file_content', file_content);
     form_data.append('project_code', project_code);
-    $.ajax({
+    const query = {
         url: url,
         type: 'POST',
         data: form_data,
         processData: false,
         contentType: false,
 	error: xhr_error,
-	success: success
-    });
+	success: success,
+        complete: project_end_computation
+    };
+    $.ajax(query);
 }
 
 
-const project_basic_action = function (action, params = null) {
+const project_action = function (action, params = null) {
     if(project_computing || !project_check_doable(action)) {
         return;
     }
-    const url = Constants.path_project_oper_action;
-    const data = {
-        'action': action,
-        'project_code': $('#project_code').val(),
-        'action_params': {}
-    };
-    if(params != null) {
-        for(const [key, val] of Object.entries(params)) {
-            data['action_params'][key] = val;
+    const go  = function () {
+        const url = Constants.path_project_oper_action;
+        const data = {
+            'action': action,
+            'project_code': $('#project_code').val(),
+            'action_params': {}
+        };        
+        const success = function(response) {
+            base_report(response.msgs, response.success);
+            if(action == 'delete') {
+                const url = Constants.path_project_page_main;
+                base_relocate(url);
+            }
+            if(action != 'associate_manual') {
+                project_init();
+            }
+        };
+        if(params != null) {
+            for(const [key, val] of Object.entries(params)) {
+                data['action_params'][key] = val;
+            }
         }
+        project_start_computation();
+        xhr_post(url, success, data, 'json', project_end_computation);
+    };
+    const txt = 'qst_confirmation_project_' + action;
+    if(txt in Lang && project_status.warning[action]) {
+        base_ask_confirmation(Lang[txt], go);
+    } else {
+        go();
     }
-    const success = function(response) {
-        base_report(response.msgs, response.success);
-        if(action != 'associate-manual') {
-            project_init();
-        }
-        project_end_computation();
-    };
-    project_start_computation();
-    xhr_post(url, success, data);
 }
 
 
 const project_manual_association_open = function () {
-    if(!project_check_doable('associate-manual-prepare')) {
+    if(!project_check_doable('associate_manual_prepare')) {
         return;
     }
     const project_code = $('#project_code').val();
@@ -258,28 +252,19 @@ const project_manual_association_close = function () {
 }
 
 
-const project_clean_associations = function () {
-    const go = function () {
-        project_basic_action('clean-associations');
-    };
-    base_ask_confirmation(
-        Lang['qst_clean_project_associations_confirmation'], go
-    );
-}
-
-
 const project_associate_manual = function (student, copy) {
     const params = {
         'student': student,
         'copy': copy,
         'id': $('#assoc-' + student + '-' + copy).val()
     };
-    project_basic_action('associate-manual', params);
+    project_action('associate_manual', params);
 }
 
 
 const project_submit_data = function () {
     const data = base_input_values('#table-action-data');
+    const url = Constants.path_project_oper_set_data;
     const handle_response = function (response) {
         base_report(response.msgs, response.success);
         if(response.success) {
@@ -291,9 +276,5 @@ const project_submit_data = function () {
     delete data[project_groups.select_id()];
     data['code'] = $('#project_code').val();
     data['groups'] = project_groups.value;
-    xhr_post(
-        Constants.path_project_oper_set_data,
-        handle_response,
-        data
-    );
+    xhr_post(url, handle_response, data);
 }

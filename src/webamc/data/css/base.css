@@ -8,9 +8,6 @@
     --color-document-background: #DDDDFF;
     --color-thead-background: #BBBBDD;
     --color-table-border: #444444;
-    --color-confirm-tooltip: var(--color-document);
-    --color-confirm-tooltip-border: #44AA44;
-    --color-confirm-tooltip-background: #99FF99;
     --color-terminal: #EEEEEE;
     --color-terminal-border: #444444;
     --color-terminal-background: #222222;
@@ -23,6 +20,8 @@
     --color-warning: #CC3333;
     --color-error: #FF8888;
     --color-success: #88FF88;
+    --color-help-tooltip-border: #999970;
+    --color-help-tooltip-background: #FFFFDD;
 
     /* buttons */
     --border-width-btn: 3px;
@@ -238,40 +237,6 @@ div.my-name {
     border-color: var(--color-warning);
 }
 
-/* tooltips */
-.tooltip {
-    position: fixed;
-    border-radius: 10px;
-    border: 5px solid;
-    min-width: 200px;
-    padding: 10px 30px 10px 10px;
-    z-index: 100;
-    display: none;
-}
-#info-tooltip {
-    color: var(--color-info-tooltip);
-    border-color: var(--color-info-tooltip-border);
-    background-color: var(--color-info-tooltip-background);
-    right: 5px;
-    top: 5px;
-}
-#confirm-tooltip {
-    color: var(--color-confirm-tooltip);
-    border-color: var(--color-confirm-tooltip-border);
-    background-color: var(--color-confirm-tooltip-background);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-.confirm-tooltip-question {
-    font-weight: bold;
-    text-align: center;
-}
-.confirm-tooltip-text {
-    font-style: italic;
-    font-size: smaller;
-}
-
 /* <p> containing item codes in the item admin page */
 p.code {
     cursor: pointer;
@@ -343,16 +308,39 @@ p.code-exercise {
 input,select {
 }
 
-/* checkmark */
-.checkmark {
+/* help tooltip */
+#div-tooltip-help {
+    border: 4px solid;
+    border-radius: 8px;
+    display: none;
+    padding: 20px;
+    z-index: 2;
+    position: fixed;
+    width: 600px;
+    background-color: var(--color-help-tooltip-background);
+    border-color: var(--color-help-tooltip-border);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: justify;
+    text-justify: inter-word;
+}
+#img-tooltip-help-close-button {
+    top: 10px;
+    right: 10px;
+    position: absolute;
+}
+#div-tooltip-help-title {
     font-weight: bold;
-    color: green;
-    font-size: x-large;
+    font-size: large; 
+    padding-bottom: 20px;
+}
+#div-tooltip-help-body {
+    max-height: 400px;
+    overflow-y: auto;
 }
 
-/* crossmark */
-.crossmark {
-    font-weight: bold;
-    color: red;
-    font-size: x-large;
+.help-tooltip {
+    border-bottom: 1px dotted black;
+    cursor: help;
 }

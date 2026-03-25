@@ -324,7 +324,7 @@ class Exam(Base):
     exm_id: int = CO(ct.Integer, primary_key=True)
     exm_mcq: int = CO(RefMcq, nullable=False)
     exm_start: datetime.datetime = CO(ct.DateTime, nullable=False)
-    exm_duration: int = CO(ct.Integer, nullable=False, default=60)
+    exm_duration: int = CO(ct.PositiveInteger, nullable=False, default=60)
     __table_args__ = (
         FK(["exm_mcq"], ["mcq.mcq_id"], ondelete="CASCADE"),
         CC("exm_duration > 0"),

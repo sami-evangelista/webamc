@@ -36,10 +36,6 @@ load-plugins=
 # Pickle collected data for later comparisons.
 persistent=yes
 
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
-
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=no
@@ -83,7 +79,9 @@ disable=protected-access,
    too-many-ancestors,
    abstract-method,
    wildcard-import,
-   unused-wildcard-import
+   unused-wildcard-import,
+   too-many-instance-attributes,
+   too-many-public-methods
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -19,7 +19,7 @@ def command_check(args: argparse.Namespace) -> None:
         termout.error(f"directory not found: {args.input}")
 
 
-def command_checklang(args: argparse.Namespace) -> None:
+def command_checklang(_: argparse.Namespace) -> None:
     checklang.action()
 
 

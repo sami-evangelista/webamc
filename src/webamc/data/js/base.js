@@ -69,6 +69,7 @@ const base_input_values = function (selector) {
             var result = parser(val);
             if(isNaN(result)) {
                 result = null;
+                $(this).val('');
             }
             return result;
         }
@@ -185,4 +186,22 @@ const base_submit_file = function (id_file, url, div_submit_result) {
 	    success: success
         });
     }
+}
+
+
+const base_help_open = function (txt, help) {
+    const url = Constants.path_help + '?help_id=' + help;
+    const success = function (response) {
+        $('#div-tooltip-help-title').html(Lang[txt]);
+        $('#div-tooltip-help-body').html(response);
+        $('#div-tooltip-help').hide().fadeIn(base_anim_delay);
+    };
+    xhr_get(url, success);
+}
+
+
+const base_popup_help_close = function () {
+    $('#div-tooltip-help-title').html();
+    $('#div-tooltip-help-body').html();
+    $('#div-tooltip-help').fadeOut(base_anim_delay);
 }

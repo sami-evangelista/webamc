@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from a2wsgi import ASGIMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.errors import ServerErrorMiddleware
@@ -7,7 +5,6 @@ from pydantic_settings import BaseSettings
 
 from webamc.www.all import *
 from webamc.db import op, queries
-from webamc.util import io
 from webamc.www.auth import router as router_auth
 from webamc.www.admin import router as router_admin
 from webamc.www.db import router as router_db
@@ -82,6 +79,11 @@ async def hello() -> fa.Response:
 @app.get("/static")
 async def route_static(file_name: str) -> fa.Response:
     return base.static_file(file_name)
+
+
+@app.get("/help")
+async def route_help(help_id: types.help_t) -> fa.Response:
+    return base.help_page(help_id)
 
 
 @app.get("/img")

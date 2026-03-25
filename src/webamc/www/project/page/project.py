@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 import json
 
 from webamc.www.all import *
 from webamc.www.project import router
-from webamc.util import fmt, io
 from webamc.db import queries, tables
 from webamc import project as proj
 
@@ -15,59 +12,56 @@ def page(
 ) -> fa.Response:
     trs: list[he.Element] = list()
 
-    def list_files(
-            action: proj.action_t
-    ) -> None:
-        trs_files = list()
-        for f in proj.list_files(action):
-            ext = io.get_file_extension(f)
-            try:
-                doc_types: dict[str, types.static_img_t] = {
-                    ".pdf": "doc-pdf",
-                    ".ods": "doc-table",
-                    ".zip": "doc-archive"
-                }
-                png = doc_types[ext]
-            except KeyError:
-                png = "doc-text"
-            span = he.Span(
-                he.Str(proj.file_name(f)),
-                id_=f"label-file-{f}"
-            )
-            file_img = he.Img(
-                src=base.static_img_src(png),
-                title=f,
-                alt=f,
-                id_=f"img-file-{f}"
-            )
-            tr = he.Tr(
-                he.Td(file_img),
-                he.Td(span)
-            )
-            trs_files.append(tr)
-        table = he.Table(*trs_files)
-        tr = he.Tr(
-            he.Td(),
-            he.Td(table),
-            he.Td()
+    def file_elements(f: proj.file_t) -> tuple[he.Element, he.Element]:
+        span = he.Span(
+            he.Txt(proj.file_txt(f), fmt=False),
+            id_=f"label-file-{f}"
         )
-        trs.append(tr)
+        file_img = he.Img(
+            src=base.static_img_src(base.file_img(proj.file_name(f))),
+            title=f,
+            alt=f,
+            id_=f"img-file-{f}"
+        )
+        return file_img, span
 
-    def label_action(action: proj.action_t, txt: types.txt_t) -> he.Element:
-        return he.Span(
+    def list_action_files(action: proj.action_t) -> None:
+        trs_files = [
+            he.Tr(*[he.Td(e) for e in file_elements(f)])
+            for f in proj.list_files(action)
+        ]
+        if trs_files != list():
+            table = he.Table(*trs_files)
+            tr = he.Tr(
+                he.Td(),
+                he.Td(table),
+                he.Td()
+            )
+            trs.append(tr)
+
+    def label_action(
+            action: proj.action_t,
+            txt: types.txt_t,
+            help_id: None | types.help_t
+    ) -> he.Element:
+        result = he.Span(
             he.Txt(txt),
             id_=f"label-action-{action}"
         )
+        if help_id is not None:
+            base.mkhelp(result, txt, help_id)
+        return result
 
-    def new_basic_action(
+    def new_action(
             action: proj.action_t,
             txt: types.txt_t,
             js: None | str = None,
             icon: types.static_img_t = "play",
-            img_txt: types.txt_t = "verb_start"
+            img_txt: types.txt_t = "verb_start",
+            help_id: None | types.help_t = None
     ) -> None:
         if js is None:
-            js = f"project_basic_action('{action}');"
+            js = f"project_action('{action}');"
         a = base.static_img(
             icon,
             img_txt,
@@ -76,16 +70,17 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(label_action(action, txt)),
+            he.Td(label_action(action, txt, help_id)),
             he.Td()
         )
         trs.append(tr)
-        list_files(action)
+        list_action_files(action)
 
     def new_upload_action(
             action: proj.action_t,
             f: proj.file_t,
-            txt: types.txt_t
+            txt: types.txt_t,
+            help_id: None | types.help_t = None
     ) -> None:
         input_file = he.Input(
             type_="file",
@@ -100,62 +95,73 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(label_action(action, txt)),
+            he.Td(label_action(action, txt, help_id)),
             he.Td(input_file)
         )
         trs.append(tr)
-        list_files(action)
+        list_action_files(action)
 
     # div with actions
-    new_basic_action(
-        "delete",
-        "seq_delete_project",
-        js="project_delete()",
-        icon="trash",
-        img_txt="verb_delete"
-    )
     new_upload_action(
-        "upload-project-archive",
-        "zip-tex",
-        "seq_upload_latex_archive"
+        "upload_source",
+        "source",
+        "seq_upload_latex_archive",
+        help_id="project_upload_source"
     )
-    new_basic_action(
+    new_action(
         "compile",
         "seq_compile_latex"
     )
     new_upload_action(
-        "upload-answer-sheets",
-        "pdf-answer-sheets",
+        "upload_answer_sheets",
+        "pdf_answer_sheets",
         "seq_upload_answer_sheets"
     )
-    new_basic_action(
+    new_action(
         "analyse",
         "seq_analyse_answer_sheets"
     )
-    #new_basic_action(
+    #new_action(
     #    "clean-associations",
     #    "seq_clean_associations",
     #    js="project_clean_associations()",
     #    img_txt="verb_delete",
     #    icon="broom"
     #)
-    new_basic_action(
-        "associate-automatic",
+    new_action(
+        "associate_automatic",
         "seq_associate_automatic"
     )
-    new_basic_action(
-        "associate-manual-prepare",
+    new_action(
+        "associate_manual_prepare",
         "seq_associate_manual",
         js="project_manual_association_open()"
     )
-    new_basic_action(
-        "export-scores",
+    new_action(
+        "export_scores",
         "seq_generate_scores_and_annotated_sheets"
     )
-    new_basic_action(
-        "send-annotated-sheets",
+    new_action(
+        "send_annotated_sheets",
         "seq_send_annotated_sheets"
     )
+    tr = he.Tr(
+        he.Td(he.Hr(), colspan=3),
+    )
+    trs.append(tr)
+    new_action(
+        "delete",
+        "seq_delete_project",
+        icon="trash",
+        img_txt="verb_delete"
+    )
+    img, span = file_elements("log_webamc")
+    tr = he.Tr(
+        he.Td(img),
+        he.Td(span),
+        he.Td()
+    )
+    trs.append(tr)
     table_actions = he.Table(
         *trs,
         class_="table-form",
@@ -173,13 +179,14 @@ def page(
         size="30"
     )
     input_copies = he.Input(
-        value="10",
         name="copies",
         id_="copies",
+        type_="number",
         size="4"
+    ).set_data(
+        "type", "number"
     )
     input_threshold = he.Input(
-        value="0.5",
         name="threshold",
         id_="threshold",
         size="4"
@@ -190,6 +197,8 @@ def page(
         size="10"
     )
     options_attr = [
+        he.Option(he.Str(""), value="")
+    ] + [
         he.Option(he.Str(a.atr_desc), value=a.atr_id)
         for a in sorted(ctx.dbs.query(tables.Attr), key=lambda a: a.atr_desc) 
     ]
@@ -222,8 +231,12 @@ def page(
         js="project_submit_data()",
         style="position: absolute; top: 5px; right: 5px;"
     )
+    span_parameters = he.Span(
+        he.Txt("name_parameters")
+    )
+    base.mkhelp(span_parameters, "name_parameters", "project_parameters")
     div_data = he.Div(
-        he.H2(he.Txt("name_parameters")),
+        he.H2(span_parameters),
         table_data,
         a_submit_data,
         style="position: relative;"

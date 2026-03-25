@@ -22,7 +22,8 @@ const xhr_post = function (
     url,
     success,
     data,
-    dataType='json'  /* type of data expected from the server */
+    dataType='json',  /* type of data expected from the server */
+    complete=null
 ) {
     if(url == null) {
 	console.error('No url specified !');
@@ -33,6 +34,7 @@ const xhr_post = function (
         type: 'POST',
         success: success,
 	error: xhr_error,
+        complete: complete,
         dataType: dataType,  /* type of data expected from the server */
         data: JSON.stringify(data),  /* data sent */
         contentType: 'application/json; charset=utf-8'  /* type of data sent */

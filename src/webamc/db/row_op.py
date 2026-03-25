@@ -42,7 +42,7 @@ def check_tbl_values(
         val: types.db_map_t,
         req_type: types.db_query_type_t,
         check_unicity: bool = True
-) -> tuple[bool, None | list[str], types.db_map_t]:
+) -> tuple[bool, list[str], types.db_map_t]:
     ok = True
     err: list[str] = list()
     new_val: types.db_map_t = dict()

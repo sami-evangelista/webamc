@@ -22,6 +22,12 @@ def fmt_datetime(d: datetime) -> str:
     return dates.format_datetime(d, format=datetime_format, locale=date_locale)
 
 
+def fmt_title(s: str) -> str:
+    if s == "":
+        return s
+    return s[0].upper() + s[1:]
+
+
 def fmt_name(fst_name: str, name: str) -> str:
     return fst_name.title() + " " + name.upper()
 

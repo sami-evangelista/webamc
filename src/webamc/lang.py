@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import csv
-import os
-import posixpath
 import typing as tp
 from importlib import resources
 
@@ -19,7 +17,7 @@ def reset() -> None:
     texts_loaded = False
     texts = dict()
 
-    
+
 def load_texts() -> None:
     from webamc import config
     global texts_loaded, texts
@@ -40,18 +38,19 @@ def load_texts() -> None:
                     path.open(encoding="utf-8") as fd
             ):
                 reader = csv.DictReader(fd, delimiter=";")
-                for txt in reader:
-                    texts[tp.cast(types.txt_t, txt["id"])] = txt["text"]
+                for t in reader:
+                    texts[tp.cast(types.txt_t, t["id"])] = t["text"]
 
 
 def txt(id_: types.txt_t, args: None | tuple[str] = None) -> str:
     load_texts()
     if id_ not in texts:
         return id_
-    txt = texts[id_]
     if args is None:
-        return txt
-    return txt % args
+        result = texts[id_]
+    else:
+        result = texts[id_] % args
+    return result
 
 
 def exists(id_: types.txt_t) -> bool:

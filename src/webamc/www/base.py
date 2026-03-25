@@ -5,7 +5,7 @@ import fastapi as fa
 from importlib import resources
 
 from webamc.all import *
-from webamc.util import io
+from webamc.util import io, fmt
 from webamc.actions import load, loadcsv, output
 from webamc import project
 from . import html_elements as he, session, context, mtype
@@ -54,7 +54,7 @@ def page(
             tuple[types.static_img_t, types.txt_t, types.path_t]
         ] = list()
         if session.active_registration(ctx) is None:
-            if not project.inbox_empty(session.usr_eaddr(ctx)):
+            if not project.inbox_empty(session.usr_code(ctx)):
                 imgs_data += [
                     ("inbox", "page_title_project_inbox",
                      "/project/page/inbox")
@@ -138,13 +138,8 @@ def page(
         if io.get_file_extension(fname) == ".css"
     ]
 
-    # tooltip divs
-    div_confirm = he.Div(class_="tooltip", id_="confirm-tooltip")
-    div_error = he.Div(class_="tooltip", id_="error-tooltip")
-    div_info = he.Div(class_="tooltip", id_="info-tooltip")
-
     # head information
-    title = title.upper()
+    title = fmt.fmt_title(title)
     etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title}"))
     meta = he.Meta(**{
         "http-equiv": "Content-Type",
@@ -180,6 +175,20 @@ def page(
             id_="wip-warning"
         )
 
+    # help div
+    img_close_help = static_img(
+        "dismiss",
+        "verb_close",
+        js="base_popup_help_close()",
+        id_="img-tooltip-help-close-button"
+    )
+    div_tooltip_help = he.Div(
+        img_close_help,
+        he.Div(id_="div-tooltip-help-title"),
+        he.Div(id_="div-tooltip-help-body"),
+        id_="div-tooltip-help"
+    )
+
     # head and body
     head = he.Head(
         etitle,
@@ -190,22 +199,23 @@ def page(
     body = he.Body(
         he.H1(he.Str(title)),
         div_menu,
-        div_confirm,
-        div_error,
-        div_info,
         div_wip,
+        div_tooltip_help,
         body
     )
     h = he.Html(head, body, lang="en")
     return fa.responses.HTMLResponse(f"<!doctype html>\n{h}")
 
 
+def page_error_body(code: int) -> he.Element:
+    return he.Txt(tp.cast(types.txt_t, f"err_http_{code}"))
+
+
 def page_error(
         ctx: context.Context,
         code: int
 ) -> fa.Response:
-    body = he.Txt(tp.cast(types.txt_t, f"err_http_{code}"))
-    result = page(ctx, str(code), body)
+    result = page(ctx, str(code), page_error_body(code))
     result.status_code = code
     return result
 
@@ -237,6 +247,19 @@ def redirect(url: str) -> fa.Response:
 def redirect_to_login_url() -> fa.Response:
     url = mkuri("/auth/page/main")
     return redirect(url)
+
+
+def file_img(file_name: str) -> types.static_img_t:
+    try:
+        doc_types: dict[str, types.static_img_t] = {
+            ".pdf": "doc-pdf",
+            ".ods": "doc-table",
+            ".zip": "doc-archive"
+        }
+        result = doc_types[io.get_file_extension(file_name)]
+    except KeyError:
+        result = "doc-text"
+    return result
 
 
 def static_img_src(
@@ -306,14 +329,14 @@ def gen_composite_page(
             types.txt_t, layout["title"] + "_" + sub_page.replace("-", "_")
         )
     body: he.Element
-    title = lang.txt(layout["title"])
+    title = fmt.fmt_title(lang.txt(layout["title"]))
     if sub_page is None:
         sub_page = layout["default"]
     if sub_page not in layout["sub_pages"]:
         body = he.Empty()
     else:
         img, fun = layout["sub_pages"][sub_page]
-        sub_title = lang.txt(sub_page_title(sub_page))
+        sub_title = fmt.fmt_title(lang.txt(sub_page_title(sub_page)))
         title = f"{title} / {sub_title}"
         if sub_page_args is None:
             sub_page_args = dict()
@@ -362,7 +385,7 @@ def gen_js_constants() -> str:
 def gen_js_lang() -> str:
     lang.load_texts()
     js = [
-        f"   static {key} = {json.dumps(val.capitalize())};"
+        f"   static {key} = {json.dumps(fmt.fmt_title(val))};"
         for key, val in lang.texts.items()
     ]
     return "class Lang {\n" + "\n".join(js) + "\n}"
@@ -416,3 +439,24 @@ def static_file(file_name: str) -> fa.Response:
 
     result.headers["Content-Type"] = mtype.get_media_type(file_name)
     return result
+
+
+def help_page(help_id: types.help_t) -> fa.Response:
+    path =  resources.files("webamc") / "data" / "help" / config.CONFIG["lang"]
+    for p in [
+            path / f"{help_id}.html",
+            path / f"{help_id}.htm",
+            path / help_id
+    ]:
+        try:
+            with resources.as_file(p) as resource, open(resource) as fd:
+                return fa.responses.HTMLResponse(fd.read())
+        except FileNotFoundError:
+            continue
+    result = fa.responses.HTMLResponse(str(page_error_body(404)))
+    return result
+
+
+def mkhelp(e: he.Element, title: types.txt_t, help_id: types.help_t) -> None:
+    e["class"] += " help-tooltip"
+    e["onclick"] = f"javascript: base_help_open('{title}', '{help_id}')"

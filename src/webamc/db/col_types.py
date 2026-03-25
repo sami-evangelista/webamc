@@ -83,6 +83,17 @@ class Integer(sa.Integer, ColType):
         return int(val)
 
 
+class PositiveInteger(sa.Integer, ColType):
+    input_type = ui.Number
+    doc_color = "red"
+    @classmethod
+    def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
+        result = int(val)
+        if result < 0:
+            raise ValueError
+        return result
+
+
 class ConstrainedString(String):
     regexp: None | str = None
     len_range: tuple[None | int, None | int] = (None, None)

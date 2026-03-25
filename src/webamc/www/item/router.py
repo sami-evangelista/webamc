@@ -32,7 +32,7 @@ def route_oper_submit(
 ) -> fa.Response:
     from .oper import submit
     with context.Context(req) as ctx:
-        return fa.responses.JSONResponse(submit.data(ctx, zip_file))
+        return submit.data(ctx, zip_file)
 
 
 @router.post("/item/page/database-list")

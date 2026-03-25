@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import shutil
 from pathlib import Path
 
@@ -43,3 +41,10 @@ def mkdir_of_file(file_path: str) -> bool:
     except PermissionError:
         termout.error(f"{file_path}: permission denied to create directory")
     return False
+
+
+def remove(path: str) -> None:
+    if os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)

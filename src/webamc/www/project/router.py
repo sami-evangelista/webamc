@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc import project as proj
 
@@ -65,11 +63,12 @@ def route_project_page_get_file(
 def route_project_page_get_mail_pdf(
         req: fa.Request,
         usr_code: str,
+        usr_name: str,
         project_code: str
 ) -> fa.Response:
     from .page import get_mail_pdf
     ctx = context.Context(req)
-    return get_mail_pdf.page(ctx, usr_code, project_code)
+    return get_mail_pdf.page(ctx, usr_code, usr_name, project_code)
 
 
 @router.post("/project/page/manual-association")
@@ -120,5 +119,5 @@ def route_project_oper_set_data(
         args: dict[str, tp.Any]
 ) -> fa.Response:
     from .oper import set_data
-    ctx = context.Context(req)
-    return set_data.data(ctx, args)
+    with context.Context(req) as ctx:
+        return set_data.data(ctx, args)

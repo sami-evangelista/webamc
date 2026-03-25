@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.query import Query
 
@@ -26,12 +24,15 @@ def get_viewable_mcqs(
         usr_id: int,
         grp_ids: set[int]
 ) -> list[tuple[tables.Mcq, tables.Item, tables.Usr]]:
-    # An item is selected if
-    # (1) it is owned by the user
-    # or (2.1) the mcq is in review mode
-    #    and (2.2) the mcq is visible
-    #    and (2.3) the user has view access on one of the groups
-    #              the mcq belongs to
+    """Return the list of MCQ the user identified by usr_id can view.
+
+    grp_ids is the set of group ids the user has view access on.
+
+    An MCQ is selected if (1) it is owned by the user or (2.1) the mcq
+    is in review mode and (2.2) the mcq is visible and (2.3) the user
+    has view access on one of the groups the MCQ belongs to.
+
+    """
     query = dbs.query(
         tables.Mcq,
         tables.Item,
@@ -103,6 +104,7 @@ def get_active_registration(
 
 
 def get_grp_tree(dbs: Session, grp_id: int) -> set[int]:
+    """Return the group and all its tree."""
     result = {grp_id}
     todo = {grp_id}
     while todo != set():

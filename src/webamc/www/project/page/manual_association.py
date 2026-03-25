@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.www.project import router
 from webamc import project
@@ -9,13 +7,15 @@ def page(
         ctx: context.Context,
         args: router.args_page_manual_association_t
 ) -> fa.Response:
-    proj = project.Project(session.usr_code(ctx), args["project_code"])
+    proj = project.Project(
+        session.usr_code(ctx),
+        session.usr_name(ctx),
+        args["project_code"],
+        dbs=ctx.dbs
+    )
     action_params = args["action_params"]
     associations = proj.list_associations()
-    users = proj.list_students(ctx.dbs)
-    users.sort(
-        key=lambda row: (row[0].usr_name, row[0].usr_fst_name)
-    )
+    students = proj.list_students()
     trs: list[he.Tr] = list()
     js = list()
     first = True
@@ -47,13 +47,13 @@ def page(
         options = [
             he.Option(
                 he.Str(
-                    user[0].usr_name.upper() + " " +
-                    user[0].usr_fst_name.title() + " - " +
-                    user[0].usr_eaddr
+                    s[1].usr_name.upper() + " " +
+                    s[1].usr_fst_name.title() + " - " +
+                    s[1].usr_eaddr
                 ),
-                value=user[1].uat_value
+                value=s[1].usr_code if s[0] is None else s[0].uat_value
             )
-            for user in users
+            for s in students
         ]
         options.insert(0, he.Option(he.Str(""), value=""))
         select_user = he.Select(

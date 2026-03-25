@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
 # pylint: disable-all
 
 from webamc.all import *
+from webamc.util import fmt
 
 
 class Element:
@@ -75,6 +75,8 @@ class H3(Element):
     pass
 class Head(Element):
     pass
+class Hr(Element):
+    pass
 class Html(Element):
     pass
 class Img(Element):
@@ -128,7 +130,7 @@ class Txt(Element):
     def __str__(self) -> str:
         result = lang.txt(self.id_)
         if self.fmt:
-            result = result.capitalize()
+            result = fmt.fmt_title(result)
         result = html.escape(result)
         return result
 class Str(Element):

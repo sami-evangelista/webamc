@@ -1,4 +1,12 @@
 id;text
+seq_project_file_log_webamc;fichier de log
+seq_project_file_ods_scores;tableau des notes
+seq_project_file_pdf_answer_sheets;copies scannées
+seq_project_file_pdf_correction;correction
+seq_project_file_pdf_subject;sujet (un seul fichier contenant toutes les copies)
+seq_project_file_source;source
+seq_project_file_zip_annotated_sheets;copies scannées et annotées
+seq_project_file_zip_sheets;sujet (un fichier / étudiante)
 err_file_required;Un fichier est requis pour réaliser cette action.
 err_data_required;Un paramètre est requis pour réaliser cette action.
 err_action_required;Une action est requise pour réaliser celle-ci.
@@ -54,8 +62,9 @@ col_desc_usr_name;nom
 err_admin_empty_csv_file;Le fichier CSV est vide.
 err_admin_no_right_to_update_table;Vous n'avez pas le droit de modifier cette table.
 err_admin_table_undeterminable;Impossible de déterminer la table de destination.
-err_amc_not_installed;Impossible de trouver AMC sur le système.
-err_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
+err_project_amc_not_installed;Impossible de trouver AMC sur le système.
+err_project_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
+err_project_invalid_source;Fichier source non reconnu.
 err_db_invalid_values;Valeurs invalides.
 err;Erreur.
 err_http_403;Accès interdit !!!
@@ -64,15 +73,15 @@ err_http_422;Requête invalide !!!
 err_http_500;Erreur du serveur !!!
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
-err_invalid_project_code;Le code du project est invalide.
-err_invalid_tex_archive;L'archive latex est invalide.
+err_project_invalid_code;Le code du projet est invalide.
+err_project_invalid_tex_archive;L'archive latex est invalide.
 err_invalid_ticket;Ce ticket n'est plus vaide.
 err_io;Erreur d'entrée/sortie.
 err_item_admin_empty_archive;L'archive est vide.
 err_mail_server;Impossible de se connecter au serveur de messagerie.
 err_missing_file;Un fichier est nécessaire pour pouvoir réaliser cette action.
-err_missing_or_invalid_parameter;Paramètre manquant ou invalide.
-err_not_a_zip_file;Le fichier fourni n'est pas une archive ZIP.
+err_project_missing_or_invalid_parameter;Paramètre manquant ou invalide.
+err_project_not_a_zip_file;Le fichier fourni n'est pas une archive ZIP.
 err_project_already_exists;Un projet avec le même code existe déjà.
 err_unknown_eaddr;Adresse électronique inconnue.
 err_wrong_credentials;Mot de passe incorrect.
@@ -84,6 +93,7 @@ info_progress_saved;Progression sauvegardée.
 name_actions;actions
 name_confirmation;confirmation
 name_copies;copies
+name_date;date
 name_dashboard;tableau de bord
 name_details;détails
 name_exam;examen
@@ -97,6 +107,7 @@ name_parameters;paramètres
 name_question;question
 name_review;révision
 name_rights;droits
+name_sender;expéditeur
 name_statement;énoncé
 name_submission;soumission
 name_table;table
@@ -131,15 +142,15 @@ page_title_index;index
 page_title_item_database;base de données
 page_title_item_groups;groupes
 page_title_item_pack;création
-page_title_item;QCM
+page_title_item;QCM en ligne
 page_title_item_submit_form;soumission
 page_title_password_change;changement de mot de passe
 page_title_profile_group;groupes
 page_title_profile_personal_data;informations personnelles
 page_title_profile;profil
-page_title_project_inbox;QCM papier corrigés
-page_title_project_main;projets AMC
-page_title_project;projets AMC
+page_title_project_inbox;boîte de réception
+page_title_project_main;QCM papier
+page_title_project;QCM papier
 page_title_signout;déconnexion
 page_title_ticket_error;erreur de ticket
 param_err_invalid_duplicate_value;%s: valeur en double
@@ -150,8 +161,10 @@ param_seq_previous_question;question précédente (%s)
 param_seq_registrations_done;%s enregistrement(s) effectué(s)
 param_seq_switch_mode;modifier le mode (%s)
 param_seq_users_registered;%s utilisatrice(s) enregistrée(s) pour cet examen
-qst_clean_project_associations_confirmation;Confirmez-vous la suppression des associations copie/étudiante ?
-qst_delete_project_confirmation;Confirmez-vous la suppression de ce projet ?
+qst_confirmation_project_associate_automatic;Confirmez-vous l'association automatique ?  Ceci supprimera toutes les associations déjà enregistrées.
+qst_confirmation_project_clean_associations;Confirmez-vous la suppression des associations copie/étudiante ?
+qst_confirmation_project_compile;Confirmez-vous la génération du sujet ? Ceci supprimera tous les documents de travail actuel. Annulez si vous avez déjà imprimé les sujets.
+qst_confirmation_project_delete;Confirmez-vous la suppression de ce projet ?
 qst_exam_deletion_confirmation;Confirmez-vous la suppression de cet examen ?
 qst_item_deletion_confirmation;Confirmez-vous la suppression de cet élément ?
 qst_item_row_confirmation;Confirmez-vous la suppression de cette ligne ?
@@ -165,7 +178,7 @@ seq_association_attr;attribut utilisé pour l'association automatique
 seq_association_source;groupe(s) des étudiantes
 seq_authentify_with_server;S'authentifier via
 seq_clean_associations;supprimer les associations étudiante/copie
-seq_compile_latex;compiler le code latex
+seq_compile_latex;générer le sujet
 seq_confirmation_request;demande de confirmation
 seq_csv_file;fichier CSV
 seq_delete_project;supprimer ce projet
@@ -184,7 +197,7 @@ seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;envoyer les copies annotées
 seq_upload_answer_sheets;envoyer le fichier PDF des copies scannées
-seq_upload_latex_archive;envoyer l'archive ZIP du code latex
+seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
 seq_warning_messages;message(s) d'avertissement
 seq_zip_file;fichier ZIP

@@ -43,7 +43,7 @@ def data(
             ctx.dbs.rollback()
             return fa.responses.JSONResponse({
                 "success": False,
-                "msgs": list() if err is None else err,
+                "msgs": err,
                 "result": None
             })
         values = row_op.transform_tbl_values(tbl, values)

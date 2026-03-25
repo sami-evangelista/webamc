@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.www.project import router
 from webamc.util import fmt
@@ -10,7 +8,11 @@ def data(
         ctx: context.Context,
         args: router.args_project_code_t
 ) -> fa.Response:
-    proj = project.Project(session.usr_code(ctx), args["project_code"])
+    proj = project.Project(
+        session.usr_code(ctx),
+        session.usr_name(ctx),
+        args["project_code"]
+    )
     status = proj.status()
     files = dict()
     for f, fdata in status["files"].items():
@@ -31,6 +33,7 @@ def data(
         "done": status["done"],
         "doable": status["doable"],
         "history": status["history"],
-        "files": files
+        "files": files,
+        "warning": status["warning"]
     }
     return base.wrap_code("succ", response)
