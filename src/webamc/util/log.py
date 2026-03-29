@@ -26,11 +26,11 @@ def log(msg: str) -> None:
     if log_fd is not None:
         log_fd.write(msg + "\n")
 
-
 def log_exec(
         args: list[str],
         stdout: None | tp.TextIO | tp.BinaryIO = None,
-        stderr: None | tp.TextIO | tp.BinaryIO = None
+        stderr: None | tp.TextIO | tp.BinaryIO = None,
+        cwd: str | None = None
 ) -> bool:
     log_open()
     if log_fd is None:
@@ -50,7 +50,8 @@ def log_exec(
         check=False,
         input="",
         stdout=stdout,
-        stderr=stderr
+        stderr=stderr,
+        cwd=cwd
     )
     if proc_result.returncode != 0:
         termout.error(f"there was an error with command {cmd}")

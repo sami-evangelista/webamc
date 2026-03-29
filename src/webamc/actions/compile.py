@@ -6,11 +6,11 @@ import hashlib
 from pathlib import Path
 from PIL import Image
 import pymupdf  # type: ignore
+import concurrent.futures
 
 from webamc.all import *
 from webamc.util import log, io
 from . import tex, output
-
 
 JSON_SPEC = "items.json"
 
@@ -69,6 +69,23 @@ CTX: ctx_t = {
     "mdata": list()
 }
 WEBAMC_COMMENT = "%webamc "
+
+
+task_t = tp.TypedDict(
+    "task_t", 
+    {
+        "input_tex": str,
+        "output_dir": str,
+        "item": item_t,
+        "mcq_dir": str | None,
+        "tex_content": str | None,
+        "info": str | None,
+        "headers": list[tuple[str, str]]
+    },
+    total=False 
+)
+
+TASKS: list[task_t] = []
 
 
 def _check_item_mdata(mdata: str) -> None | types.item_mdata_t:
@@ -254,10 +271,11 @@ def _tex_to_png(
         output_dir: str,
         item: item_t,
         mcq_dir: str | None,
+        headers: list[tuple[str, str]],
         tex_content: str | None = None,
         info: str | None = None
 ) -> None:
-    _item_set_png_file(item)
+    # _item_set_png_file(item)
     output_png = os.path.join(output_dir, item["png"])
 
     msg = f"compile {input_tex}"
@@ -273,22 +291,19 @@ def _tex_to_png(
         tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
 
     dir_path = os.path.dirname(input_tex)
-    cur_dir_path = os.getcwd()
+
+    # the directory when pdflatex will execute
+    execution_dir = mcq_dir if mcq_dir is not None else dir_path
+
     if tex_content is None:
         tex_content = io.read_file_content(input_tex)
-
-    # if we are in an mcq, the file is compiled from the mcq
-    # directory. otherwise we move to the file directory
-    if mcq_dir is not None:
-        os.chdir(mcq_dir)
-    else:
-        os.chdir(dir_path)
+    
 
     # create the content of the tex file to compile
     sep = "\n%\n"
     tex_headers = sep.join(
         f"%%%%% header from {header_file} %%%%%{sep}{header_content}"
-        for header_file, header_content in CTX["headers"]
+        for header_file, header_content in headers
     )
     tex_content = (
         r"\documentclass{article}" + sep
@@ -300,45 +315,79 @@ def _tex_to_png(
         + r"\end{document}" + sep
     )
 
-    # create a temp file for latex content and compute some other file names
-    with tempfile.NamedTemporaryFile(
-            dir=".", mode="w", suffix=".tex", encoding="utf-8",
-            delete=False
-    ) as tmp_file:
+    # # create a temp file for latex content and compute some other file names
+    # with tempfile.NamedTemporaryFile(
+    #         dir=".", mode="w", suffix=".tex", encoding="utf-8",
+    #         delete=False
+    # ) as tmp_file:
 
-        tmp_file.write(tex_content)
-        tmp_file.close()
+    #     tmp_file.write(tex_content)
+    #     tmp_file.close()
 
-        # the output of pdflatex will be written in a temporary directory
-        with tempfile.TemporaryDirectory() as tmp_dir:
+    #     # the output of pdflatex will be written in a temporary directory
+    #     with tempfile.TemporaryDirectory() as tmp_dir:
 
-            # pdflatexify the file and move back the previous directory
-            args = [
-                tex2pdf_exe,
-                *[arg.format(
-                    out_dir=tmp_dir,
-                    tex_file=tmp_file.name
-                ) for arg in tex2pdf_exe_args]
-            ]
-            exec_result = log.log_exec(args)
-            os.chdir(cur_dir_path)
+    #         # pdflatexify the file and move back the previous directory
+    #         args = [
+    #             tex2pdf_exe,
+    #             *[arg.format(
+    #                 out_dir=tmp_dir,
+    #                 tex_file=os.path.abspath(tmp_file.name)
+    #             ) for arg in tex2pdf_exe_args]
+    #         ]
+    #         exec_result = log.log_exec(args, cwd=execution_dir)
+            
 
-            # check pdflatex terminated correctly and that the
-            # resulting pdf is not empty and then convert it to png
-            # and finally crop it
-            path = Path(tmp_file.name).stem
-            pdf_file_name = os.path.join(tmp_dir, path + ".pdf")
-            png_file_name = os.path.join(tmp_dir, path + ".png")
-            if (
-                    exec_result
-                    and os.path.exists(pdf_file_name)
-                    and os.path.getsize(pdf_file_name) > 0
-                    and _pdf_to_png(pdf_file_name, png_file_name)
-                    and _crop_png(png_file_name)
-                    and io.mkdir_of_file(output_png)
-            ):
-                shutil.move(png_file_name, output_png)
-    os.remove(tmp_file.name)
+    #         # check pdflatex terminated correctly and that the
+    #         # resulting pdf is not empty and then convert it to png
+    #         # and finally crop it
+    #         path = Path(tmp_file.name).stem
+    #         pdf_file_name = os.path.join(tmp_dir, path + ".pdf")
+    #         png_file_name = os.path.join(tmp_dir, path + ".png")
+    #         if (
+    #                 exec_result
+    #                 and os.path.exists(pdf_file_name)
+    #                 and os.path.getsize(pdf_file_name) > 0
+    #                 and _pdf_to_png(pdf_file_name, png_file_name)
+    #                 and _crop_png(png_file_name)
+    #                 and io.mkdir_of_file(output_png)
+    #         ):
+    #             shutil.move(png_file_name, output_png)
+    # os.remove(tmp_file.name)
+
+    # create a temporary dir to create pngs, it will delete himself at the end
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        
+        # On place le fichier .tex DIRECTEMENT dans ce dossier poubelle
+        tex_file_path = os.path.join(tmp_dir, "qcm.tex")
+        with open(tex_file_path, "w", encoding="utf-8") as tmp_file:
+            tmp_file.write(tex_content)
+
+        args = [
+            tex2pdf_exe,
+            *[arg.format(
+                out_dir=tmp_dir,
+                tex_file=tex_file_path
+            ) for arg in tex2pdf_exe_args]
+        ]
+        
+        # pdflatex tourne dans le dossier du QCM
+        exec_result = log.log_exec(args, cwd=execution_dir)
+        
+        pdf_file_name = os.path.join(tmp_dir, "qcm.pdf")
+        png_file_name = os.path.join(tmp_dir, "qcm.png")
+        
+        # Blindage multithread pour la création du dossier d'image final
+        os.makedirs(os.path.dirname(output_png), exist_ok=True)
+        
+        if (
+            exec_result
+            and os.path.exists(pdf_file_name)
+            and os.path.getsize(pdf_file_name) > 0
+            and _pdf_to_png(pdf_file_name, png_file_name)
+            and _crop_png(png_file_name)
+        ):
+            shutil.move(png_file_name, output_png)
 
 
 def _compile_question(
@@ -374,7 +423,17 @@ def _compile_question(
         item["itm_code"] = qst["itm_code"]
         item["itm_type"] = types.ITEM_TYPE_QUESTION
         item["qst_type"] = qst["qst_type"]
-        _tex_to_png(input_tex, output_dir, item, mcq_dir, tex_content)
+        # _tex_to_png(input_tex, output_dir, item, mcq_dir, tex_content)
+        _item_set_png_file(item)
+        TASKS.append({
+            "input_tex": input_tex,
+            "output_dir": output_dir,
+            "item": item,
+            "mcq_dir": mcq_dir,
+            "tex_content": tex_content,
+            "info": None,
+            "headers": list(CTX["headers"])
+        })
         _ctx_push_item(item)
         result.append(item)
         iterator = tex.iter_on_choices(qst)
@@ -384,7 +443,17 @@ def _compile_question(
             item["cho_correct"] = correct
             item["cho_last"] = last
             info = f"(choice {num})"
-            _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
+            # _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
+            _item_set_png_file(item)
+            TASKS.append({
+                "input_tex": input_tex,
+                "output_dir": output_dir,
+                "item": item,
+                "mcq_dir": mcq_dir,
+                "tex_content": cho_tex,
+                "info": info,
+                "headers": list(CTX["headers"])
+            })
             result.append(item)
         _ctx_pop_item()
 
@@ -443,7 +512,17 @@ def _compile_dir_traversal(
             else:
                 item["itm_type"] = types.ITEM_TYPE_PACK
                 item["pak_spec"] = pack
-            _tex_to_png(files[f], output_dir, item, mcq_dir)
+            # _tex_to_png(files[f], output_dir, item, mcq_dir)
+            _item_set_png_file(item)
+            TASKS.append({
+                "input_tex": files[f],
+                "output_dir": output_dir,
+                "item": item,
+                "mcq_dir": mcq_dir,
+                "tex_content": None,
+                "info": None,
+                "headers": list(CTX["headers"])
+            })
             _ctx_push_item(item)
             result.append(item)
             if f == "tex_file_mcq":
@@ -474,14 +553,24 @@ def _compile_dir_traversal(
 
 
 def action(input_dir: str, prefix: str) -> None:
+    global TASKS
+    TASKS = [] # TASKS is empty when the compilation starts
 
+
+    print("New compile command starts")
     # everything will be written in a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        # traverse input_dir to generate json and png files
+        # traverse input_dir to generate json
         log.log_open()
         items = _compile_dir_traversal(input_dir, tmp_dir, None)
         log.log_close()
+
+        # generate png with items and TASKS
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
+            concurrent.futures.wait(futures)
+
 
         json_path = os.path.join(tmp_dir, JSON_SPEC)
         with open(json_path, "w", encoding="utf-8") as fd:
