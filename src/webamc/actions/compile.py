@@ -71,6 +71,7 @@ CTX: ctx_t = {
 WEBAMC_COMMENT = "%webamc "
 
 
+# task type used for tasks
 task_t = tp.TypedDict(
     "task_t", 
     {
@@ -85,6 +86,7 @@ task_t = tp.TypedDict(
     total=False 
 )
 
+# tasks used to parallelisation
 TASKS: list[task_t] = []
 
 
@@ -159,7 +161,7 @@ def _item_set_png_file(item: item_t) -> None:
         code = item["itm_code"]
     else:
         h = f"{h}[{item['itm_order']}]"
-        code, _, _ = CTX["stack"][-1]
+        code, _, _ = TX["stack"][-1]
     h = f"{h}/{code}"
     hval = hashlib.md5(h.encode()).hexdigest()
     item["png"] = os.path.join("png", hval[0:2], hval[2:] + ".png")
@@ -271,11 +273,11 @@ def _tex_to_png(
         output_dir: str,
         item: item_t,
         mcq_dir: str | None,
-        headers: list[tuple[str, str]],
+        headers: list[tuple[str, str]], # headers added because CTX global variable can't be used in parallelisation
         tex_content: str | None = None,
         info: str | None = None
 ) -> None:
-    # _item_set_png_file(item)
+    # _item_set_png_file(item) # _item_set_png_file is used during the prepartion process
     output_png = os.path.join(output_dir, item["png"])
 
     msg = f"compile {input_tex}"
@@ -358,7 +360,7 @@ def _tex_to_png(
     # create a temporary dir to create pngs, it will delete himself at the end
     with tempfile.TemporaryDirectory() as tmp_dir:
         
-        # On place le fichier .tex DIRECTEMENT dans ce dossier poubelle
+        # create a trash temporary directory, it contains tex files, it will delete himself at the end.
         tex_file_path = os.path.join(tmp_dir, "qcm.tex")
         with open(tex_file_path, "w", encoding="utf-8") as tmp_file:
             tmp_file.write(tex_content)
@@ -371,13 +373,13 @@ def _tex_to_png(
             ) for arg in tex2pdf_exe_args]
         ]
         
-        # pdflatex tourne dans le dossier du QCM
+        # the pdflatex commands will run on the "execution_dir" directory
         exec_result = log.log_exec(args, cwd=execution_dir)
         
         pdf_file_name = os.path.join(tmp_dir, "qcm.pdf")
         png_file_name = os.path.join(tmp_dir, "qcm.png")
         
-        # Blindage multithread pour la création du dossier d'image final
+        # create the output_png directory, if exists, the subprocess will not crash.
         os.makedirs(os.path.dirname(output_png), exist_ok=True)
         
         if (
@@ -444,7 +446,10 @@ def _compile_question(
             item["cho_last"] = last
             info = f"(choice {num})"
             # _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
+            
+            # creating png file name used later for _tex_to_png
             _item_set_png_file(item)
+            # adding new task
             TASKS.append({
                 "input_tex": input_tex,
                 "output_dir": output_dir,
@@ -556,8 +561,6 @@ def action(input_dir: str, prefix: str) -> None:
     global TASKS
     TASKS = [] # TASKS is empty when the compilation starts
 
-
-    print("New compile command starts")
     # everything will be written in a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
