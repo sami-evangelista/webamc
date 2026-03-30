@@ -55,12 +55,15 @@ class Filter {
         this.div.setAttribute("data-id", this.id);
         this.div.setAttribute("data-parent", this.parentid);
         
+        
         const filterContent = document.createElement("div");
-        filterContent.className = "flex items-center justify-between";
-        filterContent.innerHTML = `<strong>${this.op}</strong>${this.arg ? ` (arg: ${this.arg}${this.rev ? ', rev: true' : ''})` : ''}`;
+        filterContent.className = "flex items-center";
+        filterContent.style.width = "100%"; 
+        
+        const textNode = document.createElement("div");
+        textNode.innerHTML = `<strong>${this.op}</strong>${this.arg ? ` (arg: ${this.arg}${this.rev ? ', rev: true' : ''})` : ''}`;
         
         const allDeleteButton = document.createElement("button");
-        allDeleteButton.style.color = "white";
         allDeleteButton.style.fontWeight = "bold";
         allDeleteButton.style.borderRadius = "9999px";
         allDeleteButton.style.display = "flex";
@@ -68,6 +71,10 @@ class Filter {
         allDeleteButton.style.justifyContent = "center";
         allDeleteButton.style.border = "none";
         allDeleteButton.style.cursor = "pointer";
+        allDeleteButton.style.padding = "4px"; 
+        allDeleteButton.style.backgroundColor = "#ff9800"; // Orange 
+        allDeleteButton.style.color = "white"; // Icône en blanc
+        allDeleteButton.title = "Supprimer uniquement la boîte";
         allDeleteButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" stroke-width="2"
@@ -80,7 +87,6 @@ class Filter {
         };
 
         const deleteButton = document.createElement("button");
-        deleteButton.style.color = "white";
         deleteButton.style.fontWeight = "bold";
         deleteButton.style.borderRadius = "9999px";
         deleteButton.style.display = "flex";
@@ -88,6 +94,10 @@ class Filter {
         deleteButton.style.justifyContent = "center";
         deleteButton.style.border = "none";
         deleteButton.style.cursor = "pointer";
+        deleteButton.style.padding = "4px"; 
+        deleteButton.style.backgroundColor = "#ef4444"; // Rouge vif 
+        deleteButton.style.color = "white";
+        deleteButton.title = "Supprimer la boîte et les enfants";
         deleteButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
@@ -99,17 +109,19 @@ class Filter {
         deleteButton.onclick = () => {
             this.removeFilter();
         };
+
         const deleteDiv = document.createElement("div");
         deleteDiv.appendChild(allDeleteButton);
         deleteDiv.appendChild(deleteButton);
-        deleteDiv.classList.add("flex"); 
-        deleteDiv.classList.add("flex-row");
-        deleteDiv.classList.add("items-center");
-        deleteDiv.classList.add("space-x-2");
+        deleteDiv.className = "flex flex-row items-center"; 
+        deleteDiv.style.gap = "8px"; 
+        deleteDiv.style.marginLeft = "auto"; 
 
+        filterContent.appendChild(textNode);
         filterContent.appendChild(deleteDiv);
-
         this.div.appendChild(filterContent);
+
+
         this.div.ondragstart = (e) => {
             e.dataTransfer.setData("id", this.id);
             e.dataTransfer.setData("parentid", this.parentid);
@@ -201,294 +213,276 @@ const pack_format_array = function (array) {
 }
 
 
+// const pack_ask_args_for_difficulty = async function (textArg) {
+//     let return_val = null;
+//     let html = '<div class="flex justify-center items-center gap-4 p-4">';
+//     for(var i = 1; i <= 5; i ++) {
+//         html += '<div class="circle w-12 h-12 flex items-center justify-center rounded-full border-2 cursor-pointer text-black border-gray-300" data-value="' + i;
+//         html += '">' + i + '</div>';
+//     }
+//     html += '</div>';
+//     html += '<label class="flex items-center justify-center gap-2 mt-2">';
+//     html += '<input type="checkbox" id="swal-checkbox"';
+//     html += 'class="form-checkbox h-5 w-5 text-blue-600">';
+//     html += 'Inverser la sélection ?</label>';
+//     const { value, isConfirmed } = await Swal.fire({
+//         title: textArg,
+//         html: html,
+//         showCancelButton: true,
+//         confirmButtonText: "OK",
+//         cancelButtonText: "Annuler",
+//         didOpen: () => {
+//             const circles = document.querySelectorAll(".circle");
+//             let selectedValues = [];
+//             circles.forEach(circle => {
+//                 circle.addEventListener("click", function () {
+//                     const value = this.getAttribute("data-value");
+//                     this.classList.toggle("bg-blue-500");
+//                     this.classList.toggle("border-blue-500");
+//                     if(selectedValues.includes(value)) {
+//                         selectedValues = selectedValues.filter(
+//                             v => v !== value
+//                         );
+//                     } else {
+//                         selectedValues.push(value);
+//                     }
+//                 });
+//             });
+//         },
+//         preConfirm: () => {
+//             const selected = Array.from(
+//                 document.querySelectorAll(".circle.bg-blue-500")
+//             ).map(el => parseInt(el.getAttribute("data-value")));
+//             const isChecked = document.getElementById("swal-checkbox").checked;
+//             if(selected.length === 0) {
+//                 Swal.showValidationMessage(
+//                     "Veuillez sélectionner au moins une difficulté"
+//                 );
+//                 return false;
+//             }
+//             return { selected, isChecked };
+//         }
+//     });
+//     if(isConfirmed && value) {
+//         return_val = {
+//             value: value.selected,
+//             rev: value.isChecked
+//         };
+//     }
+//     return return_val !== null ? return_val : false;
+// }
+
 const pack_ask_args_for_difficulty = async function (textArg) {
-    let return_val = null;
-    let html = '<div class="flex justify-center items-center gap-4 p-4">';
-    for(var i = 1; i <= 5; i ++) {
-        html += '<div class="circle w-12 h-12 flex items-center justify-center rounded-full border-2 cursor-pointer text-black border-gray-300" data-value="' + i;
-        html += '">' + i + '</div>';
-    }
-    html += '</div>';
-    html += '<label class="flex items-center justify-center gap-2 mt-2">';
-    html += '<input type="checkbox" id="swal-checkbox"';
-    html += 'class="form-checkbox h-5 w-5 text-blue-600">';
-    html += 'Inverser la sélection ?</label>';
-    const { value, isConfirmed } = await Swal.fire({
-        title: textArg,
-        html: html,
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        cancelButtonText: "Annuler",
-        didOpen: () => {
-            const circles = document.querySelectorAll(".circle");
-            let selectedValues = [];
-            circles.forEach(circle => {
-                circle.addEventListener("click", function () {
-                    const value = this.getAttribute("data-value");
-                    this.classList.toggle("bg-blue-500");
-                    this.classList.toggle("border-blue-500");
-                    if(selectedValues.includes(value)) {
-                        selectedValues = selectedValues.filter(
-                            v => v !== value
-                        );
-                    } else {
-                        selectedValues.push(value);
-                    }
-                });
-            });
-        },
-        preConfirm: () => {
-            const selected = Array.from(
-                document.querySelectorAll(".circle.bg-blue-500")
-            ).map(el => parseInt(el.getAttribute("data-value")));
-            const isChecked = document.getElementById("swal-checkbox").checked;
-            if(selected.length === 0) {
-                Swal.showValidationMessage(
-                    "Veuillez sélectionner au moins une difficulté"
-                );
-                return false;
-            }
-            return { selected, isChecked };
+    return new Promise((resolve) => {
+        let html = '<div class="flex justify-center items-center gap-4 p-4">';
+        for(var i = 1; i <= 5; i ++) {
+            html += '<div class="circle w-12 h-12 flex items-center justify-center rounded-full border-2 cursor-pointer text-black border-gray-300" data-value="' + i + '">' + i + '</div>';
         }
+        html += '</div>';
+        html += '<label class="flex items-center justify-center gap-2 mt-2">';
+        html += '<input type="checkbox" id="swal-checkbox" class="form-checkbox h-5 w-5 text-blue-600">';
+        html += 'Inverser la sélection ?</label>';
+
+        alertify.confirm(textArg, html, 
+            function(evt) { // Bouton OK
+                const selected = Array.from(document.querySelectorAll(".circle.bg-blue-500"))
+                                      .map(el => parseInt(el.getAttribute("data-value")));
+                const isChecked = document.getElementById("swal-checkbox").checked;
+                
+                if(selected.length === 0) {
+                    alertify.error("Veuillez sélectionner au moins une difficulté");
+                    evt.cancel = true; // Empêche la fenêtre de se fermer
+                    return;
+                }
+                resolve({ value: selected, rev: isChecked });
+            }, 
+            function() { // Bouton Annuler
+                resolve(false);
+            }
+        ).set('labels', {ok:'OK', cancel:'Annuler'});
+
+        // Attache les événements APRES l'affichage
+        let selectedValues = [];
+        const circles = document.querySelectorAll(".circle");
+        circles.forEach(circle => {
+            circle.addEventListener("click", function () {
+                const value = this.getAttribute("data-value");
+                this.classList.toggle("bg-blue-500");
+                this.classList.toggle("border-blue-500");
+                if(selectedValues.includes(value)) {
+                    selectedValues = selectedValues.filter(v => v !== value);
+                } else {
+                    selectedValues.push(value);
+                }
+            });
+        });
     });
-    if(isConfirmed && value) {
-        return_val = {
-            value: value.selected,
-            rev: value.isChecked
-        };
-    }
-    return return_val !== null ? return_val : false;
 }
 
 
 const pack_ask_args_for_code = async function (textArg) {
-    let return_val = null;
-    const { value, isConfirmed } = await Swal.fire({
-        title: textArg,
-        html: `
-            <input id="swal-input" type="text"
-              class="swal2-input" placeholder="Entrez une valeur">
-            <label
-style="display: flex; align-items: center; justify-content:center; gap:10px;">
-            <input type="checkbox" id="swal-checkbox"> Inverser la selection ?
+    return new Promise((resolve) => {
+        let html = `
+            <input id="swal-input" type="text" style="width:100%; padding:8px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;" placeholder="Entrez une valeur">
+            <label style="display: flex; align-items: center; justify-content:center; gap:10px;">
+            <input type="checkbox" id="swal-checkbox"> Inverser la sélection ?
             </label>
-        `,
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        cancelButtonText: "Annuler",
-        preConfirm: () => {
-            const inputValue = document.getElementById("swal-input").value;
-            const isChecked = document.getElementById("swal-checkbox").checked;
-            if(!inputValue) {
-                Swal.showValidationMessage("Veuillez entrer une valeur !");
-                return false;
+        `;
+        
+        alertify.confirm(textArg, html, 
+            function(evt) {
+                const inputValue = document.getElementById("swal-input").value;
+                const isChecked = document.getElementById("swal-checkbox").checked;
+                if(!inputValue) {
+                    alertify.error("Veuillez entrer une valeur !");
+                    evt.cancel = true;
+                    return;
+                }
+                resolve({ value: inputValue, rev: isChecked });
+            }, 
+            function() {
+                resolve(false);
             }
-            return { inputValue, isChecked };
-        }
+        ).set('labels', {ok:'OK', cancel:'Annuler'});
     });
-    if(isConfirmed && value) {
-        return_val = {
-            value: value.inputValue,
-            rev: value.isChecked
-        };
-    }
-    if(return_val != null)
-        return return_val;
-    return false
 }
 
 
 const pack_ask_args_for_tag = async function (textArg) {
-    let return_val = null;
-    let tagsHTML = "";
-    let tags = false;
-    try {
-        const response = await fetch("/webamc/filter/tag_data");
-        const data = await response.json();
-        if(data.length > 0) {
-            tags = true
-            dataJSON = data;
-            for (let tag of dataJSON) {
-                tagsHTML += `
-                    <div id="${tag.tag_id}"
-                      class="tag inline-block px-4 py-2 mx-2 border border-gray-300 rounded cursor-pointer hover:bg-blue-500 hover:text-white">
-                        ${tag.tag_name}
-                    </div>
-                `;
+    return new Promise(async (resolve) => {
+        let tagsHTML = "";
+        let tags = false;
+        try {
+            const response = await fetch("/webamc/item/oper/get-pack");
+            
+            // On vérifie si le serveur répond un code d'erreur (ex: 404 Not Found)
+            if (!response.ok) {
+                throw new Error(`Le serveur a répondu avec une erreur ${response.status}`);
             }
+
+            const data = await response.json();
+            
+            if(data.length > 0) {
+                tags = true
+                for (let tag of data) {
+                    tagsHTML += `
+                        <div id="${tag.tag_id}"
+                          class="tag inline-block px-4 py-2 mx-2 border border-gray-300 rounded cursor-pointer hover:bg-blue-500 hover:text-white">
+                            ${tag.tag_name}
+                        </div>
+                    `;
+                }
+            } else {
+                tagsHTML = "<p>La base de données des tags est vide pour le moment.</p>";
+            }
+        } catch (error) {
+            console.error("Erreur détaillée :", error);
+            // On affiche la vraie erreur à l'écran !
+            tagsHTML = `<p style="color: red; font-weight: bold;">Erreur : ${error.message}</p>`;
         }
-        else {
-            tagsHTML = "<p>Aucun tag pour le moment</p>";
-        }
-    } catch (error) {
-        console.error("Erreur lors de la récupération des données :", error);
-        tagsHTML = "<p>Erreur de chargement</p>";
-    }
-    const { value, isConfirmed } = await Swal.fire({
-        title: textArg,
-        html: `
-            <div id="swal-tags-container">
-                ${tagsHTML}
-            </div>
+
+        let html = `
+            <div id="swal-tags-container">${tagsHTML}</div>
             ${tags ? `<label class="flex items-center justify-center gap-2 mt-3">
             <input type="checkbox" id="swal-checkbox" class="rounded"> Inverser la sélection ?
             </label>
             <style>
-            .tag.selected {
-                background-color: #3182ce;
-                color: white;
-                border-color: #3182ce;
-            }
-        </style>` : ""}
-            `,
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        cancelButtonText: "Annuler",
-        didOpen: () => {
-            const tags = Swal.getPopup().querySelectorAll('.tag');
-            tags.forEach(tagEl => {
-                tagEl.addEventListener('click', () => {
-                    tagEl.classList.toggle('selected');
-                });
-            });
-        },
-        preConfirm: () => {
-            if(tags)
-            {
-                const selectedTags = Swal
-                      .getPopup().querySelectorAll('.tag.selected');
-                const selectedTagData = [];
+            .tag.selected { background-color: #3182ce; color: white; border-color: #3182ce; }
+            </style>` : ""}
+        `;
 
-                selectedTags.forEach(tagEl => {
-                    selectedTagData.push({
-                        tag_id: tagEl.id,
-                        tag_name: tagEl.textContent.trim()
+        alertify.confirm(textArg, html,
+            function() {
+                if (tags) {
+                    const selectedTags = document.querySelectorAll('.tag.selected');
+                    const selectedTagData = [];
+                    selectedTags.forEach(tagEl => {
+                        selectedTagData.push({ tag_id: tagEl.id, tag_name: tagEl.textContent.trim() });
                     });
-                });
-                const rev = Swal.getPopup()
-                      .querySelector('#swal-checkbox')
-                      .checked;
-                return { value: selectedTagData, rev: rev };
+                    const rev = document.getElementById('swal-checkbox').checked;
+                    resolve({ value: selectedTagData, rev: rev });
+                } else {
+                    resolve(true);
+                }
+            },
+            function() {
+                resolve(false);
             }
-            else
-            {
-                return true;
-            }
-            
+        ).set('labels', {ok:'OK', cancel:'Annuler'});
+
+        if (tags) {
+            const tagsElements = document.querySelectorAll('.tag');
+            tagsElements.forEach(tagEl => {
+                tagEl.addEventListener('click', () => { tagEl.classList.toggle('selected'); });
+            });
         }
     });
-    if(isConfirmed) {
-        return_val = value;
-    }
-    if(tags) {
-        return return_val;
-    }
-    return false
 }
 
 
 const pack_ask_args_for_sort = async function (textArg) {
-    let return_val = null;
-    let selectedValue = null;
-    const { value, isConfirmed } = await Swal.fire({
-        title: textArg,
-        html: `<div class="flex gap-4 p-4 justify-center items-center">
+    return new Promise((resolve) => {
+        let selectedValue = null;
+        let html = `<div class="flex gap-4 p-4 justify-center items-center">
                  <div class="rectangle w-24 h-12 flex items-center justify-center rounded-lg border-2 cursor-pointer text-black border-gray-300"
                    data-value="difficulty">Difficulté</div>
                  <div class="rectangle w-24 h-12 flex items-center justify-center rounded-lg border-2 cursor-pointer text-black border-gray-300"
                    data-value="code">Code</div>
                </div>
                <label class="flex items-center justify-center gap-2 mt-2">
-                   <input type="checkbox" id="swal-checkbox"
-                     class="form-checkbox h-5 w-5 text-blue-600">
+                   <input type="checkbox" id="swal-checkbox" class="form-checkbox h-5 w-5 text-blue-600">
                    Inverser la sélection ?
-               </label>`,
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        cancelButtonText: "Annuler",
-        didOpen: () => {
-            const rectangles = document.querySelectorAll(".rectangle");
-            rectangles.forEach(rectangle => {
-                rectangle.addEventListener("click", function () {
-                    rectangles.forEach(r =>
-                        r.classList.remove(
-                            "bg-blue-500", "border-blue-500")
-                    );
-                    this.classList.add(
-                        "bg-blue-500", "border-blue-500"
-                    );
-                    selectedValue = this.getAttribute("data-value");
-                });
-            });
-        },
-        preConfirm: () => {
-            const isChecked = document.getElementById("swal-checkbox").checked;
-            if(!selectedValue) {
-                Swal.showValidationMessage(
-                    "Veuillez sélectionner un critère de tri"
-                );
-                return false;
-            }
+               </label>`;
 
-            return { selected: selectedValue, isChecked };
-        }
+        alertify.confirm(textArg, html,
+            function(evt) {
+                const isChecked = document.getElementById("swal-checkbox").checked;
+                if(!selectedValue) {
+                    alertify.error("Veuillez sélectionner un critère de tri");
+                    evt.cancel = true;
+                    return;
+                }
+                resolve({ value: selectedValue, rev: isChecked });
+            },
+            function() { resolve(false); }
+        ).set('labels', {ok:'OK', cancel:'Annuler'});
+
+        const rectangles = document.querySelectorAll(".rectangle");
+        rectangles.forEach(rectangle => {
+            rectangle.addEventListener("click", function () {
+                rectangles.forEach(r => r.classList.remove("bg-blue-500", "border-blue-500", "text-white"));
+                this.classList.add("bg-blue-500", "border-blue-500", "text-white");
+                selectedValue = this.getAttribute("data-value");
+            });
+        });
     });
-    if(isConfirmed && value) {
-        return_val = {
-            value: value.selected,
-            rev: value.isChecked
-        };
-    }
-    return return_val !== null ? return_val : false;
 }
 
 
 const pack_ask_args_for_head = async function(text, input="number") {
-    let return_val = null;
-    const result = await Swal.fire({
-        title: text,
-        input: input,
-        showCancelButton: true,
-        confirmButtonText: "OK",
-        cancelButtonText: "Annuler",
-        preConfirm: (value) => {
-            if(!value) {
-                Swal.showValidationMessage("Veuillez entrer une valeur");
-                return false;
-            }
-            return value;
-        }
+    return new Promise((resolve) => {
+        alertify.prompt(text, "Entrez la valeur :", "", 
+            function(evt, value) {
+                if(!value) {
+                    alertify.error("Veuillez entrer une valeur");
+                    evt.cancel = true;
+                } else {
+                    resolve(value);
+                }
+            }, 
+            function() { resolve(null); }
+        ).set('type', input).set('labels', {ok:'OK', cancel:'Annuler'});
     });
-    if(result.isConfirmed && result.value) {
-        return_val = result.value;
-    }
-    return return_val;
 }
-
 
 const pack_ask_args_for_rev = async function (text) {
-    let return_val = false;
-    const result = await Swal.fire({
-        title: text,
-        showCancelButton: true,
-        confirmButtonText: "Oui",
-        cancelButtonText: "Annuler",
-        showDenyButton: true,
-        denyButtonText: "Non",
-        preConfirm: (value) => {
-            if(!value) {
-                Swal.showValidationMessage("Veuillez entrer une valeur");
-                return false;
-            }
-            return value;
-        }
+    return new Promise((resolve) => {
+        alertify.confirm("Confirmation", text, 
+            function() { resolve(true); },
+            function() { resolve(false); }
+        ).set('labels', {ok:'Oui', cancel:'Non'});
     });
-    if(result.isConfirmed && result.value) {
-        return_val = true;
-    }
-    return return_val;
 }
-
 
 const pack_add_filter = async function (op) {
     arg_selected = false;
@@ -709,49 +703,41 @@ const pack_get_filter_from_json = function (jsonFilter, parentFilterId) {
 
 
 const pack_save = async function () {
-    const { value, isConfirmed } = await Swal.fire({
-        title: 'Nouveau QCM',
-        html: `
-        <form id="qcm-form" method='POST' action='/webamc/filter/save-pack'">
-          <div class="mb-4">
-            <input type="text" id="title" name="title" class="swal2-input"
-              placeholder="Entrez le titre du QCM" required>
-          </div>
-          <div class="mb-4">
-            <input type="text" id="code" name="code" class="swal2-input"
-              placeholder="Entrez le code du QCM" required>
-          </div>
-        </form>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Sauvegarder',
-        cancelButtonText: 'Annuler',
-        preConfirm: async () => {
-            return await handleFormSubmit();
+    let html = `
+    <form id="qcm-form" method='POST'>
+      <div style="margin-bottom: 15px;">
+        <input type="text" id="title" name="title" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="Entrez le titre du QCM" required>
+      </div>
+      <div>
+        <input type="text" id="code" name="code" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="Entrez le code du QCM" required>
+      </div>
+    </form>
+    `;
+
+    alertify.confirm('Nouveau QCM', html, 
+        function(evt) {
+            const title = document.getElementById("title").value;
+            const code = document.getElementById("code").value;
+            const json = document.getElementById("jsonOutput").textContent;
+            
+            if(!title || !code) {
+                alertify.error("Veuillez remplir tous les champs");
+                evt.cancel = true; 
+                return;
+            }
+
+            const pack = JSON.parse(json);
+            const formData = { title, code, pack };
+
+            const success = function (_) {
+                pack_reset_filters();
+                base_report_infos(['MCQ loaded']); // Alerte native du créateur
+                alertify.success("Sauvegardé avec succès !"); // Petit toast vert
+            };
+            xhr_post_oper(Constants.path_item_oper_save_pack, formData, success);
         },
-        customClass: {
-            popup: 'rounded-lg',
-        },
-    });
-    async function handleFormSubmit() {
-        const form = document.getElementById("qcm-form");
-        const title = document.getElementById("title").value;
-        const code = document.getElementById("code").value;
-        const json = document.getElementById("jsonOutput").textContent;
-        const pack = JSON.parse(json);
-        if(!title || !code) {
-            Swal.showValidationMessage("Veuillez remplir tous les champs");
-            return false;
-        }
-        const formData = { title, code, pack };
-        Swal.close();
-	const success = function (_) {
-	    pack_reset_filters();
-	    base_report_infos(['MCQ loaded']);
-	};
-	xhr_post_oper(Constants.path_item_oper_save_pack, formData, success);
-        return true;
-    }
+        function() {} // Annuler
+    ).set('labels', {ok:'Sauvegarder', cancel:'Annuler'});
 }
 
 
