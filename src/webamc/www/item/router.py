@@ -14,6 +14,13 @@ args_page_item_t = tp_ext.TypedDict("args_page_item_t", {
     "itm_id": int
 })
 
+@router.get("/item/oper/get-pack")
+def route_oper_get_tags(req: fa.Request) -> fa.Response:
+    """Route to get all tags in the database."""
+    with context.Context(req) as ctx:
+        from .oper import get_tags
+        res = get_tags.get_all_tags(ctx)
+        return fa.responses.JSONResponse(res)
 
 @router.post("/item/oper/save-pack")
 def route_oper(
