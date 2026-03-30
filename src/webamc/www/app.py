@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 settings = Settings()
 config.load(settings.config_file)
 
-
+# This function don't handle correctly status_code error 500.
 async def exception_handler(
         req: fa.Request,
         exc: fa.HTTPException

@@ -12,37 +12,44 @@ def page(
         he.Button(
             he.Str("all"),
             class_="px-4 py-2 bg-blue-500 rounded",
-            onclick="pack_add_filter('all')"
+            onclick="pack_add_filter('all')",
+            title="Récupérer toutes les questions"
         ),
         he.Button(
             he.Str("shuf"),
             class_="px-4 py-2 bg-[#00ff9B] rounded",
-            onclick="pack_add_filter('shuf')"
+            onclick="pack_add_filter('shuf')",
+            title="Mélanger les questions"
         ),
         he.Button(
             he.Str("head"),
             class_="px-4 py-2 bg-[#ffc300] rounded",
-            onclick="pack_add_filter('head')"
+            onclick="pack_add_filter('head')",
+            title="Choisir un certain nombre de questions", 
         ),
         he.Button(
             he.Str("difficulty"),
             class_="px-4 py-2 bg-[#ff5733] rounded",
-            onclick="pack_add_filter('with-difficulty')"
+            onclick="pack_add_filter('with-difficulty')",
+            title="Choisir la difficulté", 
         ),
         he.Button(
             he.Str("code"),
             class_="px-4 py-2 bg-purple-500 rounded",
-            onclick="pack_add_filter('with-code')"
+            onclick="pack_add_filter('with-code')",
+            title="Choisir le code du QCM", 
         ),
         he.Button(
             he.Str("tag"),
             class_="px-4 py-2 bg-blue-700 rounded",
-            onclick="pack_add_filter('with-tag')"
+            onclick="pack_add_filter('with-tag')",
+            title="Choisir les tags des questions", 
         ),
         he.Button(
             he.Str("sort"),
             class_="px-4 py-2 bg-[#ff0080] rounded",
-            onclick="pack_add_filter('sort')"
+            onclick="pack_add_filter('sort')",
+            title="Trier les questions en fonctions du code ou de la difficulté",
         )
     ]
     div_add_filter_buttons = he.Div(
