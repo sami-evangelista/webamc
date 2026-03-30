@@ -1,5 +1,40 @@
+// const xhr_error = function (xhr) {
+//     base_report_errors(['Error ' + xhr.status]);
+// }
+
 const xhr_error = function (xhr) {
-    base_report_errors(['Error ' + xhr.status]);
+    let msg = 'Erreur ' + xhr.status;
+    
+    if (xhr.responseJSON && xhr.responseJSON.detail) {
+        msg += ' : ' + xhr.responseJSON.detail;
+    } 
+    else if (xhr.responseText) {
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = xhr.responseText;
+        
+        // On récupère le texte avec les retours à la ligne respectés
+        let rawText = tempDiv.innerText || tempDiv.textContent || "";
+        
+        // On découpe ligne par ligne et on enlève les lignes vides
+        let textLines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        
+        if (textLines.length > 0) {
+            // La vraie erreur Python est presque toujours la DERNIÈRE ligne !
+            let realError = textLines[textLines.length - 1];
+            
+            // Si jamais la dernière ligne c'est le bouton "Retour" de notre page rouge, on prend l'avant-dernière
+            if (realError.toLowerCase().includes("retour") && textLines.length > 1) {
+                realError = textLines[textLines.length - 2];
+            }
+            
+            if (realError.length > 150) {
+                realError = realError.substring(0, 150) + "...";
+            }
+            msg += ' : ' + realError;
+        }
+    }
+    
+    base_report_errors([msg]);
 }
 
 
