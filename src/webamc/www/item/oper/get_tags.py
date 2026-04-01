@@ -1,7 +1,9 @@
 from sqlalchemy import select
 from webamc.db import tables
+from typing import Any
+from webamc.www.all import *
 
-def get_all_tags(ctx): # On reçoit le contexte ici
+def get_all_tags(ctx: context.Context) -> list[dict[str, Any]]: 
     """Getting all tags from database"""
     stmt = select(tables.Tag)
     

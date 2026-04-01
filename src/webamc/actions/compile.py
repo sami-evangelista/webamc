@@ -5,7 +5,7 @@ import shutil
 import hashlib
 from pathlib import Path
 from PIL import Image
-import pymupdf  # type: ignore
+import pymupdf 
 import concurrent.futures
 
 from webamc.all import *
@@ -161,7 +161,7 @@ def _item_set_png_file(item: item_t) -> None:
         code = item["itm_code"]
     else:
         h = f"{h}[{item['itm_order']}]"
-        code, _, _ = TX["stack"][-1]
+        code, _, _ = CTX["stack"][-1]
     h = f"{h}/{code}"
     hval = hashlib.md5(h.encode()).hexdigest()
     item["png"] = os.path.join("png", hval[0:2], hval[2:] + ".png")
@@ -246,7 +246,7 @@ def parse_amc_mdata(
 def _pdf_to_png(pdf: str, png: str) -> bool:
     try:
         result = True
-        with pymupdf.open(pdf) as pages:
+        with pymupdf.open(pdf) as pages: # type: ignore[no-untyped-call]
             if len(pages) > 1:
                 output.warning(f"{pdf} contains more than 1 page")
             pix = pages[0].get_pixmap(alpha=True, dpi=150)
