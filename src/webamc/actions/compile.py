@@ -570,7 +570,7 @@ def action(input_dir: str, prefix: str) -> None:
         log.log_close()
 
         # generate png with items and TASKS
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
             concurrent.futures.wait(futures)
 
