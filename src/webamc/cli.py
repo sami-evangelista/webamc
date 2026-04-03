@@ -40,7 +40,7 @@ def command_genexamples(args: argparse.Namespace) -> None:
 def command_compile(args: argparse.Namespace) -> None:
     if os.path.isdir(args.input):
         if check.action(args.input):
-            comp.action(args.input, args.prefix)
+            comp.action(args.input, args.prefix, args.threads)
     else:
         termout.error(f"directory not found: {args.input}")
 
@@ -105,6 +105,10 @@ def get_argparser() -> argparse.ArgumentParser:
     sub_parser.add_argument(
         "prefix", type=str,
         help="prefix of the archive produced"
+    )
+    sub_parser.add_argument(
+        "--threads", type=int, default=4,
+        help="number of threads/processes to use for compilation (default: 4)"
     )
     sub_parser.set_defaults(command=command_compile)
 

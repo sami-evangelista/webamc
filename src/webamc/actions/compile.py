@@ -557,10 +557,11 @@ def _compile_dir_traversal(
     return result
 
 
-def action(input_dir: str, prefix: str) -> None:
+def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     global TASKS
     TASKS = [] # TASKS is empty when the compilation starts
 
+    print(f"Compilation starts with {max_threads} threads")
     # everything will be written in a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -570,7 +571,7 @@ def action(input_dir: str, prefix: str) -> None:
         log.log_close()
 
         # generate png with items and TASKS
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
             futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
             concurrent.futures.wait(futures)
 
