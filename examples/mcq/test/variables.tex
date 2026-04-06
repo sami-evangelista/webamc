@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage{fp}
+\usepackage{pgffor} 
+
+\newwrite\myoutput
+
+\begin{document}
+
+\expandafter\FPseed\expandafter=\pdfuniformdeviate 1000000\relax
+
+
+\foreach \n in {1,...,5} {
+    
+
+    \FPeval\VQa{trunc(1+random*8,0)}
+    \FPeval\VQb{trunc(4+random*5,0)}
+    \FPeval\VQsomme{clip(VQa+VQb)}
+    \FPeval\VQnonA{clip(VQa+VQb-1)}
+    \FPeval\VQnonB{clip(VQa+VQb+1)}
+    \FPeval\VQnonC{clip(VQa-VQb)}
+    
+
+    \immediate\openout\myoutput=vars_\n.tex
+    
+
+
+    \immediate\write\myoutput{\string\def\string\VQa{\VQa}}
+    \immediate\write\myoutput{\string\def\string\VQb{\VQb}}
+    \immediate\write\myoutput{\string\def\string\VQsomme{\VQsomme}}
+    \immediate\write\myoutput{\string\def\string\VQnonA{\VQnonA}}
+    \immediate\write\myoutput{\string\def\string\VQnonB{\VQnonB}}
+    \immediate\write\myoutput{\string\def\string\VQnonC{\VQnonC}}
+    
+
+    \immediate\closeout\myoutput
+}
+
+
+\end{document}

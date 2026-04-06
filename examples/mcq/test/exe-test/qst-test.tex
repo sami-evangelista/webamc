@@ -1,0 +1,20 @@
+\documentclass{article}
+\usepackage{automultiplechoice}
+
+\begin{document}
+
+\begin{question}{somme}
+  Quelle est la somme de \VQa{} et \VQb{} ?
+  \begin{reponses}
+    \bonne{\VQsomme}
+    \mauvaise{\VQnonA}
+    \mauvaise{\VQnonB}
+    \mauvaise{\VQnonC}
+  \end{reponses}
+\end{question}
+% test d'écriture dans un fichier
+%\newwrite\myoutput
+%\immediate\openout\myoutput=\jobname.output
+%\write\myoutput{\VQa}
+%\write\myoutput{\VQb}
+\end{document}

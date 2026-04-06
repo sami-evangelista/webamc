@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import glob
 import tempfile
 import shutil
 import hashlib
@@ -402,6 +403,10 @@ def _compile_question(
     content = io.read_file_content(input_tex)
     code, qsts = tex.extract_qst(content)
 
+    raw_preamble = content.split(r"\begin{question}")[0]
+    clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
+    clean_preamble = clean_preamble.replace(r"\begin{document}", "")
+
     # no question found => exit
     if qsts == list():
         msg = tex.tex_error_msg[code]
@@ -416,51 +421,67 @@ def _compile_question(
         return list()
 
     result: list[item_t] = list()
+    root_mcq_dir = mcq_dir if mcq_dir is not None else os.path.dirname(input_tex)
 
-    # extraction successful => convert questions and choices to png
-    # files and create json files
-    for qst in qsts:
-        item = _ctx_new_item(input_tex)
-        tex_content = tex.qst_tex_header(qst)
-        item["itm_code"] = qst["itm_code"]
-        item["itm_type"] = types.ITEM_TYPE_QUESTION
-        item["qst_type"] = qst["qst_type"]
-        # _tex_to_png(input_tex, output_dir, item, mcq_dir, tex_content)
-        _item_set_png_file(item)
-        TASKS.append({
-            "input_tex": input_tex,
-            "output_dir": output_dir,
-            "item": item,
-            "mcq_dir": mcq_dir,
-            "tex_content": tex_content,
-            "info": None,
-            "headers": list(CTX["headers"])
-        })
-        _ctx_push_item(item)
-        result.append(item)
-        iterator = tex.iter_on_choices(qst)
-        for num, (correct, last, cho_tex) in enumerate(iterator):
-            item = _ctx_new_item(input_tex, False)
-            item["itm_type"] = types.ITEM_TYPE_CHOICE
-            item["cho_correct"] = correct
-            item["cho_last"] = last
-            info = f"(choice {num})"
-            # _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
-            
-            # creating png file name used later for _tex_to_png
+    pattern = os.path.join(root_mcq_dir, "vars_*.tex")
+    var_files = glob.glob(pattern)
+    is_dynamic = len(var_files) > 0
+    num_instances = len(var_files) if is_dynamic else 1
+
+    for instance_id in range(1, num_instances + 1):
+        anti_brouillon = r"\makeatletter\ifdefined\AMC@watermarkfalse\AMC@watermarkfalse\fi\makeatother"
+        if is_dynamic:
+            dynamic_header = f"{clean_preamble}\n\\def\\thecopy{{{instance_id}}}\n\\input{{vars_{instance_id}.tex}}\n{anti_brouillon}\n"
+        else:
+            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
+        
+        headers_for_instance = list(CTX["headers"])
+        headers_for_instance.append(("variables_fp", dynamic_header))
+
+        # extraction successful => convert questions and choices to png
+        # files and create json files
+        for qst in qsts:
+            item = _ctx_new_item(input_tex)
+            tex_content = tex.qst_tex_header(qst)
+            item["itm_code"] = f"{qst['itm_code']}_{instance_id}" if is_dynamic else qst['itm_code']
+            item["itm_type"] = types.ITEM_TYPE_QUESTION
+            item["qst_type"] = qst["qst_type"]
+            # _tex_to_png(input_tex, output_dir, item, mcq_dir, tex_content)
             _item_set_png_file(item)
-            # adding new task
             TASKS.append({
                 "input_tex": input_tex,
                 "output_dir": output_dir,
                 "item": item,
                 "mcq_dir": mcq_dir,
-                "tex_content": cho_tex,
-                "info": info,
-                "headers": list(CTX["headers"])
+                "tex_content": tex_content,
+                "info": f"(instance {instance_id})" if is_dynamic else None,
+                "headers": headers_for_instance
             })
+            _ctx_push_item(item)
             result.append(item)
-        _ctx_pop_item()
+            iterator = tex.iter_on_choices(qst)
+            for num, (correct, last, cho_tex) in enumerate(iterator):
+                item = _ctx_new_item(input_tex, False)
+                item["itm_type"] = types.ITEM_TYPE_CHOICE
+                item["cho_correct"] = correct
+                item["cho_last"] = last
+                info = f"(instance {instance_id} - choice {num})" if is_dynamic else f"(choice {num})"
+                # _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
+                
+                # creating png file name used later for _tex_to_png
+                _item_set_png_file(item)
+                # adding new task
+                TASKS.append({
+                    "input_tex": input_tex,
+                    "output_dir": output_dir,
+                    "item": item,
+                    "mcq_dir": mcq_dir,
+                    "tex_content": cho_tex,
+                    "info": info,
+                    "headers": headers_for_instance
+                })
+                result.append(item)
+            _ctx_pop_item()
 
     return result
 
@@ -472,6 +493,17 @@ def _compile_dir_traversal(
 ) -> list[item_t]:
 
     result: list[item_t] = list()
+
+    # check dynamic variables to build
+    var_files_path = os.path.join(input_dir, "variables.tex")
+    if (os.path.isfile(var_files_path)):
+        output.info(f"Generating dynamic variables from {var_files_path}")
+        tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
+        if (not os.path.isabs(tex2pdf_exe)):
+            tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
+        
+        # creating variables files for dynamic variables in 'variables.tex'
+        log.log_exec([tex2pdf_exe, "variables.tex"], cwd=input_dir)
 
     cfg = config.CONFIG
     special_files = [
@@ -582,3 +614,22 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
 
         # zip the the temporary directory and remove it
         shutil.make_archive(prefix, "zip", root_dir=tmp_dir)
+
+
+    output.info("Removing temporary variable files")
+    # removing all variables files created before with pdflatex
+    for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
+        try:
+            os.remove(var_file)
+        except OSError:
+            output.error("OSError")
+            pass
+    
+    # removing junk files (aux, log) created by pdflatex
+    for junk_file in glob.glob(os.path.join(input_dir, "**", "variables.aux"), recursive=True) + \
+                     glob.glob(os.path.join(input_dir, "**", "variables.log"), recursive=True):
+        try:
+            os.remove(junk_file)
+        except OSError:
+            pass
+    
