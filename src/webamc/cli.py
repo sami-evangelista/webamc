@@ -8,19 +8,23 @@ from webamc import db, config, VERSION, DATE
 from webamc.all import *
 from webamc.util import termout
 from webamc.actions import (
-    check, checklang, loadcsv, compile as comp, genexamples, gendoc
+    check, checklang, loadcsv, compile as comp, genexamples, gendoc, extract
 )
 
 
 def command_check(args: argparse.Namespace) -> None:
-    if os.path.isdir(args.input):
-        check.action(args.input)
-    else:
-        termout.error(f"directory not found: {args.input}")
+    check.action(args.input)
 
 
 def command_checklang(_: argparse.Namespace) -> None:
     checklang.action()
+
+
+def command_extract(args: argparse.Namespace) -> None:
+    extract.action(
+        input=args.input,
+        output=args.output
+    )
 
 
 def command_gendoc(_: argparse.Namespace) -> None:
@@ -129,6 +133,21 @@ def get_argparser() -> argparse.ArgumentParser:
         help="check language files for missing texts"
     )
     sub_parser.set_defaults(command=command_checklang)
+
+    # action extract
+    sub_parser = sub_parsers.add_parser(
+        "extract",
+        help="extract directory/files into separate question files"
+    )
+    sub_parser.add_argument(
+        "input",
+        help="input directory/file"
+    )
+    sub_parser.add_argument(
+        "output",
+        help="output directory"
+    )
+    sub_parser.set_defaults(command=command_extract)
 
     # action gendoc
     sub_parser = sub_parsers.add_parser(

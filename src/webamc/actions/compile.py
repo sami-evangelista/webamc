@@ -632,4 +632,3 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
             os.remove(junk_file)
         except OSError:
             pass
-    

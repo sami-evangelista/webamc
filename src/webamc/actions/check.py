@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+import os
 
 from webamc.all import *
 from . import compile as comp, output
@@ -24,6 +24,9 @@ def _check_dir_traversal(dir_path: str) -> bool:
 
 
 def action(dir_path: str) -> bool:
+    if not os.path.isdir(dir_path):
+        output.error(f"directory not found: {dir_path}")
+        return False
     result = _check_dir_traversal(dir_path)
     if result:
         output.info(f"{dir_path}: no error found")
