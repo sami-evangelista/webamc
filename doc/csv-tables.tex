@@ -148,3 +148,37 @@
     
 \end{itemize}
 \end{itemize}
+\subsection{Table \texttt{attr}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table lists attributes that may be associated to users (e.g.,
+    student ID).
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{atr\_code} --- 
+    unique attribute code
+    
+\item\texttt{atr\_desc} --- 
+    a description of the attribute
+    
+\end{itemize}
+\end{itemize}
+\subsection{Table \texttt{usr\_attr}}
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item Description: 
+    This table associates users and attributes.
+    
+\item Columns:
+\begin{itemize}[itemsep=0pt,parsep=0pt,topsep=0pt,partopsep=0pt]
+\item\texttt{uat\_attr} --- 
+    attribute (references {	t attr.atr\_code})    
+    
+\item\texttt{uat\_usr} --- 
+    user (references {	t usr.usr\_code})    
+    
+\item\texttt{uat\_value} --- 
+    value of the attribute for the user    
+    
+\end{itemize}
+\end{itemize}

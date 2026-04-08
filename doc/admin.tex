@@ -61,8 +61,9 @@ CSV files in the directory passed as argument.
 \begin{bash}
 $ mkdir csv && webamc genexamples csv
 $ ls csv
-00-usr.csv  01-cas_auth.csv  02-basic_auth.csv  03-tag.csv
-04-grp.csv  05-usr_grp.csv   06-tbl.csv         07-admin.csv
+00-usr.csv   01-cas_auth.csv  02-local_auth.csv  03-tag.csv
+04-grp.csv   05-usr_grp.csv   06-tbl.csv         07-admin.csv
+08-attr.csv  09-usr_attr.csv
 $ webamc --config-file /path/to/my/config.json loadcsv csv/*.csv
 \end{bash}
 
