@@ -21,5 +21,5 @@ def route_profile_page(
     }
     with context.Context(req) as ctx:
         session.check_logged_in(ctx)
-        result = base.gen_composite_page(ctx, layout, sub_page, wip=True)
+        result = base.gen_composite_page(ctx, layout, sub_page)
     return result

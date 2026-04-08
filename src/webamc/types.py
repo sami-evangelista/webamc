@@ -551,8 +551,7 @@ txt_t = tp.Literal[
     "verb_send",
     "verb_start",
     "verb_validate",
-    "warning_exam_deletion_forbidden",
-    "warning_page_wip"
+    "warning_exam_deletion_forbidden"
 ]
 
 help_t = tp.Literal[

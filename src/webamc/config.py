@@ -189,6 +189,10 @@ CONFIG_DESC_MD = {
     (False, True,
      "if true exception tracebacks will be displayed in web browser"),
     ###
+    "dev":
+    (False, True,
+     "if true unstable features under development will be enabled"),
+    ###
     "icon_size":
     (False, True,
      "size of icons in the web interface (24, 32, 48, or 64)"),

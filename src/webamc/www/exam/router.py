@@ -76,6 +76,5 @@ def route_exam_page(
             ctx,
             layout,
             sub_page,
-            wip=sub_page == "dashboard",
             sub_page_args={"exm_id": exm_id}
         )

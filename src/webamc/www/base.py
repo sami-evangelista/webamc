@@ -92,8 +92,7 @@ def page(
         ctx: context.Context,
         title: str | types.txt_t,
         body: he.Element,
-        side_buttons: None | list[he.Element] = None,
-        wip: bool = False
+        side_buttons: None | list[he.Element] = None
 ) -> fa.Response:
 
     # menu (none if not connected)
@@ -186,20 +185,6 @@ def page(
         )
         body = he.ElementList(div_sidebar, div_mainpanel)
 
-    # work-in-progress warning
-    if not wip:
-        div_wip: he.Element = he.Empty()
-    else:
-        img_wip = he.Img(
-            src=static_img_src("warning"),
-            title=lang.txt("warning_page_wip"),
-            class_="warning"
-        )
-        div_wip = he.Div(
-            img_wip,
-            id_="wip-warning"
-        )
-
     # help div
     img_close_help = static_img(
         "dismiss",
@@ -224,7 +209,6 @@ def page(
     body = he.Body(
         he.H1(he.Str(title)),
         div_menu,
-        div_wip,
         div_tooltip_help,
         body
     )
@@ -347,7 +331,6 @@ def gen_composite_page(
         ctx: context.Context,
         layout: page_layout_t,
         sub_page: str | None = None,
-        wip: bool = False,
         sub_page_args: None | dict[str, tp.Any] = None
 ) -> fa.Response:
     def sub_page_title(sub_page: str) -> types.txt_t:
@@ -383,8 +366,7 @@ def gen_composite_page(
         ctx,
         title,
         body,
-        side_buttons=side_buttons,
-        wip=wip
+        side_buttons=side_buttons
     )
 
 
