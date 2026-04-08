@@ -46,8 +46,4 @@ def page(ctx: context.Context) -> fa.Response:
         id_="div-project"
     )
     elements = he.ElementList(div_form, div_project)
-    return base.page(
-        ctx,
-        str(he.Txt("page_title_project_main")),
-        elements
-    )
+    return base.page(ctx, "page_title_project_main", elements)

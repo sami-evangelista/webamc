@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 
 
@@ -48,8 +46,8 @@ def route_page_main(
         "path": "/admin/page/main",
         "default": "database",
         "sub_pages": {
-            "database": ("database", database.page),
-            "submit_form": ("upload", submit_form.page)
+            "database": (False, "database", database.page),
+            "submit_form": (False, "upload", submit_form.page)
         }
     }
     with context.Context(req) as ctx:

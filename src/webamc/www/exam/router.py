@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import queries, tables
 
@@ -68,9 +66,9 @@ def route_exam_page(
         "path": "/exam/page/main",
         "default": "database",
         "sub_pages": {
-            "database": ("database", database.page),
-            "creation": ("add", creation.page),
-            "dashboard": ("list", dashboard.page)
+            "database": (True, "database", database.page),
+            "creation": (True, "add", creation.page),
+            "dashboard": (True, "list", dashboard.page)
         }
     }
     with context.Context(req) as ctx:

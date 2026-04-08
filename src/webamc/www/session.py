@@ -1,5 +1,6 @@
 import fastapi as fa
 
+from webamc import project
 from webamc.db import tables, queries
 from webamc.util import fmt
 from webamc.www import context
@@ -181,3 +182,7 @@ def check_can_view_mcq(ctx: context.Context, mcq_id: int) -> None:
     check_logged_in(ctx)
     if not any(mcq.mcq_id == mcq_id for mcq, _, _ in get_viewable_mcqs(ctx)):
         raise fa.HTTPException(status_code=403)
+
+
+def ne_inbox(ctx: context.Context) -> bool:
+    return not project.inbox_empty(usr_code(ctx))

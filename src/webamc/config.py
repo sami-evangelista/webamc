@@ -61,6 +61,7 @@ CONFIG_DEFAULT: types.conf_t = {
     "db_password": "webamc_password",
     "db_user": "webamc_user",
     "debug": True,
+    "dev": True,
     "inbox_dir": "/path/to/inbox/dir",
     "icon_size": 24,
     "json_file_pack": "_pack.json",

@@ -15,11 +15,8 @@ def page(
         tables.Ticket.tkt_value==ticket
     ).first()
     if tkt is None:
-        return base.page(
-            ctx,
-            str(he.Txt("page_title_ticket_error")),
-            he.Txt("err_invalid_ticket")
-        )
+        body = he.Txt("err_invalid_ticket")
+        return base.page(ctx, "page_title_ticket_error", body)
     if tkt.tkt_type == types.TICKET_ACCOUNT_CREATION:
         return _page_account_creation(ctx, tkt)
     elif tkt.tkt_type == types.TICKET_PASSWORD_CHANGE:
@@ -60,11 +57,7 @@ def _page_password_change(
         img,
         class_="box"
     )
-    return base.page(
-        ctx,
-        str(he.Txt("page_title_password_change")),
-        div
-    )
+    return base.page(ctx, "page_title_password_change", div)
 
 
 def _page_eaddr_change(
@@ -97,11 +90,7 @@ def _page_eaddr_change(
             tables.Ticket.tkt_id == tkt.tkt_id
         ).delete()
         msg = he.Txt("succ_eaddr_changed")
-    return base.page(
-        ctx,
-        str(he.Txt("page_title_eaddr_change")),
-        msg
-    )
+    return base.page(ctx, "page_title_eaddr_change", msg)
 
 
 def _page_account_creation(
@@ -140,8 +129,4 @@ def _page_account_creation(
         id_="table-account-creation",
         class_="box"
     )
-    return base.page(
-        ctx,
-        str(he.Txt("page_title_authentication_account_creation")),
-        div
-    )
+    return base.page(ctx, "page_title_authentication_account_creation", div)

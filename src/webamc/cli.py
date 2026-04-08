@@ -21,10 +21,7 @@ def command_checklang(_: argparse.Namespace) -> None:
 
 
 def command_extract(args: argparse.Namespace) -> None:
-    extract.action(
-        input=args.input,
-        output=args.output
-    )
+    extract.action(args.input, args.output)
 
 
 def command_gendoc(_: argparse.Namespace) -> None:

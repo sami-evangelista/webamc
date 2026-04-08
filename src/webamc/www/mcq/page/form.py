@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import random
 
 from webamc.www.all import *
@@ -155,12 +153,7 @@ def page(
         for (img, title, title_args, js) in btns
     ]
 
-    return base.page(
-        ctx,
-        "QCM" if item.itm_title is None else item.itm_title,
-        body,
-        side_buttons=side_buttons
-    )
+    return base.page(ctx, str(item.itm_title), body, side_buttons=side_buttons)
 
 
 def _gen_mcq_content(

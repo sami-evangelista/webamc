@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import urllib
 import fastapi as fa
 from importlib import resources
@@ -14,7 +12,11 @@ from . import html_elements as he, session, context, mtype
 sub_page_generator_t = tp.Callable[
     tp.Concatenate[context.Context, ...], he.Element
 ]
-sub_page_spec_t = tuple[types.static_img_t, sub_page_generator_t]
+sub_page_spec_t = tuple[
+    bool,
+    types.static_img_t,
+    sub_page_generator_t
+]
 page_layout_t = tp_ext.TypedDict(
     "page_layout_t",
     {
@@ -22,9 +24,15 @@ page_layout_t = tp_ext.TypedDict(
         "path": types.path_t,
         "default": str,
         "sub_pages": dict[str, sub_page_spec_t]
-    },
-    total=False
+    }
 )
+menu_item_t = tuple[
+    tp.Callable[[context.Context], bool],
+    bool,
+    types.static_img_t,
+    types.txt_t,
+    types.path_t
+]
 
 css_urls = [
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
@@ -36,11 +44,53 @@ js_urls = [
     "https://code.jquery.com/jquery-3.7.1.min.js",
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"
 ]
+menu_items: list[menu_item_t] = [
+    (session.ne_inbox,
+     True,
+     "inbox",
+     "page_title_project_inbox",
+     "/project/page/inbox"),
+    (session.has_submission_right,
+     True,
+     "projects",
+     "page_title_project",
+     "/project/page/main"),
+    (session.has_submission_right,
+     False,
+     "mcq",
+     "page_title_item",
+     "/item/page/main"),
+    (session.has_submission_right,
+     True,
+     "exam",
+     "page_title_exam",
+     "/exam/page/main"),
+    (session.is_admin,
+     False,
+     "settings",
+     "page_title_administration",
+     "/admin/page/main"),
+    (lambda ctx: True,
+     True,
+     "person",
+     "page_title_profile",
+     "/profile/page/main"),
+    (lambda ctx: True,
+     False,
+     "home",
+     "page_title_index",
+     "/"),
+    (lambda ctx: True,
+     False,
+     "signout",
+     "page_title_signout",
+     "/auth/oper/logout")
+]
 
 
 def page(
         ctx: context.Context,
-        title: str,
+        title: str | types.txt_t,
         body: he.Element,
         side_buttons: None | list[he.Element] = None,
         wip: bool = False
@@ -50,36 +100,10 @@ def page(
     if not session.is_logged_in(ctx):
         div_menu: he.Element = he.Empty()
     else:
-        imgs_data: list[
-            tuple[types.static_img_t, types.txt_t, types.path_t]
-        ] = list()
-        if session.active_registration(ctx) is None:
-            if not project.inbox_empty(session.usr_code(ctx)):
-                imgs_data += [
-                    ("inbox", "page_title_project_inbox",
-                     "/project/page/inbox")
-                ]
-            if session.has_submission_right(ctx):
-                imgs_data += [
-                    ("projects", "page_title_project", "/project/page/main"),
-                    ("mcq", "page_title_item", "/item/page/main"),
-                    ("exam", "page_title_exam", "/exam/page/main"),
-                ]
-            if session.is_admin(ctx):
-                imgs_data += [
-                    ("settings", "page_title_administration",
-                     "/admin/page/main")
-                ]
-            imgs_data += [
-                ("person", "page_title_profile", "/profile/page/main"),
-                ("home", "page_title_index", "/")
-            ]
-        imgs_data += [
-            ("signout", "page_title_signout", "/auth/oper/logout")
-        ]
         imgs = [
             static_img(img, txt, mkuri(path))
-            for (img, txt, path) in imgs_data
+            for (enabled, dev, img, txt, path) in menu_items
+            if enabled(ctx) and not (dev and not config.CONFIG["dev"])
         ]
         div_name = he.Div(
             he.Str(str(session.usr_name(ctx))),
@@ -139,7 +163,8 @@ def page(
     ]
 
     # head information
-    title = fmt.fmt_title(title)
+    if title in types.literal_type_values(types.txt_t):
+        title = fmt.fmt_title(lang.txt(tp.cast(types.txt_t, title)))
     etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title}"))
     meta = he.Meta(**{
         "http-equiv": "Content-Type",
@@ -215,7 +240,8 @@ def page_error(
         ctx: context.Context,
         code: int
 ) -> fa.Response:
-    result = page(ctx, str(code), page_error_body(code))
+    title = tp.cast(types.txt_t, f"err_http_{code}")
+    result = page(ctx, title, page_error_body(code))
     result.status_code = code
     return result
 
@@ -335,19 +361,23 @@ def gen_composite_page(
     if sub_page not in layout["sub_pages"]:
         body = he.Empty()
     else:
-        img, fun = layout["sub_pages"][sub_page]
-        sub_title = fmt.fmt_title(lang.txt(sub_page_title(sub_page)))
-        title = f"{title} / {sub_title}"
-        if sub_page_args is None:
-            sub_page_args = dict()
-        body = fun(ctx, **sub_page_args)
+        dev, img, fun = layout["sub_pages"][sub_page]
+        if dev and not config.CONFIG["dev"]:
+            body = he.Empty()
+        else:
+            sub_title = fmt.fmt_title(lang.txt(sub_page_title(sub_page)))
+            title = f"{title} / {sub_title}"
+            if sub_page_args is None:
+                sub_page_args = dict()
+            body = fun(ctx, **sub_page_args)
     side_buttons = [
         static_img(
             img,
             sub_page_title(sub_page),
             mkuri(layout["path"], sub_page=sub_page)
         )
-        for sub_page, (img, _) in layout["sub_pages"].items()
+        for sub_page, (dev, img, _) in layout["sub_pages"].items()
+        if not (dev and not config.CONFIG["dev"])
     ]
     return page(
         ctx,

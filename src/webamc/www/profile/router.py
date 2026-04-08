@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 
 
@@ -17,8 +15,8 @@ def route_profile_page(
         "path": "/profile/page/main",
         "default": "personal_data",
         "sub_pages": {
-            "personal_data": ("person", personal_data.page),
-            "group": ("group", groups.page)
+            "personal_data": (True, "person", personal_data.page),
+            "group": (True, "group", groups.page)
         }
     }
     with context.Context(req) as ctx:
