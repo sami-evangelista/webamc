@@ -65,16 +65,16 @@ cols = {
     """,
 
     # usr_attr
-    "uat_attr": """
-    attribute (references {\tt attr.atr\_code})    
+    "uat_attr": r"""
+    attribute (references {\tt attr.atr\_code})
     """,
-    "uat_usr": """
-    user (references {\tt usr.usr\_code})    
+    "uat_usr": r"""
+    user (references {\tt usr.usr\_code})
     """,
     "uat_value": """
-    value of the attribute for the user    
+    value of the attribute for the user
     """,
-    
+
     # tbl
     "tbl_name": """
     unique table name

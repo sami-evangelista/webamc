@@ -1,8 +1,6 @@
-import os
 import pathlib
 import TexSoup  # type: ignore
 
-from webamc.all import *
 from webamc.util import io
 from webamc.config import CONFIG as cfg
 from . import output

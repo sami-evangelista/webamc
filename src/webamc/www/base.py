@@ -5,7 +5,6 @@ from importlib import resources
 from webamc.all import *
 from webamc.util import io, fmt
 from webamc.actions import load, loadcsv, output
-from webamc import project
 from . import html_elements as he, session, context, mtype
 
 
