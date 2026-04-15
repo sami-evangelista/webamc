@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import glob
 import tempfile
 import shutil
@@ -89,7 +88,7 @@ task_t = tp.TypedDict(
     total=False 
 )
 
-# tasks used to parallelisation
+# tasks used for multiprocessing
 TASKS: list[task_t] = []
 
 
@@ -222,11 +221,12 @@ def parse_amc_mdata(
     for line in file_content.split("\n"):
         if line.startswith(WEBAMC_COMMENT):
             directive = line[lg:].strip()
-            if directive in ("BEGIN", "END"):
+            if (directive in ("BEGIN", "END")):
                 continue
             try:
                 var, val = (d.strip() for d in directive.split("="))
                 mdata = _check_item_mdata(var)
+
                 if var is None:
                     output.warning(f"{file_path}: unknown field {mdata}")
                 elif var == "INSTANCES":
@@ -410,7 +410,6 @@ def _compile_question(
 
     # parse tex
     content = io.read_file_content(input_tex)
-    
     var_block = ""
     begin_tag = "%webamc BEGIN"
     end_tag = "%webamc END"
@@ -419,6 +418,7 @@ def _compile_question(
         end_idx = content.find(end_tag)
         var_block = content[start_idx:end_idx].strip()
         content = content[:content.find(begin_tag)] + content[end_idx + len(end_tag):]
+
 
     code, qsts = tex.extract_qst(content)
     raw_preamble = content.split(r"\begin{question}")[0]
@@ -439,9 +439,7 @@ def _compile_question(
         return list()
 
     result: list[item_t] = list()
-    
-    # root dir where vars files will be created (and removed later)
-    root_dir = os.path.dirname(input_tex)
+    root_mcq_dir = mcq_dir if mcq_dir is not None else os.path.dirname(input_tex)
 
     mdata = parse_amc_mdata(input_tex, content)
     num_instances = mdata.get("itm_instances", 1)
@@ -450,34 +448,24 @@ def _compile_question(
     for instance_id in range(1, num_instances + 1):
         anti_brouillon = r"\makeatletter\ifdefined\AMC@watermarkfalse\AMC@watermarkfalse\fi\makeatother"
         if is_dynamic:
-            # creating n instances of latex code 
-            var_file_name = f"vars_{instance_id}.tex"
-            var_file_path = os.path.join(root_dir, var_file_name)
-            
-            # seed used by pdflatex to generate pseudo random numbers
-            seed_val = instance_id * 10000
-            
-            with open(var_file_path, "w", encoding="utf-8") as f:
-                f.write(f"% Variables generees pour l'instance {instance_id}\n")
-                f.write(f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n")
-                f.write(f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi\n")
-                f.write(f"\\ifdefined\\FPeval\\FPeval\\trash{{random}}\\fi\n")
-                f.write(var_block + "\n")
-            
-            abs_var_path = os.path.abspath(var_file_path).replace('\\', '/')
-            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n\\input{{{abs_var_path}}}\n\\def\\thecopy{{{instance_id}}}\n"
+            seed_val = instance_id * 123456789
+            seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
+            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}\n{var_block}\n\\def\\thecopy{{{instance_id}}}\n"
         else:
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
         
         headers_for_instance = list(CTX["headers"])
         headers_for_instance.append(("variables_fp", dynamic_header))
 
+        # extraction successful => convert questions and choices to png
+        # files and create json files
         for qst in qsts:
             item = _ctx_new_item(input_tex)
             tex_content = tex.qst_tex_header(qst)
             item["itm_code"] = f"{qst['itm_code']}_{instance_id}" if is_dynamic else qst['itm_code']
             item["itm_type"] = types.ITEM_TYPE_QUESTION
             item["qst_type"] = qst["qst_type"]
+            # _tex_to_png(input_tex, output_dir, item, mcq_dir, tex_content)
             _item_set_png_file(item)
             TASKS.append({
                 "input_tex": input_tex,
@@ -497,7 +485,11 @@ def _compile_question(
                 item["cho_correct"] = correct
                 item["cho_last"] = last
                 info = f"(instance {instance_id} - choice {num})" if is_dynamic else f"(choice {num})"
+                # _tex_to_png(input_tex, output_dir, item, mcq_dir, cho_tex, info)
+                
+                # creating png file name used later for _tex_to_png
                 _item_set_png_file(item)
+                # adding new task
                 TASKS.append({
                     "input_tex": input_tex,
                     "output_dir": output_dir,
@@ -520,17 +512,6 @@ def _compile_dir_traversal(
 ) -> list[item_t]:
 
     result: list[item_t] = list()
-
-    # check dynamic variables to build
-    var_files_path = os.path.join(input_dir, "variables.tex")
-    if (os.path.isfile(var_files_path)):
-        output.info(f"Generating dynamic variables from {var_files_path}")
-        tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
-        if (not os.path.isabs(tex2pdf_exe)):
-            tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
-        
-        # creating variables files for dynamic variables in 'variables.tex'
-        log.log_exec([tex2pdf_exe, "variables.tex"], cwd=input_dir)
 
     cfg = config.CONFIG
     special_files = [
@@ -621,35 +602,42 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     TASKS = [] # TASKS is empty when the compilation starts
 
     print(f"Compilation starts with {max_threads} threads")
+    # everything will be written in a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
+        # traverse input_dir to generate json
         log.log_open()
         items = _compile_dir_traversal(input_dir, tmp_dir, None)
         log.log_close()
 
+        # generate png with items and TASKS
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
             futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
             concurrent.futures.wait(futures)
+
 
         json_path = os.path.join(tmp_dir, JSON_SPEC)
         with open(json_path, "w", encoding="utf-8") as fd:
             fd.write(json.dumps(items, indent=2))
 
+        # zip the the temporary directory and remove it
         shutil.make_archive(prefix, "zip", root_dir=tmp_dir)
 
-    output.info("Removing temporary variable files")
+
+    # output.info("Removing temporary variable files")
+    # # removing all variables files created before with pdflatex
+    # for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
+    #     try:
+    #         os.remove(var_file)
+    #     except OSError:
+    #         output.error("OSError")
+    #         pass
     
-    # On supprime les vars_*.tex
-    for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
-        try:
-            os.remove(var_file)
-        except OSError:
-            pass
+    # # removing junk files (aux, log) created by pdflatex
+    # for junk_file in glob.glob(os.path.join(input_dir, "**", "variables.aux"), recursive=True) + \
+    #                  glob.glob(os.path.join(input_dir, "**", "variables.log"), recursive=True):
+    #     try:
+    #         os.remove(junk_file)
+    #     except OSError:
+    #         pass
     
-    # On supprime les résidus (aux, log)
-    for junk_file in glob.glob(os.path.join(input_dir, "**", "*.aux"), recursive=True) + \
-                     glob.glob(os.path.join(input_dir, "**", "*.log"), recursive=True):
-        try:
-            os.remove(junk_file)
-        except OSError:
-            pass
