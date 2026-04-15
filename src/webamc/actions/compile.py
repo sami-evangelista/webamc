@@ -5,7 +5,6 @@ import glob
 import tempfile
 import shutil
 import hashlib
-from pathlib import Path
 from PIL import Image
 import pymupdf 
 import concurrent.futures
@@ -644,7 +643,7 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
         try:
             os.remove(var_file)
         except OSError:
-            pass
+            output.error("OSError")
     
     # On supprime les résidus (aux, log)
     for junk_file in glob.glob(os.path.join(input_dir, "**", "*.aux"), recursive=True) + \
@@ -652,4 +651,4 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
         try:
             os.remove(junk_file)
         except OSError:
-            pass
+            output.error("OSError")

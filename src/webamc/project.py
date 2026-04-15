@@ -32,18 +32,20 @@ source_type_t = tp.Literal[
     "txt"
 ]
 cmd_t = tp.Literal[
-    "analyse_answer_sheets",
+    "decode",
+    "analyse",
     "annotate",
-    "associate_automatic",
-    "associate_manual",
+    "association",
+    "association-auto",
     "clean_associations",
-    "compile",
-    "compute_scores",
-    "export_scores",
-    "extract_layout_data",
-    "extract_scoring_data",
-    "extract_answer_sheets",
-    "generate_sheets",
+    "prepare_s",
+    "note",
+    "export",
+    "meptex",
+    "prepare_bk",
+    "getimages",
+    "imprime",
+    "read-pdfform",
     "send_annotated_sheets"
 ]
 data_t = tp_ext.TypedDict(
@@ -124,7 +126,26 @@ mail_data_t = tp.TypedDict(
     }
 )
 doable_t = dict[action_t, tuple[bool, list[tuple[str, str]]]]
-
+"""
+FILE_NAME: dict[file_t, str] = {
+    "csv_list": "list.csv",
+    "json_status": "status.json",
+    "log_webamc": "webamc.log",
+    "ods_scores": "scores.ods",
+    "pdf_answer_sheets",
+    "pdf_correction",
+    "pdf_subject",
+    "sqlite_association",
+    "sqlite_capture",
+    "source",
+    "tex_main",
+    "txt_main",
+    "xy_calage",
+    "zip_annotated_sheets",
+    "zip_sheets",
+    "zip_tex"
+}
+"""
 ACTION_FILES: dict[action_t, list[file_t]] = {
     "compile": [
         "pdf_subject",
@@ -193,25 +214,26 @@ ACTION_DEP: dict[
 }
 ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
     "analyse": [
-        "extract_answer_sheets",
-        "analyse_answer_sheets",
-        "extract_scoring_data",
-        "compute_scores"
+        "read-pdfform",
+        "getimages",
+        "analyse",
+        "decode",
+        "prepare_bk",
+        "note"
     ],
     "associate_automatic": [
-        "associate_automatic"
+        "association-auto"
     ],
     "associate_manual": [
-        "associate_manual"
+        "association"
     ],
     "compile": [
-        "compile",
-        "extract_layout_data",
-        "extract_scoring_data",
-        "generate_sheets",
+        "prepare_s",
+        "meptex",
+        "imprime",
     ],
     "export_scores": [
-        "export_scores",
+        "export",
         "annotate"
     ],
     "send_annotated_sheets": [
@@ -219,11 +241,12 @@ ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
     ]
 }
 AMC_COMMANDS: dict[cmd_t, list[str]] = {
-    "analyse_answer_sheets": [
+    "analyse": [
         "analyse",
         "--data", "{dir_data}",
         "--cr", "{dir_cr}",
-        "--project", "{dir_project}"
+        "--project-dir", "{dir_project}",
+        "--unlink-on-global-err"
     ],
     "annotate": [
         "annotate",
@@ -234,38 +257,41 @@ AMC_COMMANDS: dict[cmd_t, list[str]] = {
         "--subject", "{file_pdf_subject}",
         "--compose", "1"
     ],
-    "associate_manual": [
+    "association": [
         "association",
         "--data", "{dir_data}",
         "--set",
         "--student", "{var_student}",
         "--copy", "{var_copy}"
     ],
-    "associate_automatic": [
+    "association-auto": [
         "association-auto",
         "--data", "{dir_data}",
         "--notes-id", "{var_amc_code}",
         "--liste", "{file_csv_students}",
         "--liste-key", "id"
     ],
-    "compile": [
+    "decode": [
+        "decode",
+        "--project-dir", "{dir_project}",
+        "--no-all"
+    ],
+    "prepare_s": [
         "prepare",
-        "--mode", "s",
-        "--prefix", "{dir_project}",
+        "--mode", "s[sc]k",
+        "--project-dir", "{dir_project}",
         "--data", "{dir_data}",
-        "--out-sujet", "{file_pdf_subject}",
-        "--out-corrige", "{file_pdf_correction}",
-        "--out-calage", "{file_xy_calage}",
         "--n-copies", "{var_copies}",
         "--filter", "{var_filter}",
+        "--latex-stdout",
         "{file_source}"
     ],
-    "compute_scores": [
+    "note": [
         "note",
         "--seuil", "{var_threshold}",
         "--data", "{dir_data}"
     ],
-    "export_scores": [
+    "export": [
         "export",
         "--data", "{dir_data}",
         "--fich-noms", "{file_csv_students}",
@@ -274,35 +300,39 @@ AMC_COMMANDS: dict[cmd_t, list[str]] = {
         "--option", "nom={var_project_title}",
         "-o", "{file_ods_scores}"
     ],
-    "extract_answer_sheets": [
+    "getimages": [
         "getimages",
         "--copy-to", "{dir_scans}",
         "{file_pdf_answer_sheets}"
     ],
-    "extract_layout_data": [
+    "meptex": [
         "meptex",
         "--src", "{file_xy_calage}",
         "--data", "{dir_data}"
     ],
-    "extract_scoring_data": [
+    "prepare_bk": [
         "prepare",
         "--mode", "bk",
         "--out-sujet", "{file_pdf_subject}",
         "--out-corrige", "{file_pdf_correction}",
         "--out-calage", "{file_xy_calage}",
-        "--prefix", "{dir_project}",
         "--data", "{dir_data}",
         "--filter", "{var_filter}",
+        "--n-copies", "{var_copies}",
         "{file_source}"
     ],
-    "generate_sheets": [
+    "imprime": [
         "imprime",
         "--sujet", "{file_pdf_subject}",
         "--data", "{dir_data}",
         "--method", "file",
         "--output", "{file_pdf_copy}"
     ],
-    "send_annotated_sheets": [
+    "read-pdfform": [
+        "read-pdfform",
+        "--project-dir", "{dir_project}"
+    ],
+    "annotate": [
         "annotate",
         "--project", "{dir_project}",
         "--names-file", "{file_csv_students}",
@@ -912,22 +942,22 @@ class Project:
         for sub in ACTION_COMMANDS.get(action, list()):
             run_dir = self.path()
             args = list()
-            if sub == "analyse_answer_sheets":
+            if sub == "analyse":
                 scan_dir = self.path("scans")
                 args = [
                     os.path.join(scan_dir, x)
                     for x in sorted(os.listdir(scan_dir))
                     if x.endswith(".jpg")
                 ]
-            elif sub == "associate_manual":
+            elif sub == "association":
                 id_ = params.get("id")
                 if id_ != "" and id_ is not None:
                     args = [
                         "--id", str(id_)
                     ]
-            elif sub == "compile":
+            elif sub == "prepare_s":
                 run_dir = self.path("tex")
-            elif sub == "extract_scoring_data":
+            elif sub == "prepare_bk":
                 run_dir = self.path("tex")
             code = self.exec(sub, run_dir, params, args)
             if not code.startswith("succ"):

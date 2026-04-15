@@ -295,15 +295,6 @@ p.code-exercise {
     }
 }
 
-/* work in progress warning */
-#wip-warning {
-    position: fixed;
-    z-index: 2;
-    right: 5px;
-    top: 5px;
-    background-color: var(--color-document-background);
-}
-
 /* error */
 input,select {
 }

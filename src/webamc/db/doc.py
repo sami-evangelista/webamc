@@ -12,6 +12,14 @@ cols = {
     {\tt tbl.tbl\_name})
     """,
 
+    # attr
+    "atr_code": r"""
+    unique attribute code
+    """,
+    "atr_desc": r"""
+    a description of the attribute
+    """,
+
     # local_auth
     "loc_login": """
     login of the user
@@ -54,6 +62,17 @@ cols = {
     """,
     "tag_color": r"""
     tag color of the form \verb+#RRGGBB+ (possibly empty)
+    """,
+
+    # usr_attr
+    "uat_attr": r"""
+    attribute (references {\tt attr.atr\_code})
+    """,
+    "uat_usr": r"""
+    user (references {\tt usr.usr\_code})
+    """,
+    "uat_value": """
+    value of the attribute for the user
     """,
 
     # tbl
@@ -123,5 +142,12 @@ tbls = {
     """,
     "usr_grp": """
     This table defines group memberships.
+    """,
+    "attr": """
+    This table lists attributes that may be associated to users (e.g.,
+    student ID).
+    """,
+    "usr_attr": """
+    This table associates users and attributes.
     """
 }

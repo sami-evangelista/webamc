@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 
 
@@ -21,13 +19,13 @@ def route_auth_page(
     sub_pages: dict[str, base.sub_page_spec_t] = dict()
     default = "login-local"
     if config.CONFIG["auth_cas_enabled"]:
-        sub_pages["login-cas"] = ("server", login_cas.page)
+        sub_pages["login-cas"] = (False, "server", login_cas.page)
         default = "login-cas"
     if config.CONFIG["auth_local_enabled"]:
-        sub_pages["login-local"] = ("password", login_local.page)
-        sub_pages["password-change"] = ("mail", password_change.page)
+        sub_pages["login-local"] = (False, "password", login_local.page)
+        sub_pages["password-change"] = (False, "mail", password_change.page)
     if config.CONFIG["auth_account_creation_enabled"]:
-        sub_pages["creation"] = ("person-add", creation.page)
+        sub_pages["creation"] = (False, "person-add", creation.page)
     layout: base.page_layout_t = {
         "title": "page_title_authentication",
         "path": "/auth/page/main",

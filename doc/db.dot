@@ -1,0 +1,105 @@
+
+digraph WebamcDB {
+    graph [
+        labelloc="t"
+        fontname="Helvetica,Arial,sans-serif"
+    ]
+    node [
+        fontname="Helvetica,Arial,sans-serif"
+        shape=record
+        style=filled
+        fillcolor=gray75
+    ]
+    subgraph cluster_auth {
+label="Authentication"
+bgcolor=lightblue        admin;
+        cas_auth;
+        usr;
+        local_auth;
+        tbl;
+        ticket;
+    }
+    subgraph cluster_mcq {
+label="MCQ elements"
+bgcolor=lightgreen        choice;
+        exercise;
+        item;
+        question;
+        mcq;
+        pack;
+    }
+    subgraph cluster_submission {
+label="Exams and Submission"
+bgcolor=coral        answer;
+        exam;
+        submission;
+        exam_submission;
+        registration;
+        review_submission;
+    }
+    subgraph cluster_tags {
+label="Tagging"
+bgcolor=bisque        tag;
+        item_tag;
+    }
+    subgraph cluster_groups {
+label="Groups"
+bgcolor=gold        grp;
+        mcq_grp;
+        usr_grp;
+    }    admin [label=<{<b><font point-size="18">admin</font></b> |<font color="red"><u>adm_id</u></font>|<font color="red">#adm_usr</font>|<font color="red">#adm_tbl</font>}>]
+    admin -> usr [label=adm_usr,arrowhead=none]
+    admin -> tbl [label=adm_tbl,arrowhead=none]
+    answer [label=<{<b><font point-size="18">answer</font></b> |<font color="red"><u>ans_id</u></font>|<font color="red">#ans_submission</font>|<font color="red">#ans_item</font>}>]
+    answer -> submission [label=ans_submission,arrowhead=none]
+    answer -> item [label=ans_item,arrowhead=none]
+    attr [label=<{<b><font point-size="18">attr</font></b> |<font color="red"><u>atr_id</u></font>|<font color="blue">atr_code (U)</font>|<font color="blue">atr_desc (U)</font>}>]
+    cas_auth [label=<{<b><font point-size="18">cas_auth</font></b> |<font color="red"><u>cas_id</u></font>|<font color="yellow">cas_enabled</font>|<font color="blue">cas_login (U)</font>|<font color="red">#cas_usr (U)</font>}>]
+    cas_auth -> usr [label=cas_usr,arrowhead=none]
+    choice [label=<{<b><font point-size="18">choice</font></b> |<font color="red"><u>#cho_id</u></font>|<font color="yellow">cho_correct</font>|<font color="yellow">cho_last</font>}>]
+    choice -> item [label=cho_id,arrowhead=normal]
+    exam [label=<{<b><font point-size="18">exam</font></b> |<font color="red"><u>exm_id</u></font>|<font color="red">#exm_mcq</font>|<font color="purple">exm_start</font>|<font color="red">exm_duration</font>}>]
+    exam -> mcq [label=exm_mcq,arrowhead=none]
+    exam_submission [label=<{<b><font point-size="18">exam_submission</font></b> |<font color="red"><u>#exs_id</u></font>|<font color="blue">exs_content</font>|<font color="red">#exs_registration</font>|<font color="purple">exs_date_update</font>}>]
+    exam_submission -> submission [label=exs_id,arrowhead=normal]
+    exam_submission -> registration [label=exs_registration,arrowhead=none]
+    exercise [label=<{<b><font point-size="18">exercise</font></b> |<font color="red"><u>#exe_id</u></font>}>]
+    exercise -> item [label=exe_id,arrowhead=normal]
+    grp [label=<{<b><font point-size="18">grp</font></b> |<font color="red"><u>grp_id</u></font>|<font color="blue">grp_name (U)</font>|<font color="red">#grp_parent (N)</font>}>]
+    grp -> grp [label=grp_parent,arrowhead=none]
+    item [label=<{<b><font point-size="18">item</font></b> |<font color="red"><u>itm_id</u></font>|<font color="red">itm_type</font>|<font color="blue">itm_code (N)</font>|<font color="blue">itm_title (N)</font>|<font color="yellow">itm_standalone</font>|<font color="yellow">itm_rnd</font>|<font color="red">itm_difficulty (N)</font>|<font color="purple">itm_date</font>|<font color="red">#itm_usr</font>|<font color="yellow">itm_visible</font>|<font color="red">#itm_parent (N)</font>|<font color="red">itm_order (N)</font>|<font color="black">itm_img (N)</font>}>]
+    item -> usr [label=itm_usr,arrowhead=none]
+    item -> item [label=itm_parent,arrowhead=none]
+    item_tag [label=<{<b><font point-size="18">item_tag</font></b> |<font color="red"><u>itg_id</u></font>|<font color="red">#itg_item</font>|<font color="red">#itg_tag</font>}>]
+    item_tag -> item [label=itg_item,arrowhead=none]
+    item_tag -> tag [label=itg_tag,arrowhead=none]
+    local_auth [label=<{<b><font point-size="18">local_auth</font></b> |<font color="red"><u>loc_id</u></font>|<font color="yellow">loc_enabled</font>|<font color="blue">loc_login (U)</font>|<font color="blue">loc_password (N)</font>|<font color="red">#loc_usr (U)</font>}>]
+    local_auth -> usr [label=loc_usr,arrowhead=none]
+    mcq [label=<{<b><font point-size="18">mcq</font></b> |<font color="red"><u>#mcq_id</u></font>|<font color="red">mcq_mode</font>}>]
+    mcq -> item [label=mcq_id,arrowhead=normal]
+    mcq_grp [label=<{<b><font point-size="18">mcq_grp</font></b> |<font color="red"><u>mgp_id</u></font>|<font color="red">#mgp_mcq</font>|<font color="red">#mgp_grp</font>}>]
+    mcq_grp -> mcq [label=mgp_mcq,arrowhead=none]
+    mcq_grp -> grp [label=mgp_grp,arrowhead=none]
+    pack [label=<{<b><font point-size="18">pack</font></b> |<font color="red"><u>#pak_id</u></font>|<font color="blue">pak_spec</font>}>]
+    pack -> item [label=pak_id,arrowhead=normal]
+    question [label=<{<b><font point-size="18">question</font></b> |<font color="red"><u>#qst_id</u></font>|<font color="red">qst_type</font>}>]
+    question -> item [label=qst_id,arrowhead=normal]
+    registration [label=<{<b><font point-size="18">registration</font></b> |<font color="red"><u>reg_id</u></font>|<font color="red">#reg_usr</font>|<font color="red">#reg_exam</font>|<font color="purple">reg_date</font>}>]
+    registration -> usr [label=reg_usr,arrowhead=none]
+    registration -> exam [label=reg_exam,arrowhead=none]
+    review_submission [label=<{<b><font point-size="18">review_submission</font></b> |<font color="red"><u>#rvs_id</u></font>|<font color="red">#rvs_exam</font>}>]
+    review_submission -> submission [label=rvs_id,arrowhead=normal]
+    review_submission -> exam [label=rvs_exam,arrowhead=none]
+    submission [label=<{<b><font point-size="18">submission</font></b> |<font color="red"><u>sub_id</u></font>|<font color="purple">sub_date</font>}>]
+    tag [label=<{<b><font point-size="18">tag</font></b> |<font color="red"><u>tag_id</u></font>|<font color="blue">tag_name (U)</font>|<font color="blue">tag_desc (N)</font>|<font color="blue">tag_color (N)</font>}>]
+    tbl [label=<{<b><font point-size="18">tbl</font></b> |<font color="red"><u>tbl_id</u></font>|<font color="blue">tbl_name (U)</font>}>]
+    ticket [label=<{<b><font point-size="18">ticket</font></b> |<font color="red"><u>tkt_id</u></font>|<font color="red">tkt_type</font>|<font color="red">#tkt_usr (N)</font>|<font color="blue">tkt_eaddr</font>|<font color="blue">tkt_value</font>|<font color="purple">tkt_deadline</font>}>]
+    ticket -> usr [label=tkt_usr,arrowhead=none]
+    usr [label=<{<b><font point-size="18">usr</font></b> |<font color="red"><u>usr_id</u></font>|<font color="blue">usr_code (U)</font>|<font color="blue">usr_eaddr (U)</font>|<font color="blue">usr_fst_name</font>|<font color="blue">usr_name</font>}>]
+    usr_attr [label=<{<b><font point-size="18">usr_attr</font></b> |<font color="red"><u>uat_id</u></font>|<font color="red">#uat_usr</font>|<font color="red">#uat_attr</font>|<font color="blue">uat_value</font>}>]
+    usr_attr -> usr [label=uat_usr,arrowhead=none]
+    usr_attr -> attr [label=uat_attr,arrowhead=none]
+    usr_grp [label=<{<b><font point-size="18">usr_grp</font></b> |<font color="red"><u>ugp_id</u></font>|<font color="red">#ugp_usr</font>|<font color="red">#ugp_grp</font>|<font color="red">ugp_right</font>}>]
+    usr_grp -> usr [label=ugp_usr,arrowhead=none]
+    usr_grp -> grp [label=ugp_grp,arrowhead=none]
+}

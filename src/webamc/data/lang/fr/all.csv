@@ -192,7 +192,7 @@ seq_manual_association;association manuelle
 seq_new_project;nouveau projet
 seq_new_row;nouvelle ligne
 seq_no_name;pas de fichier d'image
-seq_records_found;enregistrement(s) trouvés
+seq_records_found;enregistrement(s) trouvé(s)
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;envoyer les copies annotées
@@ -231,5 +231,4 @@ verb_filter;filtrer
 verb_send;envoyer
 verb_start;démarrer
 verb_validate;valider
-warning_exam_deletion_forbidden;Attention: cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
-warning_page_wip;Attention: cette page est en développement.
+warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.

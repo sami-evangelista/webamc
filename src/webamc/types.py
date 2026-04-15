@@ -3,8 +3,8 @@ import typing as tp
 import typing_extensions as tp_ext
 
 
-def literal_type_values(t: tp._SpecialForm) -> list[tp.Any]:
-    return list(tp.get_args(t))
+def literal_type_values(t: tp._SpecialForm) -> set[tp.Any]:
+    return set(tp.get_args(t))
 
 
 lang_t = tp.Literal[
@@ -31,6 +31,7 @@ conf_t = tp_ext.TypedDict(
         "db_port": None | int,
         "db_user": str,
         "debug": bool,
+        "dev": bool,
         "icon_size": int,
         "inbox_dir": str,
         "json_file_pack": str,
@@ -550,8 +551,7 @@ txt_t = tp.Literal[
     "verb_send",
     "verb_start",
     "verb_validate",
-    "warning_exam_deletion_forbidden",
-    "warning_page_wip"
+    "warning_exam_deletion_forbidden"
 ]
 
 help_t = tp.Literal[

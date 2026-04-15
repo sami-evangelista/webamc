@@ -61,6 +61,7 @@ CONFIG_DEFAULT: types.conf_t = {
     "db_password": "webamc_password",
     "db_user": "webamc_user",
     "debug": True,
+    "dev": True,
     "inbox_dir": "/path/to/inbox/dir",
     "icon_size": 24,
     "json_file_pack": "_pack.json",
@@ -187,6 +188,10 @@ CONFIG_DESC_MD = {
     "debug":
     (False, True,
      "if true exception tracebacks will be displayed in web browser"),
+    ###
+    "dev":
+    (False, True,
+     "if true unstable features under development will be enabled"),
     ###
     "icon_size":
     (False, True,

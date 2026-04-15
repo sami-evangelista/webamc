@@ -78,7 +78,6 @@ def log_exec(
         # extracting process number from str (process-1 => 1)
         worker_id = ''.join(filter(str.isdigit, p_name))
         
-        # Sécurité : si on lance le script sans multi-processus, on garde le PID
         if not worker_id:
             worker_id = str(os.getpid())
             
