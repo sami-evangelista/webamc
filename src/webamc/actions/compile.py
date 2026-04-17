@@ -23,7 +23,8 @@ amc_mdata_t = tp.TypedDict(
         "itm_standalone": bool,
         "itm_tags": list[str],
         "itm_title": str,
-        "itm_visible": bool
+        "itm_visible": bool,
+        "itm_instances": int
     },
     total=False
 )
@@ -86,7 +87,7 @@ task_t = tp.TypedDict(
     total=False 
 )
 
-# tasks used to parallelisation
+# tasks used for multiprocessing
 TASKS: list[task_t] = []
 
 
@@ -127,6 +128,9 @@ def _ctx_new_item(input_tex: str, read_mdata: bool = True) -> item_t:
         _ctx_push_mdata(parse_amc_mdata(input_tex))
     for mdata in CTX["mdata"][::-1]:
         for key, val in mdata.items():
+            # filtering (for now) itm_instances to not be in the final items.json
+            if (key == "itm_instances"):
+                continue
             if key == "itm_tags":
                 if "tags" not in item:
                     item["tags"] = list()
@@ -216,11 +220,16 @@ def parse_amc_mdata(
     for line in file_content.split("\n"):
         if line.startswith(WEBAMC_COMMENT):
             directive = line[lg:].strip()
+            if (directive in ("BEGIN", "END")):
+                continue
             try:
                 var, val = (d.strip() for d in directive.split("="))
                 mdata = _check_item_mdata(var)
+
                 if var is None:
                     output.warning(f"{file_path}: unknown field {mdata}")
+                elif var == "INSTANCES":
+                    result["itm_instances"] = int(val)
                 elif mdata == "TAG":
                     if "itm_tags" not in result:
                         result["itm_tags"] = [val]
@@ -400,10 +409,36 @@ def _compile_question(
 
     # parse tex
     content = io.read_file_content(input_tex)
-    code, qsts = tex.extract_qst(content)
+    var_block = ""
+    begin_tag = "%webamc BEGIN"
+    end_tag = "%webamc END"
+    if (begin_tag in content and end_tag in content):
+        start_idx = content.find(begin_tag) + len(begin_tag)
+        end_idx = content.find(end_tag)
+        var_block = content[start_idx:end_idx].strip()
+        content = content[:content.find(begin_tag)] + content[end_idx + len(end_tag):]
 
-    raw_preamble = content.split(r"\begin{question}")[0]
-    clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
+
+    code, qsts = tex.extract_qst(content)
+    envs = config.CONFIG["tex_envs_question"]
+    envs_pattern = "|".join(envs)
+    match = re.search(
+        r"\\begin\{(" + envs_pattern + r")\}", 
+        content
+    )
+    if match:
+        raw_preamble = content[:match.start()]
+    else:
+        raw_preamble = content
+
+    clean_preamble = re.sub(
+        r"\\documentclass(\[.*?\])?\{.*?\}", 
+        "", 
+        raw_preamble
+    )
+    #clean_preamble = clean_preamble.replace(r"\begin{document}", "")
+    #raw_preamble = content.split(r"\begin{question}")[0]
+    #clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
     clean_preamble = clean_preamble.replace(r"\begin{document}", "")
 
     # no question found => exit
@@ -422,22 +457,27 @@ def _compile_question(
     result: list[item_t] = list()
     root_mcq_dir = mcq_dir if mcq_dir is not None else os.path.dirname(input_tex)
 
-    pattern = os.path.join(root_mcq_dir, "vars_*.tex")
-    var_files = glob.glob(pattern)
-    is_dynamic = len(var_files) > 0
-    num_instances = len(var_files) if is_dynamic else 1
+    mdata = parse_amc_mdata(input_tex, content)
+    num_instances = mdata.get("itm_instances", 1)
+    is_dynamic = num_instances > 1 or var_block != ""
 
     for instance_id in range(1, num_instances + 1):
-        anti_brouillon = r"\makeatletter\ifdefined\AMC@watermarkfalse\AMC@watermarkfalse\fi\makeatother"
+        anti_brouillon = ( r"\makeatletter\ifdefined\AMC@watermarkfalse"
+        r"\AMC@watermarkfalse\fi\makeatother")
         if is_dynamic:
-            dynamic_header = f"{clean_preamble}\n\\def\\thecopy{{{instance_id}}}\n\\input{{vars_{instance_id}.tex}}\n{anti_brouillon}\n"
+            seed_val = instance_id * 1234567
+            seed_magic = (f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n"
+            f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi")
+            dynamic_header = (
+                 f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}\n"
+                 f"{var_block}\n\\def\\thecopy{{{instance_id}}}\n")
         else:
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
         
         headers_for_instance = list(CTX["headers"])
         headers_for_instance.append(("variables_fp", dynamic_header))
 
-        # extraction successful => convert questions and choices to png
+        # extraction successful => convert questions and ch oices to png
         # files and create json files
         for qst in qsts:
             item = _ctx_new_item(input_tex)
@@ -492,17 +532,6 @@ def _compile_dir_traversal(
 ) -> list[item_t]:
 
     result: list[item_t] = list()
-
-    # check dynamic variables to build
-    var_files_path = os.path.join(input_dir, "variables.tex")
-    if (os.path.isfile(var_files_path)):
-        output.info(f"Generating dynamic variables from {var_files_path}")
-        tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
-        if (not os.path.isabs(tex2pdf_exe)):
-            tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
-        
-        # creating variables files for dynamic variables in 'variables.tex'
-        log.log_exec([tex2pdf_exe, "variables.tex"], cwd=input_dir)
 
     cfg = config.CONFIG
     special_files = [
@@ -615,18 +644,19 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
         shutil.make_archive(prefix, "zip", root_dir=tmp_dir)
 
 
-    output.info("Removing temporary variable files")
-    # removing all variables files created before with pdflatex
-    for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
-        try:
-            os.remove(var_file)
-        except OSError:
-            output.error("OSError")
+    # output.info("Removing temporary variable files")
+    # # removing all variables files created before with pdflatex
+    # for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
+    #     try:
+    #         os.remove(var_file)
+    #     except OSError:
+    #         output.error("OSError")
     
-    # removing junk files (aux, log) created by pdflatex
-    for junk_file in glob.glob(os.path.join(input_dir, "**", "variables.aux"), recursive=True) + \
-                     glob.glob(os.path.join(input_dir, "**", "variables.log"), recursive=True):
-        try:
-            os.remove(junk_file)
-        except OSError:
-            pass
+    # # removing junk files (aux, log) created by pdflatex
+    # for junk_file in glob.glob(os.path.join(input_dir, "**", "variables.aux"), recursive=True) + \
+    #                  glob.glob(os.path.join(input_dir, "**", "variables.log"), recursive=True):
+    #     try:
+    #         os.remove(junk_file)
+    #     except OSError:
+    #         pass
+    

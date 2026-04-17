@@ -1,20 +1,27 @@
-\documentclass{article}
-\usepackage{automultiplechoice}
+%webamc INSTANCES=10
+%webamc RND=1
 
-\begin{document}
+%webamc BEGIN
+\FPeval\VQa{trunc(1+random*8,0)}
+\FPeval\VQb{trunc(4+random*5,0)}
+\FPeval\VQsomme{clip(VQa+VQb)}
+\FPeval\VQnonA{clip(VQa+VQb-1)}
+\FPeval\VQnonB{clip(VQa+VQb+1)}
+\FPeval\VQnonC{clip(VQa-VQb)}
+\def\VARa{\VQa}
+\def\VARb{\VQb}
+\def\VARsomme{\VQsomme}
+\def\VARnonA{\VQnonA}
+\def\VARnonB{\VQnonB}
+\def\VARnonC{\VQnonC}
+%webamc END
 
 \begin{question}{somme}
   Quelle est la somme de \VQa{} et \VQb{} ?
   \begin{reponses}
-    \bonne{\VQsomme}
-    \mauvaise{\VQnonA}
-    \mauvaise{\VQnonB}
-    \mauvaise{\VQnonC}
+    \bonne{\VARsomme}
+    \mauvaise{\VARnonA}
+    \mauvaise{\VARnonB}
+    \mauvaise{\VARnonC}
   \end{reponses}
 \end{question}
-% test d'écriture dans un fichier
-%\newwrite\myoutput
-%\immediate\openout\myoutput=\jobname.output
-%\write\myoutput{\VQa}
-%\write\myoutput{\VQb}
-\end{document}
