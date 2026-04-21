@@ -465,7 +465,7 @@ def _compile_question(
         anti_brouillon = ( r"\makeatletter\ifdefined\AMC@watermarkfalse"
         r"\AMC@watermarkfalse\fi\makeatother")
         if is_dynamic:
-            seed_val = instance_id * 1234567
+            seed_val = (instance_id * 123456789) % 2147483647
             seed_magic = (f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n"
             f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi")
             dynamic_header = (
