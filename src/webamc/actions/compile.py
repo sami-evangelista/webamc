@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import glob
 import tempfile
 import shutil
 import hashlib
+import uuid
 from pathlib import Path
 from PIL import Image
 import pymupdf 
@@ -380,8 +380,6 @@ def _tex_to_png(
         ):
             shutil.move(png_file_name, output_png)
 
-import uuid
-
 def _generate_png_path() -> str:
     """
         generate unique path for png image. output format: 'png/xx/xxxx.png'
@@ -473,7 +471,7 @@ def _compile_question(
             # creating seed value to generate random values
             seed_val = (instance_id * 123456789) % 2147483647 
             seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
-            "ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
+            f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}" + \
             "\n{var_block}\n\\def\\thecopy{{{instance_id}}}\n"
         else:
@@ -599,22 +597,7 @@ def _compile_dir_traversal(
             else:
                 item["itm_type"] = types.ITEM_TYPE_PACK
                 item["pak_spec"] = pack
-            # _tex_to_png(files[f], output_dir, item, mcq_dir)
-            # _item_set_png_file(item)
-            # TASKS.append({
-            #     "input_tex": files[f],
-            #     "output_dir": output_dir,
-            #     "item": item,
-            #     "mcq_dir": mcq_dir,
-            #     "tex_content": None,
-            #     "info": None,
-            #     "headers": list(CTX["headers"])
-            # })
-            # _ctx_push_item(item)
-            # result.append(item)
-            # if f == "tex_file_mcq":
-            #     mcq_dir = os.path.abspath(input_dir)
-            # break
+                
             png_file = _generate_png_path()
             item["instances"] = [{
                 "iti_num": 1,
