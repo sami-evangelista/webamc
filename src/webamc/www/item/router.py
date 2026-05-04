@@ -70,7 +70,7 @@ def route_page_database_body(
 @router.post("/item/oper/delete-instance")
 def route_oper_delete_instance(
         req: fa.Request,
-        args: dict  
+        args: dict[str, tp.Any]  
 ) -> fa.Response:
     with context.Context(req) as ctx:
         itm_id = args["itm_id"]

@@ -35,7 +35,7 @@ def page(
         )
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             a_delete_instance = he.Button(
-                he.Txt("Delete this instance"),
+                he.Txt("Delete this instance"), # type: ignore
                 onclick=
                 f"if(confirm('Delete this instance?'))" + \
                 f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}",
@@ -63,7 +63,9 @@ def page(
             if int(inst.iti_num) == int(iti_num):
                 options.append(
                     he.Option(
-                        f"Instance {inst.iti_num}", 
+                        he.Str(
+                            f"Instance {inst.iti_num}"
+                        ), 
                         value=inst.iti_num, 
                         selected="selected"
                     )
@@ -71,7 +73,9 @@ def page(
             else:
                 options.append(
                     he.Option(
-                        f"Instance {inst.iti_num}", 
+                        he.Str(
+                            f"Instance {inst.iti_num}", 
+                        ),
                         value=inst.iti_num
                     )
                 )
@@ -85,7 +89,7 @@ def page(
         trs.append(
             he.Tr(
                 he.Td(
-                    he.Txt("name_instance")
+                    he.Txt("name_instance") # type: ignore
                 ), 
                 he.Td(selector)
             )
@@ -225,6 +229,7 @@ def _content(
             return _content_question(ctx, item, iti_num)
     except KeyError:
         return None
+    return he.Div()
 
 
 def _content_exercise(

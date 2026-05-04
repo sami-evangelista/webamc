@@ -248,15 +248,6 @@ AMC_COMMANDS: dict[cmd_t, list[str]] = {
         "--project-dir", "{dir_project}",
         "--unlink-on-global-err"
     ],
-    "annotate": [
-        "annotate",
-        "--project", "{dir_project}",
-        "--names-file", "{file_csv_students}",
-        "--association-key", "id",
-        "--corrected", "{file_pdf_correction}",
-        "--subject", "{file_pdf_subject}",
-        "--compose", "1"
-    ],
     "association": [
         "association",
         "--data", "{dir_data}",

@@ -16,7 +16,7 @@ args_mcq_result_t = tp_ext.TypedDict("args_mcq_result_t", {
 def route_mcq_page_form(
         req: fa.Request,
         mcq_id: int,
-        iti_num: int = None # to get specific instance
+        iti_num: int | None = None # to get specific instance
 ) -> fa.Response:
     from .page import form
     with context.Context(req) as ctx:

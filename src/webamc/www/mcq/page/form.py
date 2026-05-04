@@ -15,20 +15,29 @@ _form_ctx_t = tp.TypedDict(
         "content": dict[int, dict[int, list[int]]]
     }
 )
-_mcq_content_t = tp.Union[int, "_mcq_content_exercise_t"]
+
+_mcq_content_question_t = tp.TypedDict(
+    "_mcq_content_question_t",
+    {
+        "itm_id": int,
+        "iti_num": int
+    }
+)
+
 _mcq_content_exercise_t = tp.TypedDict(
     "_mcq_content_exercise_t",
     {
         "itm_id": int,
-        "itm_children": tp.Sequence[_mcq_content_t]
+        "itm_children": tp.Sequence["_mcq_content_t"]
     }
 )
 
+_mcq_content_t = tp.Union[_mcq_content_question_t, _mcq_content_exercise_t]
 
 def page(
         ctx: context.Context,
         mcq_id: int,
-        iti_num: int = None
+        iti_num: int | None = None
 ) -> fa.Response:
 
     session.check_logged_in(ctx)
@@ -288,7 +297,7 @@ def _setup(
 def _form_question(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int,       # instance num
+        iti_num: int | None,       # instance num
         form_ctx: _form_ctx_t
 ) -> he.Element:
     form_ctx["qst_id"] = item.itm_id
@@ -452,10 +461,11 @@ def _form_item(
 ) -> he.Element:
     # if it's a dict with iti_num, new question struct
     if isinstance(content, dict) and "iti_num" in content:
+        qst_content = tp.cast(_mcq_content_question_t, content)
         return _form_question(
             ctx,
-            queries.get_item(ctx.dbs, content["itm_id"]),
-            content["iti_num"],
+            queries.get_item(ctx.dbs, qst_content["itm_id"]),
+            qst_content["iti_num"],
             form_ctx
         )
     # if it's an exercice or a pack

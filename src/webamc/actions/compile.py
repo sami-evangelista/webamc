@@ -68,6 +68,17 @@ item_t = tp.TypedDict(
     },
     total=False
 )
+
+
+qst_template_t = tp.TypedDict(
+    "qst_template_t", 
+    {
+        "item": item_t,
+        "qst_data": tp.Any,
+        "choices": list[tuple[item_t, str, int]]
+    }
+)
+
 ctx_t = tp.TypedDict(
     "ctx_t",
     {
@@ -433,7 +444,7 @@ def _compile_question(
     is_dynamic = num_instances > 1 or var_block != ""
 
     # prepare templates (mother items)
-    qst_templates = []
+    qst_templates: list[qst_template_t] = []
     for qst in qsts:
         # create mother question
         item = _ctx_new_item(input_tex)

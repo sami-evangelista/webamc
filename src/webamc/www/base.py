@@ -248,7 +248,7 @@ def mkuri(path: types.path_t, **kwargs: tp.Any) -> str:
 def img_src(
     ctx: context.Context, 
     itm_id: int, 
-    iti_num: int = 1
+    iti_num: int | None = 1
 ) -> str:
     session.img_push(ctx, itm_id)
     return mkuri(
