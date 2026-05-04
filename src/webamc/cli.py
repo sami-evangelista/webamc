@@ -53,7 +53,7 @@ def command_init(args: argparse.Namespace) -> None:
         )
         return word == input(f"confirm the operation by typing {word}\n")
     if args.force or ask_confirmation():
-        db.op.init()
+        db.op.init() 
     else:
         print("deletion canceled")
 

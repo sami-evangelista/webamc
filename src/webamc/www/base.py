@@ -244,9 +244,18 @@ def mkuri(path: types.path_t, **kwargs: tp.Any) -> str:
     return result
 
 
-def img_src(ctx: context.Context, itm_id: int) -> str:
+# edited
+def img_src(
+    ctx: context.Context, 
+    itm_id: int, 
+    iti_num: int = 1
+) -> str:
     session.img_push(ctx, itm_id)
-    return mkuri("/img", itm_id=itm_id)
+    return mkuri(
+        "/img", 
+        itm_id=itm_id, 
+        iti_num=iti_num
+    )
 
 
 def redirect(url: str) -> fa.Response:

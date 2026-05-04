@@ -86,15 +86,26 @@ async def route_help(help_id: types.help_t) -> fa.Response:
     return base.help_page(help_id)
 
 
+# edited
 @app.get("/img")
-async def route_img(req: fa.Request, itm_id: int) -> fa.Response:
+async def route_img(
+    req: fa.Request, 
+    itm_id: int, 
+    iti_num: int = 1
+) -> fa.Response: 
     with context.Context(req) as ctx:
         # if not session.img_pushed(ctx, itm_id):
         #     return base.page_error(ctx, 403)
-        img = queries.get_img(ctx.dbs, itm_id)
+        
+        img = queries.get_img(ctx.dbs, itm_id, iti_num) 
+        
         if img is None:
-            return fa.responses.HTMLResponse(f"img-{itm_id}")
-        return fa.Response(content=img, media_type="image/png")
+            return fa.responses.HTMLResponse(
+                f"img-{itm_id}-inst-{iti_num}"
+            )
+        return fa.Response(
+            content=img, media_type="image/png"
+        )
 
 
 @app.get("/")

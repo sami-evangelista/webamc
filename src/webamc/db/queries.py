@@ -416,17 +416,36 @@ def get_admin_tables(dbs: Session, usr_id: int) -> list[tables.Tbl]:
         tables.Tbl.tbl_name
     ).all()
 
-
-def get_img(dbs: Session, itm_id: int) -> bytes | None:
-    item = dbs.query(
-        tables.Item
+# edited
+def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
+    """
+    Récupère l'image d'une instance spécifique d'un Item.
+    Par défaut, renvoie l'instance n°1.
+    """
+    instance = dbs.query(
+        tables.ItemInstance
     ).where(
-        tables.Item.itm_id == itm_id
+        (tables.ItemInstance.iti_item == itm_id)
+        & (tables.ItemInstance.iti_num == iti_num)
     ).first()
-    if item is None:
+    
+    if instance is None:
         return None
-    return item.itm_img
-
+        
+    return instance.iti_img
+# edited
+def get_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
+    """
+    Retourne toutes les instances disponibles pour un Item donné.
+    Utile pour savoir combien de versions d'une question existent.
+    """
+    return dbs.query(
+        tables.ItemInstance
+    ).where(
+        tables.ItemInstance.iti_item == itm_id
+    ).order_by(
+        tables.ItemInstance.iti_num
+    ).all()
 
 def get_usr_grps(
         dbs: Session,

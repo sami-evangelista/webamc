@@ -50,21 +50,37 @@ const item_load_grp = function (db_grp_id) {
     }
 }
 
-
-const item_admin_code_click = function (db_itm_id) {
+const item_admin_code_click = function (db_itm_id, iti_num = null) {
     const div_body = $('#div-item-body-' + db_itm_id);
-    if(!item_admin_items_loaded.has(db_itm_id)) {
+    
+    // Si on a cliqué sur le titre, iti_num est null, donc on cible la 1
+    const target_instance = iti_num || 1;
+    const is_dropdown_change = (iti_num !== null);
+
+    // On charge SI ce n'est pas encore chargé OU SI on a utilisé le menu déroulant
+    if (!item_admin_items_loaded.has(db_itm_id) || is_dropdown_change) {
+        
         const success = function (result) {
-            div_body.html(result).toggle().fadeIn();
+            div_body.html(result);
+            if (!div_body.is(':visible')) {
+                div_body.hide().fadeIn();
+            }
             item_admin_items_loaded.add(db_itm_id);
         };
+        
         const path = Constants.path_item_page_database_body
-              + '?itm_id=' + db_itm_id;
+              + '?itm_id=' + db_itm_id 
+              + '&iti_num=' + target_instance;
+              
         xhr_get(path, success);
+        
     } else {
+        // Si c'est déjà chargé et qu'on clique juste sur le titre, on plie/déplie !
         div_body.fadeToggle();
     }
-}
+    
+    return false;
+};
 
 
 const item_new_item_admin = function (db_itm_id, tags, grps, init_grps) {
@@ -104,3 +120,19 @@ const item_new_item_admin = function (db_itm_id, tags, grps, init_grps) {
         );
     }
 }
+
+const item_instance_delete = function (itm_id, iti_num) {
+    const success = function (result) {
+        item_admin_code_click(itm_id, 1);
+        item_filter();
+    };
+
+    const url = "/webamc/item/oper/delete-instance"; // fixing later
+    
+    const data = {
+        'itm_id': itm_id,
+        'iti_num': iti_num
+    };
+    
+    xhr_post(url, success, data, 'json');
+};

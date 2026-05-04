@@ -15,11 +15,12 @@ args_mcq_result_t = tp_ext.TypedDict("args_mcq_result_t", {
 @router.get("/mcq/page/form")
 def route_mcq_page_form(
         req: fa.Request,
-        mcq_id: int
+        mcq_id: int,
+        iti_num: int = None # to get specific instance
 ) -> fa.Response:
     from .page import form
     with context.Context(req) as ctx:
-        return form.page(ctx, mcq_id)
+        return form.page(ctx, mcq_id, iti_num)
 
 
 @router.post("/mcq/oper/correction")

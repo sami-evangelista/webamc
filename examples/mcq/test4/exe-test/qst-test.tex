@@ -1,0 +1,137 @@
+\documentclass{article}
+\usepackage{automultiplechoice}
+\usepackage{fp}
+
+%webamc TITLE=Grand Test Mathématiques (20Q)
+%webamc INSTANCES=2
+%webamc RND=1
+
+% --- BLOC DE VARIABLES DYNAMIQUES ---
+%webamc BEGIN
+
+% === ADDITIONS (A à E) ===
+\FPeval\vAa{trunc(10+random*40,0)} \FPeval\vAb{trunc(10+random*40,0)} \FPeval\rA{clip(vAa+vAb)} \FPeval\eAa{clip(rA+10)} \FPeval\eAb{clip(rA-2)}
+\FPeval\vBa{trunc(50+random*50,0)} \FPeval\vBb{trunc(20+random*30,0)} \FPeval\rB{clip(vBa+vBb)} \FPeval\eBa{clip(rB+5)} \FPeval\eBb{clip(rB-10)}
+\FPeval\vCa{trunc(100+random*100,0)} \FPeval\vCb{trunc(50+random*50,0)} \FPeval\rC{clip(vCa+vCb)} \FPeval\eCa{clip(rC+100)} \FPeval\eCb{clip(rC-50)}
+\FPeval\vDa{trunc(15+random*20,0)} \FPeval\vDb{trunc(15+random*20,0)} \FPeval\rD{clip(vDa+vDb)} \FPeval\eDa{clip(rD+1)} \FPeval\eDb{clip(rD-1)}
+\FPeval\vEa{trunc(5+random*15,0)} \FPeval\vEb{trunc(80+random*20,0)} \FPeval\rE{clip(vEa+vEb)} \FPeval\eEa{clip(rE+5)} \FPeval\eEb{clip(rE-5)}
+
+% === SOUSTRACTIONS (F à J) ===
+\FPeval\vFa{trunc(50+random*40,0)} \FPeval\vFb{trunc(10+random*30,0)} \FPeval\rF{clip(vFa-vFb)} \FPeval\eFa{clip(rF+10)} \FPeval\eFb{clip(rF-10)}
+\FPeval\vGa{trunc(100+random*50,0)} \FPeval\vGb{trunc(20+random*40,0)} \FPeval\rG{clip(vGa-vGb)} \FPeval\eGa{clip(rG+20)} \FPeval\eGb{clip(rG-5)}
+\FPeval\vHa{trunc(80+random*20,0)} \FPeval\vHb{trunc(40+random*20,0)} \FPeval\rH{clip(vHa-vHb)} \FPeval\eHa{clip(rH+2)} \FPeval\eHb{clip(rH-2)}
+\FPeval\vIa{trunc(200+random*100,0)} \FPeval\vIb{trunc(50+random*50,0)} \FPeval\rI{clip(vIa-vIb)} \FPeval\eIa{clip(rI+50)} \FPeval\eIb{clip(rI-50)}
+\FPeval\vJa{trunc(30+random*20,0)} \FPeval\vJb{trunc(5+random*15,0)} \FPeval\rJ{clip(vJa-vJb)} \FPeval\eJa{clip(rJ+1)} \FPeval\eJb{clip(rJ-1)}
+
+% === MULTIPLICATIONS (K à O) ===
+\FPeval\vKa{trunc(3+random*6,0)} \FPeval\vKb{trunc(4+random*5,0)} \FPeval\rK{clip(vKa*vKb)} \FPeval\eKa{clip(rK+vKa)} \FPeval\eKb{clip(rK-vKb)}
+\FPeval\vLa{trunc(6+random*6,0)} \FPeval\vLb{trunc(6+random*6,0)} \FPeval\rL{clip(vLa*vLb)} \FPeval\eLa{clip(rL+vLa)} \FPeval\eLb{clip(rL-vLb)}
+\FPeval\vMa{trunc(2+random*8,0)} \FPeval\vMb{trunc(10+random*5,0)} \FPeval\rM{clip(vMa*vMb)} \FPeval\eMa{clip(rM+10)} \FPeval\eMb{clip(rM-10)}
+\FPeval\vNa{trunc(12+random*3,0)} \FPeval\vNb{trunc(3+random*4,0)} \FPeval\rN{clip(vNa*vNb)} \FPeval\eNa{clip(rN+vNa)} \FPeval\eNb{clip(rN-vNa)}
+\FPeval\vOa{trunc(5+random*5,0)} \FPeval\vOb{trunc(20+random*10,0)} \FPeval\rO{clip(vOa*vOb)} \FPeval\eOa{clip(rO+20)} \FPeval\eOb{clip(rO-20)}
+
+% === MIXTE ET ALGÈBRE (P à T) ===
+% P : a * 2 + b
+\FPeval\vPa{trunc(5+random*10,0)} \FPeval\vPb{trunc(10+random*10,0)} \FPeval\rP{clip(vPa*2+vPb)} \FPeval\ePa{clip(vPa*2-vPb)} \FPeval\ePb{clip(vPa+vPb)}
+% Q : a * 10 - b
+\FPeval\vQa{trunc(4+random*6,0)} \FPeval\vQb{trunc(5+random*15,0)} \FPeval\rQ{clip(vQa*10-vQb)} \FPeval\eQa{clip(vQa*10+vQb)} \FPeval\eQb{clip(vQa*5-vQb)}
+% R : a + b + c
+\FPeval\vRa{trunc(10+random*10,0)} \FPeval\vRb{trunc(10+random*10,0)} \FPeval\vRc{trunc(10+random*10,0)} \FPeval\rR{clip(vRa+vRb+vRc)} \FPeval\eRa{clip(rR+5)} \FPeval\eRb{clip(rR-5)}
+% S : (a + b) * 2 (Périmètre)
+\FPeval\vSa{trunc(5+random*5,0)} \FPeval\vSb{trunc(5+random*5,0)} \FPeval\rS{clip((vSa+vSb)*2)} \FPeval\eSa{clip(vSa*vSb)} \FPeval\eSb{clip(vSa+vSb)}
+% T : a * b * 2
+\FPeval\vTa{trunc(2+random*4,0)} \FPeval\vTb{trunc(3+random*5,0)} \FPeval\rT{clip(vTa*vTb*2)} \FPeval\eTa{clip(vTa*vTb)} \FPeval\eTb{clip(rT+2)}
+
+%webamc END
+
+\begin{document}
+
+% --- ADDITIONS ---
+\begin{question}{add1}
+  Calculer la somme : \vAa{} + \vAb{}
+  \begin{reponses}\bonne{\rA}\mauvaise{\eAa}\mauvaise{\eAb}\end{reponses}
+\end{question}
+\begin{question}{add2}
+  Combien font \vBa{} et \vBb{} ?
+  \begin{reponses}\bonne{\rB}\mauvaise{\eBa}\mauvaise{\eBb}\end{reponses}
+\end{question}
+\begin{question}{add3}
+  Trouver le résultat de \vCa{} + \vCb{} :
+  \begin{reponses}\bonne{\rC}\mauvaise{\eCa}\mauvaise{\eCb}\end{reponses}
+\end{question}
+\begin{question}{add4}
+  Quelle est la somme de \vDa{} et \vDb{} ?
+  \begin{reponses}\bonne{\rD}\mauvaise{\eDa}\mauvaise{\eDb}\end{reponses}
+\end{question}
+\begin{question}{add5}
+  Calculer : \vEa{} + \vEb{}
+  \begin{reponses}\bonne{\rE}\mauvaise{\eEa}\mauvaise{\eEb}\end{reponses}
+\end{question}
+
+% --- SOUSTRACTIONS ---
+\begin{question}{sous1}
+  Calculer la différence : \vFa{} $-$ \vFb{}
+  \begin{reponses}\bonne{\rF}\mauvaise{\eFa}\mauvaise{\eFb}\end{reponses}
+\end{question}
+\begin{question}{sous2}
+  Combien font \vGa{} moins \vGb{} ?
+  \begin{reponses}\bonne{\rG}\mauvaise{\eGa}\mauvaise{\eGb}\end{reponses}
+\end{question}
+\begin{question}{sous3}
+  Trouver le résultat de \vHa{} $-$ \vHb{} :
+  \begin{reponses}\bonne{\rH}\mauvaise{\eHa}\mauvaise{\eHb}\end{reponses}
+\end{question}
+\begin{question}{sous4}
+  Si on soustrait \vIb{} à \vIa{}, on obtient :
+  \begin{reponses}\bonne{\rI}\mauvaise{\eIa}\mauvaise{\eIb}\end{reponses}
+\end{question}
+\begin{question}{sous5}
+  Calculer : \vJa{} $-$ \vJb{}
+  \begin{reponses}\bonne{\rJ}\mauvaise{\eJa}\mauvaise{\eJb}\end{reponses}
+\end{question}
+
+% --- MULTIPLICATIONS ---
+\begin{question}{mult1}
+  Calculer le produit : \vKa{} $\times$ \vKb{}
+  \begin{reponses}\bonne{\rK}\mauvaise{\eKa}\mauvaise{\eKb}\end{reponses}
+\end{question}
+\begin{question}{mult2}
+  Combien font \vLa{} multiplié par \vLb{} ?
+  \begin{reponses}\bonne{\rL}\mauvaise{\eLa}\mauvaise{\eLb}\end{reponses}
+\end{question}
+\begin{question}{mult3}
+  Trouver le résultat de \vMa{} $\times$ \vMb{} :
+  \begin{reponses}\bonne{\rM}\mauvaise{\eMa}\mauvaise{\eMb}\end{reponses}
+\end{question}
+\begin{question}{mult4}
+  Quel est le produit de \vNa{} par \vNb{} ?
+  \begin{reponses}\bonne{\rN}\mauvaise{\eNa}\mauvaise{\eNb}\end{reponses}
+\end{question}
+\begin{question}{mult5}
+  Calculer : \vOa{} $\times$ \vOb{}
+  \begin{reponses}\bonne{\rO}\mauvaise{\eOa}\mauvaise{\eOb}\end{reponses}
+\end{question}
+
+% --- MIXTE ET ALGÈBRE ---
+\begin{question}{mix1}
+  Calculer : $\vPa \times 2 + \vPb$
+  \begin{reponses}\bonne{\rP}\mauvaise{\ePa}\mauvaise{\ePb}\end{reponses}
+\end{question}
+\begin{question}{mix2}
+  Calculer : $\vQa \times 10 - \vQb$
+  \begin{reponses}\bonne{\rQ}\mauvaise{\eQa}\mauvaise{\eQb}\end{reponses}
+\end{question}
+\begin{question}{mix3}
+  Faire la somme : \vRa{} + \vRb{} + \vRc{}
+  \begin{reponses}\bonne{\rR}\mauvaise{\eRa}\mauvaise{\eRb}\end{reponses}
+\end{question}
+\begin{question}{mix4}
+  Quel est le périmètre d'un rectangle de longueur \vSa{} et largeur \vSb{} ?
+  \begin{reponses}\bonne{\rS}\mauvaise{\eSa}\mauvaise{\eSb}\end{reponses}
+\end{question}
+\begin{question}{mix5}
+  Calculer le double du produit de \vTa{} par \vTb{} :
+  \begin{reponses}\bonne{\rT}\mauvaise{\eTa}\mauvaise{\eTb}\end{reponses}
+\end{question}
+
+\end{document}

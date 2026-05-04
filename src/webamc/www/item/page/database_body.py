@@ -8,7 +8,8 @@ from . import database_list
 
 def page(
         ctx: context.Context,
-        itm_id: int
+        itm_id: int,
+        iti_num: int = 1
 ) -> fa.Response:
 
     owner = queries.get_item_owner(ctx.dbs, itm_id)
@@ -17,6 +18,9 @@ def page(
 
     item = queries.get_item(ctx.dbs, itm_id)
     mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
+
+    # all instances of a question
+    all_instances = queries.get_instances(ctx.dbs, item.itm_id)
 
     table_tags_id = f"table-item-tags-{item.itm_id}"
     div_body_id = f"div-item-body-{item.itm_id}"
@@ -29,11 +33,63 @@ def page(
             "verb_delete",
             js=f"item_delete({item.itm_id});"
         )
-        tr = he.Tr(
-            he.Td(),
-            he.Td(a_delete)
-        )
+        if item.itm_type == types.ITEM_TYPE_QUESTION:
+            a_delete_instance = he.Button(
+                he.Txt("Delete this instance"),
+                onclick=
+                f"if(confirm('Delete this instance?'))" + \
+                f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}",
+                class_="btn-small btn-danger"
+            )
+            tr = he.Tr(
+                he.Td(),
+                he.Td(
+                    a_delete,
+                    he.Str(" "),
+                    a_delete_instance
+                ),
+            )
+        else:
+            tr = he.Tr(
+                he.Td(),
+                he.Td(a_delete)
+            )
+
         trs.append(tr)
+
+    if all_instances:
+        options = []
+        for inst in all_instances:
+            if int(inst.iti_num) == int(iti_num):
+                options.append(
+                    he.Option(
+                        f"Instance {inst.iti_num}", 
+                        value=inst.iti_num, 
+                        selected="selected"
+                    )
+                )
+            else:
+                options.append(
+                    he.Option(
+                        f"Instance {inst.iti_num}", 
+                        value=inst.iti_num
+                    )
+                )
+
+        selector = he.Select(
+            *options, 
+            onchange=f"item_admin_code_click({item.itm_id}, this.value);"+ \
+            " return false;",
+            class_="select-instance"
+        )
+        trs.append(
+            he.Tr(
+                he.Td(
+                    he.Txt("name_instance")
+                ), 
+                he.Td(selector)
+            )
+        )
 
     # select item columns to show
     cols = ["itm_title", "itm_date"]
@@ -60,7 +116,26 @@ def page(
         assert found
         tr = he.Tr(
             he.Td(he.Txt(desc.col_desc(col))),
-            he.Td(www_db_util.get_attribute(ctx, col, val, item.itm_id))
+            he.Td(
+                www_db_util.get_attribute(ctx, col, val, item.itm_id)
+            )
+        )
+        trs.append(tr)
+
+    if all_instances:
+        img = he.Img(
+            src=base.img_src(
+                ctx,
+                item.itm_id,
+                iti_num,
+            ),
+            alt=f"{item.itm_code}-inst-{iti_num}"
+        )
+        tr=he.Tr(
+            he.Td(
+                he.Txt("name_statement")
+            ),
+            he.Td(img)
         )
         trs.append(tr)
 
@@ -100,19 +175,9 @@ def page(
     trs.append(tr)
 
     # <tr> containing item image
-    if item.itm_img is not None:
-        img = he.Img(
-            src=base.img_src(ctx, item.itm_id),
-            alt=item.itm_code
-        )
-        tr = he.Tr(
-            he.Td(he.Txt("name_statement")),
-            he.Td(img)
-        )
-        trs.append(tr)
 
     # <tr> for item content
-    content = _content(ctx, item)
+    content = _content(ctx, item, iti_num)
     if content is not None:
         tr = he.Tr(
             he.Td(),
@@ -150,13 +215,14 @@ def page(
 
 def _content(
         ctx: context.Context,
-        item: tables.Item
+        item: tables.Item,
+        iti_num: int=1
 ) -> None | he.Element:
     try:
-        return {
-            types.ITEM_TYPE_EXERCISE: _content_exercise,
-            types.ITEM_TYPE_QUESTION: _content_question
-        }[item.itm_type](ctx, item)
+        if item.itm_type == types.ITEM_TYPE_EXERCISE:
+            return _content_exercise(ctx, item)
+        if item.itm_type == types.ITEM_TYPE_QUESTION:
+            return _content_question(ctx, item, iti_num)
     except KeyError:
         return None
 
@@ -173,7 +239,8 @@ def _content_exercise(
 
 def _content_question(
         ctx: context.Context,
-        item: tables.Item
+        item: tables.Item,
+        iti_num: int = 1
 ) -> he.Element:
     img: str | he.Element
     trs = list()
@@ -186,7 +253,7 @@ def _content_question(
             class_=f"status-box status-box-answer status-{class_box}"
         )
         img = he.Img(
-            src=base.img_src(ctx, choice.cho_id),
+            src=base.img_src(ctx, choice.cho_id, iti_num),
             alt=str(choice.cho_id)
         )
         tr = he.Tr(

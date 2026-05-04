@@ -38,6 +38,8 @@
   "smtp_user": "smtp_user",
   "tex2pdf_exe": "pdflatex",
   "tex2pdf_exe_args": [
+    "-interaction=nonstopmode",
+    "-halt-on-error",
     "-output-directory={out_dir}",
     "{tex_file}"
   ],

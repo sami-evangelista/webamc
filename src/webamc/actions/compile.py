@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import os
 import glob
 import tempfile
 import shutil
 import hashlib
+from pathlib import Path
 from PIL import Image
 import pymupdf 
 import concurrent.futures
@@ -29,6 +29,18 @@ amc_mdata_t = tp.TypedDict(
     },
     total=False
 )
+
+instance_t = tp.TypedDict(
+    "instance_t",
+    {
+        "iti_num": int,
+        "iti_seed": int,
+        "png": str,
+        "iti_img": bytes
+    },
+    total=False
+)
+
 item_t = tp.TypedDict(
     "item_t",
     {
@@ -51,7 +63,8 @@ item_t = tp.TypedDict(
         "itm_visible": bool,
         "pak_spec": str,
         "png": str,
-        "qst_type": types.question_type_t
+        "qst_type": types.question_type_t,
+        "instances": list[instance_t]
     },
     total=False
 )
@@ -83,12 +96,14 @@ task_t = tp.TypedDict(
         "mcq_dir": str | None,
         "tex_content": str | None,
         "info": str | None,
-        "headers": list[tuple[str, str]]
+        "headers": list[tuple[str, str]],
+        "instance_id": int,
+        "png_file": str
     },
     total=False 
 )
 
-# tasks used to parallelisation
+# tasks used for multiprocessing
 TASKS: list[task_t] = []
 
 
@@ -221,11 +236,12 @@ def parse_amc_mdata(
     for line in file_content.split("\n"):
         if line.startswith(WEBAMC_COMMENT):
             directive = line[lg:].strip()
-            if directive in ("BEGIN", "END"):
+            if (directive in ("BEGIN", "END")):
                 continue
             try:
                 var, val = (d.strip() for d in directive.split("="))
                 mdata = _check_item_mdata(var)
+
                 if var is None:
                     output.warning(f"{file_path}: unknown field {mdata}")
                 elif var == "INSTANCES":
@@ -282,12 +298,17 @@ def _tex_to_png(
         output_dir: str,
         item: item_t,
         mcq_dir: str | None,
-        headers: list[tuple[str, str]], # headers added because CTX global variable can't be used in parallelisation
+        # headers added because CTX global 
+        # variable can't be used in parallelisation
+        headers: list[tuple[str, str]], 
         tex_content: str | None = None,
-        info: str | None = None
+        info: str | None = None,
+        instance_id: int = 1,
+        png_file: str = ""
 ) -> None:
-    # _item_set_png_file(item) # _item_set_png_file is used during the prepartion process
-    output_png = os.path.join(output_dir, item["png"])
+    
+    # use png_file from task directly instead of looking for item["png"]
+    output_png = os.path.join(output_dir, png_file)
 
     msg = f"compile {input_tex}"
     if info is not None:
@@ -309,7 +330,6 @@ def _tex_to_png(
     if tex_content is None:
         tex_content = io.read_file_content(input_tex)
     
-
     # create the content of the tex file to compile
     sep = "\n%\n"
     tex_headers = sep.join(
@@ -325,46 +345,6 @@ def _tex_to_png(
         + r"\noindent{" + tex_content + "}" + sep
         + r"\end{document}" + sep
     )
-
-    # # create a temp file for latex content and compute some other file names
-    # with tempfile.NamedTemporaryFile(
-    #         dir=".", mode="w", suffix=".tex", encoding="utf-8",
-    #         delete=False
-    # ) as tmp_file:
-
-    #     tmp_file.write(tex_content)
-    #     tmp_file.close()
-
-    #     # the output of pdflatex will be written in a temporary directory
-    #     with tempfile.TemporaryDirectory() as tmp_dir:
-
-    #         # pdflatexify the file and move back the previous directory
-    #         args = [
-    #             tex2pdf_exe,
-    #             *[arg.format(
-    #                 out_dir=tmp_dir,
-    #                 tex_file=os.path.abspath(tmp_file.name)
-    #             ) for arg in tex2pdf_exe_args]
-    #         ]
-    #         exec_result = log.log_exec(args, cwd=execution_dir)
-            
-
-    #         # check pdflatex terminated correctly and that the
-    #         # resulting pdf is not empty and then convert it to png
-    #         # and finally crop it
-    #         path = Path(tmp_file.name).stem
-    #         pdf_file_name = os.path.join(tmp_dir, path + ".pdf")
-    #         png_file_name = os.path.join(tmp_dir, path + ".png")
-    #         if (
-    #                 exec_result
-    #                 and os.path.exists(pdf_file_name)
-    #                 and os.path.getsize(pdf_file_name) > 0
-    #                 and _pdf_to_png(pdf_file_name, png_file_name)
-    #                 and _crop_png(png_file_name)
-    #                 and io.mkdir_of_file(output_png)
-    #         ):
-    #             shutil.move(png_file_name, output_png)
-    # os.remove(tmp_file.name)
 
     # create a temporary dir to create pngs, it will delete himself at the end
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -400,6 +380,16 @@ def _tex_to_png(
         ):
             shutil.move(png_file_name, output_png)
 
+import uuid
+
+def _generate_png_path() -> str:
+    """
+        generate unique path for png image. output format: 'png/xx/xxxx.png'
+    """
+    # generate 32 char random hex id
+    h = uuid.uuid4().hex
+    
+    return f"png/{h[:2]}/{h}.png"
 
 def _compile_question(
         input_tex: str,
@@ -407,12 +397,12 @@ def _compile_question(
         mcq_dir: None | str
 ) -> list[item_t]:
 
-    # parse tex
+    # extract and clean latex code
     content = io.read_file_content(input_tex)
-    
     var_block = ""
     begin_tag = "%webamc BEGIN"
     end_tag = "%webamc END"
+    
     if (begin_tag in content and end_tag in content):
         start_idx = content.find(begin_tag) + len(begin_tag)
         end_idx = content.find(end_tag)
@@ -424,7 +414,7 @@ def _compile_question(
     clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
     clean_preamble = clean_preamble.replace(r"\begin{document}", "")
 
-    # no question found => exit
+    # if no question found, handle error and exit
     if qsts == list():
         msg = tex.tex_error_msg[code]
         funcs = {
@@ -438,77 +428,122 @@ def _compile_question(
         return list()
 
     result: list[item_t] = list()
-    
-    # root dir where vars files will be created (and removed later)
-    root_dir = os.path.dirname(input_tex)
+    root_mcq_dir = mcq_dir if mcq_dir is not None else os.path.dirname(input_tex)
 
     mdata = parse_amc_mdata(input_tex, content)
     num_instances = mdata.get("itm_instances", 1)
     is_dynamic = num_instances > 1 or var_block != ""
 
+    # prepare templates (mother items)
+    qst_templates = []
+    for qst in qsts:
+        # create mother question
+        item = _ctx_new_item(input_tex)
+        item["itm_code"] = qst["itm_code"]
+        item["itm_type"] = types.ITEM_TYPE_QUESTION
+        item["qst_type"] = qst["qst_type"]
+        item["instances"] = []
+
+        _ctx_push_item(item)
+
+        # create choices linked to this question
+        choices_templates = []
+        iterator = tex.iter_on_choices(qst)
+        for num, (correct, last, cho_tex) in enumerate(iterator):
+            cho_item = _ctx_new_item(input_tex, False)
+            cho_item["itm_type"] = types.ITEM_TYPE_CHOICE
+            cho_item["cho_correct"] = correct
+            cho_item["cho_last"] = last
+            cho_item["instances"] = []
+            choices_templates.append((cho_item, cho_tex, num))
+
+        _ctx_pop_item()
+
+        qst_templates.append({
+            "item": item,
+            "qst_data": qst,
+            "choices": choices_templates
+        })
+
+    # instances loop (generate children)
     for instance_id in range(1, num_instances + 1):
         anti_brouillon = r"\makeatletter\ifdefined\AMC@watermarkfalse\AMC@watermarkfalse\fi\makeatother"
+        
         if is_dynamic:
-            # creating n instances of latex code 
-            var_file_name = f"vars_{instance_id}.tex"
-            var_file_path = os.path.join(root_dir, var_file_name)
-            
-            # seed used by pdflatex to generate pseudo random numbers
-            seed_val = instance_id * 10000
-            
-            with open(var_file_path, "w", encoding="utf-8") as f:
-                f.write(f"% Variables generees pour l'instance {instance_id}\n")
-                f.write(f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n")
-                f.write(f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi\n")
-                f.write(f"\\ifdefined\\FPeval\\FPeval\\trash{{random}}\\fi\n")
-                f.write(var_block + "\n")
-            
-            abs_var_path = os.path.abspath(var_file_path).replace('\\', '/')
-            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n\\input{{{abs_var_path}}}\n\\def\\thecopy{{{instance_id}}}\n"
+            # creating seed value to generate random values
+            seed_val = (instance_id * 123456789) % 2147483647 
+            seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
+            "ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
+            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}" + \
+            "\n{var_block}\n\\def\\thecopy{{{instance_id}}}\n"
         else:
+            seed_val = 0
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
         
         headers_for_instance = list(CTX["headers"])
         headers_for_instance.append(("variables_fp", dynamic_header))
 
-        for qst in qsts:
-            item = _ctx_new_item(input_tex)
-            tex_content = tex.qst_tex_header(qst)
-            item["itm_code"] = f"{qst['itm_code']}_{instance_id}" if is_dynamic else qst['itm_code']
-            item["itm_type"] = types.ITEM_TYPE_QUESTION
-            item["qst_type"] = qst["qst_type"]
-            _item_set_png_file(item)
+        for qst_entry in qst_templates:
+            main_item = qst_entry["item"]
+            qst = qst_entry["qst_data"]
+            
+            # tasks for the question
+            png_file = _generate_png_path()
+
+            main_item["instances"].append({
+                "iti_num": instance_id,
+                "iti_seed": seed_val,
+                "png": png_file
+            })
+
+            info_qst = f"(instance {instance_id})" if is_dynamic else None
+
             TASKS.append({
                 "input_tex": input_tex,
                 "output_dir": output_dir,
-                "item": item,
-                "mcq_dir": mcq_dir,
-                "tex_content": tex_content,
-                "info": f"(instance {instance_id})" if is_dynamic else None,
-                "headers": headers_for_instance
+                "item": main_item,
+                "mcq_dir": root_mcq_dir,
+                "tex_content": tex.qst_tex_header(qst),
+                "info": info_qst,
+                "headers": headers_for_instance,
+                "instance_id": instance_id,
+                "png_file": png_file
             })
-            _ctx_push_item(item)
-            result.append(item)
-            iterator = tex.iter_on_choices(qst)
-            for num, (correct, last, cho_tex) in enumerate(iterator):
-                item = _ctx_new_item(input_tex, False)
-                item["itm_type"] = types.ITEM_TYPE_CHOICE
-                item["cho_correct"] = correct
-                item["cho_last"] = last
-                info = f"(instance {instance_id} - choice {num})" if is_dynamic else f"(choice {num})"
-                _item_set_png_file(item)
+
+            # tasks for the choices
+            for cho_item, cho_tex, num in qst_entry["choices"]:
+                png_cho = _generate_png_path()
+                
+                cho_item["instances"].append({
+                    "iti_num": instance_id,
+                    "iti_seed": seed_val,
+                    "png": png_cho
+                })
+
+                if is_dynamic:
+                    info_cho = f"(instance {instance_id} - choice {num})"
+                else:
+                    info_cho = f"(choice {num})"
+
                 TASKS.append({
                     "input_tex": input_tex,
                     "output_dir": output_dir,
-                    "item": item,
-                    "mcq_dir": mcq_dir,
+                    "item": cho_item,
+                    "mcq_dir": root_mcq_dir,
                     "tex_content": cho_tex,
-                    "info": info,
-                    "headers": headers_for_instance
+                    "info": info_cho,
+                    "headers": headers_for_instance,
+                    "instance_id": instance_id,
+                    "png_file": png_cho
                 })
-                result.append(item)
-            _ctx_pop_item()
 
+    # final assembly
+    # flatten the list to return all items (questions and choices)
+    for qst_entry in qst_templates:
+        result.append(qst_entry["item"])
+        for cho_item, _, _ in qst_entry["choices"]:
+            result.append(cho_item)
+            
     return result
 
 
@@ -519,17 +554,6 @@ def _compile_dir_traversal(
 ) -> list[item_t]:
 
     result: list[item_t] = list()
-
-    # check dynamic variables to build
-    var_files_path = os.path.join(input_dir, "variables.tex")
-    if (os.path.isfile(var_files_path)):
-        output.info(f"Generating dynamic variables from {var_files_path}")
-        tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
-        if (not os.path.isabs(tex2pdf_exe)):
-            tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
-        
-        # creating variables files for dynamic variables in 'variables.tex'
-        log.log_exec([tex2pdf_exe, "variables.tex"], cwd=input_dir)
 
     cfg = config.CONFIG
     special_files = [
@@ -576,7 +600,28 @@ def _compile_dir_traversal(
                 item["itm_type"] = types.ITEM_TYPE_PACK
                 item["pak_spec"] = pack
             # _tex_to_png(files[f], output_dir, item, mcq_dir)
-            _item_set_png_file(item)
+            # _item_set_png_file(item)
+            # TASKS.append({
+            #     "input_tex": files[f],
+            #     "output_dir": output_dir,
+            #     "item": item,
+            #     "mcq_dir": mcq_dir,
+            #     "tex_content": None,
+            #     "info": None,
+            #     "headers": list(CTX["headers"])
+            # })
+            # _ctx_push_item(item)
+            # result.append(item)
+            # if f == "tex_file_mcq":
+            #     mcq_dir = os.path.abspath(input_dir)
+            # break
+            png_file = _generate_png_path()
+            item["instances"] = [{
+                "iti_num": 1,
+                "iti_seed": 0,
+                "png": png_file
+            }]
+            
             TASKS.append({
                 "input_tex": files[f],
                 "output_dir": output_dir,
@@ -584,8 +629,11 @@ def _compile_dir_traversal(
                 "mcq_dir": mcq_dir,
                 "tex_content": None,
                 "info": None,
-                "headers": list(CTX["headers"])
+                "headers": list(CTX["headers"]),
+                "instance_id": 1,           
+                "png_file": png_file
             })
+            
             _ctx_push_item(item)
             result.append(item)
             if f == "tex_file_mcq":
@@ -620,35 +668,31 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     TASKS = [] # TASKS is empty when the compilation starts
 
     print(f"Compilation starts with {max_threads} threads")
+    # everything will be written in a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
+        # traverse input_dir to generate json
         log.log_open()
         items = _compile_dir_traversal(input_dir, tmp_dir, None)
         log.log_close()
 
+        # generate png with items and TASKS
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
             futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
-            concurrent.futures.wait(futures)
+
+            import traceback
+            for future in concurrent.futures.as_completed(futures):
+                try: 
+                    future.result()
+                except Exception as exc:
+                    output.error(f"An error happened in worker {exc}")
+                    traceback.print_exc()
+                    raise SystemExit(1)
+
 
         json_path = os.path.join(tmp_dir, JSON_SPEC)
         with open(json_path, "w", encoding="utf-8") as fd:
             fd.write(json.dumps(items, indent=2))
 
+        # zip the the temporary directory and remove it
         shutil.make_archive(prefix, "zip", root_dir=tmp_dir)
-
-    output.info("Removing temporary variable files")
-    
-    # On supprime les vars_*.tex
-    for var_file in glob.glob(os.path.join(input_dir, "**", "vars_*.tex"), recursive=True):
-        try:
-            os.remove(var_file)
-        except OSError:
-            output.error("OSError")
-    
-    # On supprime les résidus (aux, log)
-    for junk_file in glob.glob(os.path.join(input_dir, "**", "*.aux"), recursive=True) + \
-                     glob.glob(os.path.join(input_dir, "**", "*.log"), recursive=True):
-        try:
-            os.remove(junk_file)
-        except OSError:
-            output.error("OSError")

@@ -2,6 +2,9 @@
 
 import zipfile
 import tempfile
+import os
+import json
+import typing as tp
 from sqlalchemy.orm import Session as ORMSession
 
 from webamc.all import *
@@ -18,16 +21,14 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 for (key, val) in item.items()
                 if key.startswith(prefix)
             }
+        
         if "itm_parent" in item:
             if item["itm_parent"] not in num_map:
                 return None
             item["itm_parent"] = num_map[item["itm_parent"]]
+        
         tex_file = item.get("tex_file")
-        img_path = os.path.join(dir_path, item["png"])
-        if not os.path.isfile(img_path):
-            output.warning(f"{tex_file}: no image file")
-        else:
-            item["itm_img"] = io.read_bin_file_content(img_path)
+
         result = None
 
         # check a CODE is provided if it is not a choice
@@ -56,7 +57,7 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 output.warning(f"{tex_file}: duplicate item {itm_code}")
                 return None
 
-        # new item
+        # new item (Le Moule)
         info = f"{tex_file}: new item {itm_code}"
         db_item = tables.Item(**sub_dict("itm_"))
         dbs.add(db_item)
@@ -105,14 +106,39 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
         info = f"{tex_file}: new {desc}"
         dbs.add(tbl(**val))
         output.info(info)
+        
+        # inserting instance from JSON in database
+        instances = item.get("instances", [])
+        for inst in instances:
+            img_path = os.path.join(dir_path, inst["png"])
+            
+            # png image checking
+            if not os.path.isfile(img_path):
+                output.warning(f"{tex_file} (Instance {inst['iti_num']}): " + \
+                "no image file found at {img_path}")
+                img_bin = None
+            else:
+                img_bin = io.read_bin_file_content(img_path)
+            
+            # ItemInstance object creation and added to db
+            db_instance = tables.ItemInstance(
+                iti_item=result,             # parent id
+                iti_num=inst["iti_num"],     # instance num
+                iti_seed=inst["iti_seed"],   # seed used
+                iti_img=img_bin              # png
+            )
+            dbs.add(db_instance)
+            output.info(f"{tex_file}: added instance {inst['iti_num']} for item {result}")
+
         return result
+
     num_map: dict[int, int] = dict()
     json_file = os.path.join(dir_path, comp.JSON_SPEC)
     if os.path.isfile(json_file):
         with (
-                open(json_file, encoding="utf-8") as fd,
-                op.Session() as dbs,
-                dbs.begin()
+            open(json_file, encoding="utf-8") as fd,
+            op.Session() as dbs,
+            dbs.begin()
         ):
             items: list[comp.item_t] = tp.cast(
                 list[comp.item_t], json.loads(fd.read())
@@ -121,7 +147,6 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 itm_id = load_item(dbs, item)
                 if itm_id is not None:
                     num_map[item["num"]] = itm_id
-
 
 def action(archive: str, usr_id: int) -> None:
     if not os.path.isfile(archive):

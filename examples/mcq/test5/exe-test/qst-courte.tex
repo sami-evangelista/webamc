@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{automultiplechoice}
+\usepackage{fp}
+
+%webamc TITLE=Question Courte
+%webamc INSTANCES=2
+
+%webamc BEGIN
+\FPeval\vQa{trunc(1+random*10,0)} 
+\FPeval\rQa{clip(10 + vQa)} 
+\FPeval\eQa{clip(rQa + 5)}
+%webamc END
+
+\begin{document}
+\begin{question}{q_courte}
+  Calculer : 10 + \vQa{}
+  \begin{reponses}
+    \bonne{\rQa}
+    \mauvaise{\eQa}
+  \end{reponses}
+\end{question}
+\end{document}

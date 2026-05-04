@@ -731,8 +731,8 @@ const pack_save = async function () {
 
             const success = function (_) {
                 pack_reset_filters();
-                base_report_infos(['MCQ loaded']); // Alerte native du créateur
-                alertify.success("Sauvegardé avec succès !"); // Petit toast vert
+                base_report_infos(['MCQ loaded']); 
+                alertify.success("Sauvegardé avec succès !"); 
             };
             xhr_post_oper(Constants.path_item_oper_save_pack, formData, success);
         },

@@ -29,6 +29,8 @@ class RefGrp(ct.ForeignKey):
     pass
 class RefItem(ct.ForeignKey):
     pass
+class RefItemInstance(ct.ForeignKey):
+    pass
 class RefTag(ct.ForeignKey):
     pass
 class RefMcq(ct.ForeignKey):
@@ -182,6 +184,21 @@ class Item(Base):
         FK(["itm_parent"], ["item.itm_id"], ondelete="CASCADE"),
         UC("itm_parent", "itm_order"),
         UC("itm_code", "itm_usr")
+    )
+
+
+class ItemInstance(Base):
+    __tablename__ = "item_instance"
+
+    iti_id: int = CO(ct.Integer, primary_key=True)
+    iti_item: int = CO(RefItem, nullable=False)
+    iti_num: int = CO(ct.Integer, nullable=False)  
+    iti_seed: int = CO(ct.Integer, nullable=False) 
+    iti_img = CO(sa.LargeBinary)                   
+    
+    __table_args__ = (
+        UC("iti_item", "iti_num"),
+        FK(["iti_item"], ["item.itm_id"], ondelete="CASCADE")
     )
 
 
@@ -395,3 +412,6 @@ RefExam.col = Exam.exm_id
 RefExam.fmt = lambda exam: str(exam.exm_id)
 RefRegistration.col = Registration.reg_id
 RefRegistration.fmt = lambda reg: str(reg.reg_id)
+
+RefItemInstance.col = ItemInstance.iti_id
+RefItemInstance.fmt = lambda iti: str(iti.iti_id)
