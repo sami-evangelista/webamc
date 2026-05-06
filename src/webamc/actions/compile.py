@@ -418,6 +418,14 @@ def _compile_question(
         var_block = content[start_idx:end_idx].strip()
         content = content[:content.find(begin_tag)] + content[end_idx + len(end_tag):]
 
+    py_file_path = os.path.splitext(input_tex)[0] + ".py"
+    has_py_script = os.path.isfile(py_file_path)
+    py_code = ""
+    if has_py_script:
+        output.info(f"Fichier Python externe détecté : {py_file_path}")
+        py_code = io.read_file_content(py_file_path)
+
+
     code, qsts = tex.extract_qst(content)
     raw_preamble = content.split(r"\begin{question}")[0]
     clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
@@ -483,8 +491,27 @@ def _compile_question(
             seed_val = (instance_id * 123456789) % 2147483647 
             seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
             f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
-            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}" + \
-            "\n{var_block}\n\\def\\thecopy{{{instance_id}}}\n"
+            custom_vars_latex = ""
+
+            if has_py_script:
+                env = {}
+                try:
+                    import random
+                    random.seed(seed_val)
+                    exec(py_code,env)
+
+                    if "VAR" in env and isinstance(env["VAR"],dict):
+                        for key,value in env["VAR"].items():
+                            custom_vars_latex += f"\\def\\VAR{key}{{{value}}}\n"
+
+                except Exception as e:
+                    output.error(f"Erreur lors de l'exécution de {py_file_path} : {e}")
+            if var_block != "":
+                custom_vars_latex += f"{var_block}\n"
+            dynamic_header = (
+                f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}\n"
+                f"{custom_vars_latex}\n\\def\\thecopy{{{instance_id}}}\n"
+            )
         else:
             seed_val = 0
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
