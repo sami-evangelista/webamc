@@ -406,7 +406,7 @@ def _compile_question(
         mcq_dir: None | str
 ) -> list[item_t]:
 
-    # extract and clean latex code
+    # extract tex content and custom latex variables block (%webamc BEGIN / END)
     content = io.read_file_content(input_tex)
     var_block = ""
     begin_tag = "%webamc BEGIN"
@@ -418,20 +418,21 @@ def _compile_question(
         var_block = content[start_idx:end_idx].strip()
         content = content[:content.find(begin_tag)] + content[end_idx + len(end_tag):]
 
+    # check if an external python script exists for this question
     py_file_path = os.path.splitext(input_tex)[0] + ".py"
     has_py_script = os.path.isfile(py_file_path)
     py_code = ""
     if has_py_script:
-        output.info(f"Fichier Python externe détecté : {py_file_path}")
+        output.info(f"Extern python filed founded : {py_file_path}")
         py_code = io.read_file_content(py_file_path)
 
-
+    # parse tex file to find questions and clean the preamble
     code, qsts = tex.extract_qst(content)
     raw_preamble = content.split(r"\begin{question}")[0]
     clean_preamble = re.sub(r"\\documentclass(\[.*?\])?\{.*?\}", "", raw_preamble)
     clean_preamble = clean_preamble.replace(r"\begin{document}", "")
 
-    # if no question found, handle error and exit
+    # if no question is found, display an error and abort
     if qsts == list():
         msg = tex.tex_error_msg[code]
         funcs = {
@@ -447,6 +448,7 @@ def _compile_question(
     result: list[item_t] = list()
     root_mcq_dir = mcq_dir if mcq_dir is not None else os.path.dirname(input_tex)
 
+    # read webamc metadata (instances, random, tags...)
     mdata = parse_amc_mdata(input_tex, content)
     num_instances = mdata.get("itm_instances", 1)
     is_dynamic = num_instances > 1 or var_block != ""
@@ -454,7 +456,7 @@ def _compile_question(
     # prepare templates (mother items)
     qst_templates: list[qst_template_t] = []
     for qst in qsts:
-        # create mother question
+        # setup the main question template
         item = _ctx_new_item(input_tex)
         item["itm_code"] = qst["itm_code"]
         item["itm_type"] = types.ITEM_TYPE_QUESTION
@@ -463,7 +465,7 @@ def _compile_question(
 
         _ctx_push_item(item)
 
-        # create choices linked to this question
+        # setup the choices linked to this specific question
         choices_templates = []
         iterator = tex.iter_on_choices(qst)
         for num, (correct, last, cho_tex) in enumerate(iterator):
@@ -482,32 +484,39 @@ def _compile_question(
             "choices": choices_templates
         })
 
-    # instances loop (generate children)
+    # generate children (instances loop)
     for instance_id in range(1, num_instances + 1):
+        # prevent amc watermark from appearing
         anti_brouillon = r"\makeatletter\ifdefined\AMC@watermarkfalse\AMC@watermarkfalse\fi\makeatother"
         
         if is_dynamic:
-            # creating seed value to generate random values
+            # creating a unique and reproducible 
+            # seed value for this specific instance
             seed_val = (instance_id * 123456789) % 2147483647 
             seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
             f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
             custom_vars_latex = ""
 
+            # execute external python script 
+            # and translate its VAR dict into latex definitions
             if has_py_script:
                 env = {}
                 try:
                     import random
                     random.seed(seed_val)
-                    exec(py_code,env)
+                    exec(py_code, env)
 
-                    if "VAR" in env and isinstance(env["VAR"],dict):
-                        for key,value in env["VAR"].items():
+                    if "VAR" in env and isinstance(env["VAR"], dict):
+                        for key, value in env["VAR"].items():
                             custom_vars_latex += f"\\def\\VAR{key}{{{value}}}\n"
 
                 except Exception as e:
-                    output.error(f"Erreur lors de l'exécution de {py_file_path} : {e}")
+                    output.error(f"Exception catched in '{py_file_path}' : {e}")
+            
             if var_block != "":
                 custom_vars_latex += f"{var_block}\n"
+            
+            # build the final dynamic latex header for this instance
             dynamic_header = (
                 f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}\n"
                 f"{custom_vars_latex}\n\\def\\thecopy{{{instance_id}}}\n"
@@ -519,11 +528,12 @@ def _compile_question(
         headers_for_instance = list(CTX["headers"])
         headers_for_instance.append(("variables_fp", dynamic_header))
 
+        # create tasks for multiprocessing
         for qst_entry in qst_templates:
             main_item = qst_entry["item"]
             qst = qst_entry["qst_data"]
             
-            # tasks for the question
+            # tasks for the main question
             png_file = _generate_png_path()
 
             main_item["instances"].append({
@@ -573,7 +583,6 @@ def _compile_question(
                     "png_file": png_cho
                 })
 
-    # final assembly
     # flatten the list to return all items (questions and choices)
     for qst_entry in qst_templates:
         result.append(qst_entry["item"])
