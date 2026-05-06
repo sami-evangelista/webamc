@@ -317,11 +317,11 @@ class Answer(Base):
     __tablename__ = "answer"
     ans_id: int = CO(ct.Integer, primary_key=True)
     ans_submission: int = CO(RefSubmission, nullable=False)
-    ans_item: int = CO(RefItem, nullable=False)
+    ans_instance: int = CO(RefItemInstance, nullable=False)
     __table_args__ = (
-        UC("ans_submission", "ans_item"),
+        UC("ans_submission", "ans_instance"),
         FK(["ans_submission"], ["submission.sub_id"], ondelete="CASCADE"),
-        FK(["ans_item"], ["item.itm_id"], ondelete="CASCADE")
+        FK(["ans_instance"], ["item_instance.iti_id"], ondelete="CASCADE")
     )
 
 

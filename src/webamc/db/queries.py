@@ -266,9 +266,14 @@ def get_submission_choices(
 ) -> list[tables.Choice]:
     return dbs.query(
         tables.Choice
+    ).join(
+        tables.ItemInstance,
+        tables.ItemInstance.iti_item == tables.Choice.cho_id
+    ).join(
+        tables.Answer,
+        tables.Answer.ans_instance == tables.ItemInstance.iti_id
     ).where(
-        (tables.Answer.ans_submission == sub_id)
-        & (tables.Answer.ans_item == tables.Choice.cho_id)
+        tables.Answer.ans_submission == sub_id
     ).all()
 
 
