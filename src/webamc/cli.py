@@ -198,3 +198,6 @@ def main() -> None:
         arg_parsed.command(arg_parsed)
         if arg_parsed.command in requiring_db:  # pylint: disable=W0143
             db.op.close()
+
+if __name__ == "__main__":
+    main()
