@@ -3,6 +3,7 @@
 from webamc.www.all import *
 from webamc.db import tables
 from webamc.www.mcq import router
+from typing import Any
 
 
 def data(
@@ -35,7 +36,7 @@ def data(
     
     # private function to map all the answers
     # it's save the question id with the instance num in a dict
-    def map_instances(node):
+    def map_instances(node: dict[str,Any])->None:
         if "iti_num" in node:
             itm_to_itinum[node["itm_id"]] = node["iti_num"]
         if "itm_children" in node:
@@ -43,7 +44,6 @@ def data(
                 map_instances(child)
                 
     map_instances(content_tree)
-    # ----------------------------------------------------------------------
 
     # insert new answers
     for qst_id, qst_choices in mcq_result["mcq_questions"].items():
