@@ -317,6 +317,23 @@ load_single_result_t = tp.TypedDict(
 load_result_t = list[load_single_result_t]
 
 
+
+student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
+    "reg_id": int,
+    "usr_login": str,
+    "usr_name": str,
+    "usr_fst_name": str,
+    "status": str,
+    "last_seen": datetime.datetime | None
+})
+
+exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
+    "exam_status": str,
+    "exam_start": datetime.datetime,
+    "exam_end": datetime.datetime,
+    "students": list[student_monitoring_t]
+})
+
 txt_t = tp.Literal[
     "col_desc_adm_id",
     "col_desc_adm_tbl",
@@ -559,6 +576,8 @@ help_t = tp.Literal[
     "project_parameters",
     "project_upload_source"
 ]
+
+
 
 
 def oper_code_to_txt(c: oper_code_t) -> txt_t:
