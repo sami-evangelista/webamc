@@ -500,7 +500,7 @@ def _compile_question(
             # execute external python script 
             # and translate its VAR dict into latex definitions
             if has_py_script:
-                env = {}
+                env: dict[str,tp.Any] = {}
                 try:
                     import random
                     random.seed(seed_val)
