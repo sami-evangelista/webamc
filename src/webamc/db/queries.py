@@ -169,71 +169,6 @@ def get_exam_registrations(
 
 import datetime
 
-def get_exam_monitoring(
-        dbs: sa.orm.Session, 
-        exam_id: int
-    ):
-    # getting exam info
-    exam = dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
-    if not exam:
-        return None
-
-    # status of the exam
-    now = datetime.datetime.now()
-    exam_end = tables.Exam.end_time(exam) # On utilise la super méthode statique de ton collègue !
-
-    if now < exam.exm_start:
-        global_status = "À venir"
-    elif now > exam_end:
-        global_status = "Terminé"
-    else:
-        global_status = "En cours"
-
-    # 3. On récupère les étudiants avec la même requête que tout à l'heure
-    results = dbs.query(
-        tables.Usr,
-        tables.Registration,
-        tables.ExamSubmission
-    ).select_from(
-        tables.Usr
-    ).join(
-        tables.Registration, tables.Usr.usr_id == tables.Registration.reg_usr
-    ).outerjoin( 
-        tables.ExamSubmission, tables.Registration.reg_id == tables.ExamSubmission.exs_registration
-    ).filter(
-        tables.Registration.reg_exam == exam_id
-    ).all()
-
-    # 4. On construit la liste des étudiants
-    students_data = []
-    for usr, reg, exam_sub in results:
-        student_status = "Non commencé"
-        last_seen = None
-        
-        if exam_sub is not None:
-            student_status = "En ligne"
-            last_seen = exam_sub.exs_date_update
-            
-            # Petit bonus : vérifier s'il est inactif depuis plus de 5 minutes
-            if now - last_seen > datetime.timedelta(minutes=5):
-                student_status = "Inactif (Déconnecté ?)"
-                
-        students_data.append({
-            "usr_code": usr.usr_code,
-            "usr_name": usr.usr_name,
-            "usr_fst_name": usr.usr_fst_name,
-            "status": student_status,
-            "last_seen": last_seen
-        })
-        
-    # 5. On renvoie TOUT au front-end (statut de l'exam + liste des élèves)
-    return {
-        "exam_status": global_status,
-        "exam_start": exam.exm_start,
-        "exam_end": exam_end,
-        "students": students_data
-    }
-
 
 def get_ticket(
         dbs: Session,
@@ -349,6 +284,79 @@ def get_exam_monitoring(
         "exam_end": exam_end,
         "students": students_data
     }
+
+def gen_pack_questions(
+        dbs: Session,
+        item: tables.Item,
+        usr_id: int,
+        not_in: set[int]
+) -> list[tables.Item]:
+    def traverse(spec: types.pack_spec_t) -> Query[tables.Item]:
+        if isinstance(spec, list):
+            result: Query[tables.Item] = traverse(spec[0])
+            for c in spec[1:]:
+                result = result.union(traverse(c))
+            return result
+        oper = spec.get("op", "all")
+        if oper == "all":
+            return dbs.query(
+                tables.Item
+            ).where(
+                tables.Item.itm_visible
+                & (tables.Item.itm_id == tables.Question.qst_id)
+                & (tables.Item.itm_usr == usr_id)
+                & (tables.Item.itm_standalone
+                   | (tables.Item.itm_parent == None))
+                & (tables.Item.itm_id.not_in(not_in))
+            )
+        all_op: types.pack_spec_t ={"op": "all"}
+        content: types.pack_spec_t = spec.get("content", all_op)
+        arg: tp.Any = spec.get("arg")
+        rev: bool = spec.get("rev", False)
+        result = traverse(content)
+        if oper == "shuf":
+            return result.order_by(sa.func.random())
+        if oper == "head":
+            return result.limit(int(arg))
+        if oper == "sort":
+            try:
+                by = {
+                    "difficulty": tables.Item.itm_difficulty,
+                    "code": tables.Item.itm_code
+                }[str(arg)]
+            except KeyError:
+                pass
+            else:
+                return result.order_by(by.desc() if rev else by)
+        if oper == "with-code":
+            return result.where(
+                tables.Item.itm_code.in_(arg) if not rev
+                else tables.Item.itm_code.not_in(arg)
+            )
+        if oper == "with-difficulty":
+            return result.where(
+                tables.Item.itm_difficulty.in_(arg) if not rev
+                else tables.Item.itm_difficulty.not_in(arg)
+            )
+        if oper == "with-tag":
+            sub = dbs.query(
+                tables.Item.itm_id.distinct()
+            ).where(
+                (tables.Item.itm_id == tables.ItemTag.itg_item)
+                & (tables.Tag.tag_id == tables.ItemTag.itg_tag)
+                & (tables.Tag.tag_name.in_(arg))
+            )
+            return result.where(
+                tables.Item.itm_id.in_(sub) if not rev
+                else tables.Item.itm_id.not_in(sub)
+            )
+        return result
+    assert item.itm_type == types.ITEM_TYPE_PACK
+    pack = get_pack(dbs, item.itm_id)
+    spec = json.loads(pack.pak_spec)
+    query = traverse(spec)
+
+    return traverse(spec).all()
 
 def get_submission_choices(
         dbs: Session,
