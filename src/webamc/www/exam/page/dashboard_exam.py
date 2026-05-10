@@ -16,7 +16,7 @@ def page(
     if not monitoring_data:
         return fa.responses.HTMLResponse("Examen introuvable.")
 
-    # Configuration des couleurs
+    # color configuration
     exam_colors = {
         "upcoming": "#0056b3",
         "in progress": "#28a745",
@@ -31,47 +31,75 @@ def page(
 
     trs: list[he.Element] = list()
     
-    # 1. En-tête du tableau avec 4 colonnes
-    input_all = he.Input(type_="checkbox", id_="checkbox_all", onclick="exam_select_all_registrations()")
-    img_delete = base.static_img("trash", "verb_delete", js="exam_delete_registrations()")
+    # table header with 5 columns
+    input_all = he.Input(
+        type_="checkbox", 
+        id_="checkbox_all", 
+        onclick="exam_select_all_registrations()"
+    )
     
     tr_all = he.Tr(
         he.Td(input_all),
-        he.Td(he.Str("Login")),            # Nouvelle colonne en premier
-        he.Td(he.Str("Étudiant")),          # Nom seul
-        he.Td(he.Str("Statut de connexion"))
+        he.Td(he.Str("Login")),
+        he.Td(he.Str("Student")),
+        he.Td(he.Str("Progress")),
+        he.Td(he.Str("Status"))
     )
     trs.append(tr_all)
 
-    # 2. Remplissage des lignes
+    # rows generation
     for student in monitoring_data["students"]:
-        # Séparation du nom et du login
         student_name = fmt.fmt_name(student['usr_fst_name'], student['usr_name'])
         
+        # checkbox using reg_id for deletion actions
         input_check = he.Input(
             type_="checkbox",
             id_=f"checkbox_{student['reg_id']}",
             class_="checkbox_registration"
         ).set_data("reg_id", str(student['reg_id']))
         
+        # status with color coding
         s_color = student_colors.get(student["status"], "black")
         status_element = he.Span(
             he.Str(student["status"]), 
             style=f"color: {s_color}; font-weight: bold;"
         )
         
-        # 3. Création de la ligne avec le login en deuxième position
+        # progress bar logic
+        answered = student["answered_count"]
+        total = student["total_questions"]
+        percent = int((answered / total) * 100) if total > 0 else 0
+        
+        # green if 100%, blue otherwise
+        bar_color = "#28a745" if percent == 100 else "#007bff"
+        
+        progress_fill = he.Div(
+            style=f"width: {percent}%; height: 100%; background-color: {bar_color}; transition: width 0.3s;"
+        )
+        progress_bg = he.Div(
+            progress_fill,
+            style="width: 100px; height: 12px; background-color: #e9ecef; border-radius: 4px; overflow: hidden; display: inline-block; vertical-align: middle; border: 1px solid #ccc;"
+        )
+        progress_text = he.Span(
+            he.Str(f" {answered}/{total}"), 
+            style="font-size: 0.85em; margin-left: 8px; vertical-align: middle; color: #555;"
+        )
+        progress_element = he.Div(progress_bg, progress_text)
+
+        # build row
         tr = he.Tr(
             he.Td(input_check),
-            he.Td(he.Str(student["usr_login"])), # Colonne Login
-            he.Td(he.Str(student_name)),          # Colonne Nom
-            he.Td(status_element)                # Colonne Statut
+            he.Td(he.Str(student["usr_login"])),
+            he.Td(he.Str(student_name)),
+            he.Td(progress_element),
+            he.Td(status_element)
         )
         trs.append(tr)
 
-    # Assemblage de la page
+    # assemble page elements
     elements: list[he.Element] = list()
     
+    # global exam status
     e_color = exam_colors.get(monitoring_data['exam_status'], "black")
     header_status = he.H3(
         he.Str(f"Statut de l'épreuve : {monitoring_data['exam_status']}"), 
@@ -79,9 +107,11 @@ def page(
     )
     elements.append(header_status)
     
+    # registration count
     txt = lang.txt("param_seq_users_registered") % str(len(monitoring_data["students"]))
     elements.append(he.P(he.Str(txt)))
     
+    # data table
     if len(monitoring_data["students"]) > 0:
         elements.append(he.Table(*trs, class_="table-form"))
         

@@ -275,7 +275,14 @@ def get_exam_monitoring(
     else:
         global_status = "in progress"
 
-    # get students, registrations, submissions AND login
+    # get total questions for this exam's mcq
+    total_questions = dbs.query(tables.Question).join(
+        tables.Item, tables.Question.qst_id == tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_parent == exam.exm_mcq
+    ).count()
+
+    # get students, registrations, submissions and logins
     results = dbs.query(
         tables.Usr,
         tables.Registration,
@@ -298,6 +305,7 @@ def get_exam_monitoring(
     for usr, reg, exam_sub, loc_login in results:
         student_status = "not started"
         last_seen: datetime.datetime | None = None
+        answered_count = 0
         
         if exam_sub is not None:
             student_status = "online"
@@ -306,13 +314,33 @@ def get_exam_monitoring(
             if now - last_seen > datetime.timedelta(minutes=5):
                 student_status = "inactive (> 5 min)"
                 
+            # count answers tied to this specific student's submission
+            answered_count = dbs.query(
+                sa.func.count(sa.distinct(tables.Item.itm_parent))
+            ).select_from(
+                tables.Answer
+            ).join(
+                tables.ItemInstance, 
+                tables.Answer.ans_instance == tables.ItemInstance.iti_id
+            ).join(
+                tables.Item, 
+                tables.ItemInstance.iti_item == tables.Item.itm_id
+            ).filter(
+                tables.Answer.ans_submission == exam_sub.exs_id,
+                tables.Item.itm_type == types.ITEM_TYPE_CHOICE
+            ).scalar()
+            
+            answered_count = answered_count or 0
+
         students_data.append({
             "reg_id": int(reg.reg_id),
             "usr_login": str(loc_login) if loc_login else "no login",
             "usr_name": str(usr.usr_name),
             "usr_fst_name": str(usr.usr_fst_name),
             "status": student_status,
-            "last_seen": last_seen
+            "last_seen": last_seen,
+            "answered_count": answered_count,
+            "total_questions": total_questions
         })
         
     return {
@@ -321,7 +349,6 @@ def get_exam_monitoring(
         "exam_end": exam_end,
         "students": students_data
     }
-
 
 def get_submission_choices(
         dbs: Session,

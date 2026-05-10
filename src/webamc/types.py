@@ -324,7 +324,9 @@ student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
     "usr_name": str,
     "usr_fst_name": str,
     "status": str,
-    "last_seen": datetime.datetime | None
+    "last_seen": datetime.datetime | None,
+    "answered_count": int,
+    "total_questions": int
 })
 
 exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
