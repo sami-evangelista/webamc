@@ -170,6 +170,8 @@ def page(
     ]
     if exam is None:
         btns.append(("checkmark", "verb_send", None, "mcq_validate()"))
+    else :
+        btns.append(("checkmark", "verb_send", None, "mcq_save_answers()"))
     
     side_buttons = [
         base.static_img(img, title, title_args=title_args, js=js)

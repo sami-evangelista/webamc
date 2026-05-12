@@ -30,33 +30,41 @@ def page(
     }
 
     trs: list[he.Element] = list()
+    exam_not_start = monitoring_data['exam_status'] == "upcoming"
+    tr_all = []
     
     # table header with 5 columns
-    input_all = he.Input(
-        type_="checkbox", 
-        id_="checkbox_all", 
-        onclick="exam_select_all_registrations()"
-    )
+    if exam_not_start:
+        input_all = he.Input(
+            type_="checkbox", 
+            id_="checkbox_all", 
+            onclick="exam_select_all_registrations()"
+        )
+        tr_all.append(he.Td(input_all))
+
     
-    tr_all = he.Tr(
-        he.Td(input_all),
+    tr_all.extend([
         he.Td(he.Str("Login")),
         he.Td(he.Str("Student")),
         he.Td(he.Str("Progress")),
         he.Td(he.Str("Status"))
-    )
-    trs.append(tr_all)
+    ])
+    trs.append(he.Tr(*tr_all))
 
     # rows generation
     for student in monitoring_data["students"]:
         student_name = fmt.fmt_name(student['usr_fst_name'], student['usr_name'])
         
+        row_cells = []
+        
         # checkbox using reg_id for deletion actions
-        input_check = he.Input(
-            type_="checkbox",
-            id_=f"checkbox_{student['reg_id']}",
-            class_="checkbox_registration"
-        ).set_data("reg_id", str(student['reg_id']))
+        if exam_not_start:
+            input_check = he.Input(
+                type_="checkbox",
+                id_=f"checkbox_{student['reg_id']}",
+                class_="checkbox_registration"
+            ).set_data("reg_id", str(student['reg_id']))
+            row_cells.append(he.Td(input_check))
         
         # status with color coding
         s_color = student_colors.get(student["status"], "black")
@@ -87,14 +95,14 @@ def page(
         progress_element = he.Div(progress_bg, progress_text)
 
         # build row
-        tr = he.Tr(
-            he.Td(input_check),
+        row_cells.extend([
             he.Td(he.Str(student["usr_login"])),
             he.Td(he.Str(student_name)),
             he.Td(progress_element),
             he.Td(status_element)
-        )
-        trs.append(tr)
+        ])
+
+        trs.append(he.Tr(*row_cells))
 
     # assemble page elements
     elements: list[he.Element] = list()
@@ -110,6 +118,11 @@ def page(
     # registration count
     txt = lang.txt("param_seq_users_registered") % str(len(monitoring_data["students"]))
     elements.append(he.P(he.Str(txt)))
+
+    if exam_not_start and len(monitoring_data["students"]) > 0:
+        img_delete = base.static_img("trash", "verb_delete", js="exam_delete_registrations()")
+        elements.append(img_delete)
+        
     
     # data table
     if len(monitoring_data["students"]) > 0:

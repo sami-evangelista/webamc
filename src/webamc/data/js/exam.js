@@ -98,9 +98,13 @@ const exam_delete_registrations = function () {
     };
     $('.checkbox_registration').each(handle_checkbox);
     if(queries.length > 0) {
-	const success = function (_) {
-	    exam_dashboard_select();
-	};
-	xhr_db(queries, success);
-    }
+		const question = Lang['qst_item_deletion_confirmation'];
+		const go = function(){
+			const success = function (_) {
+				 exam_dashboard_select();
+			};
+			xhr_db(queries, success);
+    };
+	base_ask_confirmation(question, go);
+	}
 }
