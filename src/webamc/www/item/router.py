@@ -70,7 +70,7 @@ def route_page_database_body(
 @router.post("/item/oper/delete-instance")
 def route_oper_delete_instance(
         req: fa.Request,
-        args: dict[str, tp.Any]  
+        args: dict[str, tp.Any]
 ) -> fa.Response:
     with context.Context(req) as ctx:
         itm_id = args["itm_id"]
@@ -79,7 +79,7 @@ def route_oper_delete_instance(
         print(f"Deleting item {itm_id} | instance {iti_num}")
 
         from webamc.db import queries, tables
-        
+
         # check the owner of the item
         owner = queries.get_item_owner(ctx.dbs, itm_id)
         if owner is None or owner.usr_id != session.usr_id(ctx):

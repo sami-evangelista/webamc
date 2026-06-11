@@ -140,12 +140,12 @@ def gen_questions_page(questions: dict) -> types.http_response_t:
                         ),
                         class_= "flex items-center space-x-4"
                     ),
-                    class_="flex justify-between items-center p-2 bg-gray-100 mt-1 rounded-md w-full colored-bg-div" 
+                    class_="flex justify-between items-center p-2 bg-gray-100 mt-1 rounded-md w-full colored-bg-div"
                 ),
                 class_="flex flex-row items-center w-full space-x-2 answer-div", **{"data-val":str(ans["ans_correct"]).lower()}
             )
             answersElementList.append(answer)
-        ans_div = he.Div(    
+        ans_div = he.Div(
             answersElementList,
             id_=f"reponses-{qst_id}",
             class_="hidden mt-2"
@@ -273,7 +273,7 @@ def get_structured_questions(query: dict) -> dict:
             }
         if qst_code not in structured_dict[question_id]["qst"]:
             structured_dict[question_id]["qst"] = {"qst_code":qst_code}
-        structured_dict[question_id]["answers"].append(response) 
+        structured_dict[question_id]["answers"].append(response)
     return structured_dict
 
 
@@ -287,7 +287,7 @@ def format_tags_for_div(tag_dict: dict) -> str:
 
 def save_answers(ans_point: dict[int, dict[str, int]]) -> bool:
     if ans_point == dict():
-        return False  
+        return False
     case_pos = sa.case(
         {int(id): int(ans["pos_point"]) for id, ans in ans_point.items()},
         value=tables.Answer.ans_id
@@ -306,3 +306,4 @@ def save_answers(ans_point: dict[int, dict[str, int]]) -> bool:
     op.commit()
     return True
 """
+

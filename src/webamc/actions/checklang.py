@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.all import *
 from webamc.util import termout
 

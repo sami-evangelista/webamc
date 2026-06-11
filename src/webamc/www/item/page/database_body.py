@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import tables, desc, queries
 from webamc.www.db import util as www_db_util
@@ -65,8 +63,8 @@ def page(
                     he.Option(
                         he.Str(
                             f"Instance {inst.iti_num}"
-                        ), 
-                        value=inst.iti_num, 
+                        ),
+                        value=inst.iti_num,
                         selected="selected"
                     )
                 )
@@ -74,14 +72,14 @@ def page(
                 options.append(
                     he.Option(
                         he.Str(
-                            f"Instance {inst.iti_num}", 
+                            f"Instance {inst.iti_num}",
                         ),
                         value=inst.iti_num
                     )
                 )
 
         selector = he.Select(
-            *options, 
+            *options,
             onchange=f"item_admin_code_click({item.itm_id}, this.value);"+ \
             " return false;",
             class_="select-instance"
@@ -90,7 +88,7 @@ def page(
             he.Tr(
                 he.Td(
                     he.Txt("name_instance") # type: ignore
-                ), 
+                ),
                 he.Td(selector)
             )
         )

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import TexSoup  # type: ignore
 
 from webamc.all import *

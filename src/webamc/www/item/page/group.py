@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import queries
 from webamc.util import fmt
@@ -18,7 +16,7 @@ def page(
         )
     else:
         grps = queries.get_usr_grps(
-            ctx.dbs, 
+            ctx.dbs,
             session.usr_id(ctx),
             types.USR_RIGHT_SUBMIT
         )

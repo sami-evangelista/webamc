@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.www.admin import router
 
@@ -28,4 +26,3 @@ def page(
     div_file = he.Div(p_csv_file, a_submit, class_="box")
     div_result = he.Div(id_="div-submit-result")
     return he.ElementList(div_file, div_result)
-

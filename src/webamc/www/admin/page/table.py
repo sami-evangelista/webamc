@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import desc, queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
@@ -11,7 +9,7 @@ def page(
         args: router.args_page_table_t
 ) -> fa.Response:
     session.check_admin_table(ctx, args["tbl_id"])
-        
+
     elements: list[he.Element] = list()
     row_per_page = 20
 

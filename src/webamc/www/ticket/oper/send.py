@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from email.parser import Parser
 
 from webamc.www.all import *

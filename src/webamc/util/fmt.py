@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from datetime import date, datetime
 from babel import dates
 

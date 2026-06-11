@@ -154,4 +154,5 @@ class Script(Element):
             content = self.content
         else:
             content = "\n".join(self.content)
-        return f"<script>\n{content}\n</script>"    
+        return f"<script>\n{content}\n</script>"
+

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.all import *
 from . import col_types as ct, util
 

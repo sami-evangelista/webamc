@@ -246,14 +246,14 @@ def mkuri(path: types.path_t, **kwargs: tp.Any) -> str:
 
 # edited
 def img_src(
-    ctx: context.Context, 
-    itm_id: int, 
+    ctx: context.Context,
+    itm_id: int,
     iti_num: int | None = 1
 ) -> str:
     session.img_push(ctx, itm_id)
     return mkuri(
-        "/img", 
-        itm_id=itm_id, 
+        "/img",
+        itm_id=itm_id,
         iti_num=iti_num
     )
 

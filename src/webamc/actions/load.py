@@ -21,12 +21,12 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 for (key, val) in item.items()
                 if key.startswith(prefix)
             }
-        
+
         if "itm_parent" in item:
             if item["itm_parent"] not in num_map:
                 return None
             item["itm_parent"] = num_map[item["itm_parent"]]
-        
+
         tex_file = item.get("tex_file")
 
         result = None
@@ -106,12 +106,12 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
         info = f"{tex_file}: new {desc}"
         dbs.add(tbl(**val))
         output.info(info)
-        
+
         # inserting instance from JSON in database
         instances = item.get("instances", [])
         for inst in instances:
             img_path = os.path.join(dir_path, inst["png"])
-            
+
             # png image checking
             if not os.path.isfile(img_path):
                 output.warning(f"{tex_file} (Instance {inst['iti_num']}): " + \
@@ -119,7 +119,7 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 img_bin = None
             else:
                 img_bin = io.read_bin_file_content(img_path)
-            
+
             # ItemInstance object creation and added to db
             db_instance = tables.ItemInstance(
                 iti_item=result,             # parent id

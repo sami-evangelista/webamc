@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import fastapi as fapi
 from sqlalchemy.orm.session import Session as ORMSession
 

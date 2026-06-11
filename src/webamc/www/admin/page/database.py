@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import util as db_util, desc, queries, tables
 from webamc.www.admin import router

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from fastapi.encoders import jsonable_encoder
 
 from webamc.www.all import *

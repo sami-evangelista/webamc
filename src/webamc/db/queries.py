@@ -1,3 +1,4 @@
+import datetime
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.query import Query
 
@@ -167,8 +168,6 @@ def get_exam_registrations(
     )
     return [row.tuple() for row in query.all()]
 
-import datetime
-
 
 def get_ticket(
         dbs: Session,
@@ -189,10 +188,10 @@ def get_ticket(
 
 
 def get_exam_monitoring(
-        dbs: Session, 
+        dbs: Session,
         exam_id: int
 ) -> types.exam_monitoring_t | None:
-    
+
     # get exam info
     exam = dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
     if not exam:
@@ -227,8 +226,9 @@ def get_exam_monitoring(
         tables.Usr
     ).join(
         tables.Registration, tables.Usr.usr_id == tables.Registration.reg_usr
-    ).outerjoin( 
-        tables.ExamSubmission, tables.Registration.reg_id == tables.ExamSubmission.exs_registration
+    ).outerjoin(
+        tables.ExamSubmission,
+        tables.Registration.reg_id == tables.ExamSubmission.exs_registration
     ).outerjoin(
         tables.LocalAuth, tables.LocalAuth.loc_usr == tables.Usr.usr_id
     ).filter(
@@ -236,35 +236,35 @@ def get_exam_monitoring(
     ).all()
 
     students_data: list[types.student_monitoring_t] = []
-    
+
     for usr, reg, exam_sub, loc_login in results:
         student_status = "not started"
         last_seen: datetime.datetime | None = None
         answered_count = 0
-        
+
         if exam_sub is not None:
             student_status = "online"
             last_seen = exam_sub.exs_date_update
-            
+
             if now - last_seen > datetime.timedelta(minutes=5):
                 student_status = "inactive (> 5 min)"
-                
+
             # count answers tied to this specific student's submission
             answered_count = dbs.query(
                 sa.func.count(sa.distinct(tables.Item.itm_parent))
             ).select_from(
                 tables.Answer
             ).join(
-                tables.ItemInstance, 
+                tables.ItemInstance,
                 tables.Answer.ans_instance == tables.ItemInstance.iti_id
             ).join(
-                tables.Item, 
+                tables.Item,
                 tables.ItemInstance.iti_item == tables.Item.itm_id
             ).filter(
                 tables.Answer.ans_submission == exam_sub.exs_id,
                 tables.Item.itm_type == types.ITEM_TYPE_CHOICE
             ).scalar()
-            
+
             answered_count = answered_count or 0
 
         students_data.append({
@@ -277,7 +277,7 @@ def get_exam_monitoring(
             "answered_count": answered_count,
             "total_questions": total_questions
         })
-        
+
     return {
         "exam_status": global_status,
         "exam_start": exam.exm_start,
@@ -519,7 +519,7 @@ def get_admin_tables(dbs: Session, usr_id: int) -> list[tables.Tbl]:
         tables.Tbl.tbl_name
     ).all()
 
-# edited
+
 def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
     """
     Récupère l'image d'une instance spécifique d'un Item.
@@ -531,12 +531,13 @@ def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
         (tables.ItemInstance.iti_item == itm_id)
         & (tables.ItemInstance.iti_num == iti_num)
     ).first()
-    
+
     if instance is None:
         return None
-        
+
     return instance.iti_img
-# edited
+
+
 def get_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
     """
     Retourne toutes les instances disponibles pour un Item donné.
@@ -549,6 +550,7 @@ def get_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
     ).order_by(
         tables.ItemInstance.iti_num
     ).all()
+
 
 def get_usr_grps(
         dbs: Session,

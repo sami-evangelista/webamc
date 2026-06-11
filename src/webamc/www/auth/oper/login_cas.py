@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from cas import CASClient  # type: ignore
 
 from webamc.www.all import *

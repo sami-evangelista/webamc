@@ -306,7 +306,6 @@ oper_code_t = tp.Literal[
     "succ_ticket_password_change_sent"
 ]
 
-
 load_single_result_t = tp.TypedDict(
     "load_single_result_t",
     {
@@ -315,8 +314,6 @@ load_single_result_t = tp.TypedDict(
     }
 )
 load_result_t = list[load_single_result_t]
-
-
 
 student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
     "reg_id": int,
@@ -578,8 +575,6 @@ help_t = tp.Literal[
     "project_parameters",
     "project_upload_source"
 ]
-
-
 
 
 def oper_code_to_txt(c: oper_code_t) -> txt_t:

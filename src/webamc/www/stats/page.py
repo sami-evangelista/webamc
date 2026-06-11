@@ -8,12 +8,12 @@ from webamc.www import base
 
 def generate_stats_page(stats_data) -> he.Element:
     "Generate the statistics as a pie chart using Chart.js"
-  
-    # Prépare les données pour le graphique 
+
+    # Prépare les données pour le graphique
     labels = [entry['tag'] for entry in stats_data]
     correct_data = [entry['correct'] for entry in stats_data]
     incorrect_data = [entry['incorrect'] for entry in stats_data]
-    
+
     # HTML de la page avec un graphique camembert
     return he.Html(
         he.Head(he.Title("Statistiques des Réponses")),
@@ -27,7 +27,7 @@ def generate_stats_page(stats_data) -> he.Element:
                     "correct": correct_data,
                     "incorrect": incorrect_data
                 }) + ";
-                
+
                 const ctx = document.getElementById('statsPieChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'pie',
@@ -48,3 +48,4 @@ def generate_stats_page(stats_data) -> he.Element:
     )
 
 """
+

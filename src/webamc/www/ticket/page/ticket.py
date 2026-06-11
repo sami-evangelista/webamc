@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import queries, desc, tables, row_op
 from webamc.www.db import util as www_db_util

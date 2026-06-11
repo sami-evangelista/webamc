@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.all import *
 from webamc.www import html_elements as he
 

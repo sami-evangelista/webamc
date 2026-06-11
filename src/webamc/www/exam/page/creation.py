@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import tables
 from webamc.www.exam import router
@@ -7,7 +5,7 @@ from webamc.www.exam import router
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_page_exam_t]
+        **_: tp.Unpack[router.args_page_exam_t]
 ) -> he.Element:
     usr_id = session.usr_id(ctx)
     query = ctx.dbs.query(

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.www.item import router
 
@@ -25,25 +23,25 @@ def page(
             he.Str("head"),
             class_="px-4 py-2 bg-[#ffc300] rounded",
             onclick="pack_add_filter('head')",
-            title="Choisir un certain nombre de questions", 
+            title="Choisir un certain nombre de questions",
         ),
         he.Button(
             he.Str("difficulty"),
             class_="px-4 py-2 bg-[#ff5733] rounded",
             onclick="pack_add_filter('with-difficulty')",
-            title="Choisir la difficulté", 
+            title="Choisir la difficulté",
         ),
         he.Button(
             he.Str("code"),
             class_="px-4 py-2 bg-purple-500 rounded",
             onclick="pack_add_filter('with-code')",
-            title="Choisir le code du QCM", 
+            title="Choisir le code du QCM",
         ),
         he.Button(
             he.Str("tag"),
             class_="px-4 py-2 bg-blue-700 rounded",
             onclick="pack_add_filter('with-tag')",
-            title="Choisir les tags des questions", 
+            title="Choisir les tags des questions",
         ),
         he.Button(
             he.Str("sort"),

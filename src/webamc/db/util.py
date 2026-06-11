@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from sqlalchemy import Column, Table
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 

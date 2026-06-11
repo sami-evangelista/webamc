@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 
 
-def page(ctx: context.Context) -> he.Element:
+def page(_: context.Context) -> he.Element:
     from webamc.www.auth.oper import login_cas
     href = login_cas.get_cas_client().get_login_url()
     return he.ElementList(

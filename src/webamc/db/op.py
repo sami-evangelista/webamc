@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
-from webamc.all import *
 from sqlalchemy.orm.session import Session as ORMSession
 from sqlalchemy.orm.session import sessionmaker
+
+from webamc.all import *
 
 
 conn: sa.engine.base.Connection

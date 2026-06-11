@@ -58,7 +58,7 @@ def page(
         registration, exam, mcq = active_registration
         if exam.exm_mcq != mcq_id:
             raise fa.HTTPException(status_code=403)
-        
+
     selected_instance = None
     if iti_num is not None:
         if session.has_admin_right(ctx, item):
@@ -67,11 +67,11 @@ def page(
 
     # setup and generate the content
     content, choices = _setup(
-        ctx, 
-        mcq, 
-        item, 
-        exam, 
-        registration, 
+        ctx,
+        mcq,
+        item,
+        exam,
+        registration,
         selected_instance
     )
 
@@ -117,7 +117,7 @@ def page(
 
     # initialise boxes initially checked
     for cho_id in choices:
-        js += f"$('#cho_' + {cho_id}).prop('checked', true);" 
+        js += f"$('#cho_' + {cho_id}).prop('checked', true);"
         js += f"\nmcq_on_choice_click({cho_id});"
         js += f"\nmcq_changes_done = false;"
 
@@ -172,7 +172,7 @@ def page(
         btns.append(("checkmark", "verb_send", None, "mcq_validate()"))
     else :
         btns.append(("checkmark", "verb_send", None, "mcq_save_answers()"))
-    
+
     side_buttons = [
         base.static_img(img, title, title_args=title_args, js=js)
         for (img, title, title_args, js) in btns
@@ -192,7 +192,7 @@ def _gen_mcq_content(
         # question type
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             qsts.add(item.itm_id)
-            
+
             # getting instance of this question
             instances = queries.get_instances(ctx.dbs, item.itm_id)
             chosen_instance = 1
@@ -203,15 +203,15 @@ def _gen_mcq_content(
                 else:
                     # choosing random instance
                     chosen_instance = random.choice(instances).iti_num
-                
+
             # returning tuple with itm id and instance num
             return {"itm_id": item.itm_id, "iti_num": chosen_instance}
-        
+
         # pack type
         if item.itm_type == types.ITEM_TYPE_PACK:
             packs[item] = list()
             return {"itm_id": item.itm_id, "itm_children": packs[item]}
-        
+
         # mcq or exercice type
         children = [
             loop(child) for child in queries.get_children(
@@ -220,13 +220,13 @@ def _gen_mcq_content(
         ]
         if item.itm_rnd:
             random.shuffle(children)
-            
+
         return {"itm_id": item.itm_id, "itm_children": children}
 
     packs: dict[tables.Item, list[tp.Any]] = dict()
     qsts: set[int] = set()
     result = loop(item)
-    
+
     # packs
     for item_pack, pack_content in packs.items():
         for item_qst in queries.gen_pack_questions(
@@ -240,10 +240,10 @@ def _gen_mcq_content(
                     c_num = instance_num
                 else:
                     c_num = random.choice(insts).iti_num
-            
+
             pack_content.append({"itm_id": item_qst.itm_id, "iti_num": c_num})
             qsts.add(item_qst.itm_id)
-            
+
     return result
 
 
@@ -327,7 +327,7 @@ def _form_question(
     form_ctx["content"][form_ctx["exe_id"]][form_ctx["qst_id"]] = [
         int(cho.cho_id) for cho in cho_list
     ]
-    
+
     if item.itm_rnd:
         cho_list_first = [cho for cho in cho_list if not cho.cho_last]
         cho_list_last = [cho for cho in cho_list if cho.cho_last]
@@ -338,32 +338,32 @@ def _form_question(
     tbl_rows: list[he.Tr] = list()
     for cho in cho_list:
         img_file_path = base.img_src(ctx, cho.cho_id, iti_num)
-        
+
         box_id = f"cho_{cho.cho_id}"
         box_name = f"cho_{item.itm_id}"
         box_type = "checkbox" if qst.qst_type == types.QUESTION_TYPE_MULTI else "radio"
-        
+
         box = he.Input(
-            id_=box_id, 
-            type_=box_type, 
-            name=box_name, 
+            id_=box_id,
+            type_=box_type,
+            name=box_name,
             class_="choice-input"
         )
         img = he.Label(
             he.Img(
-                src=img_file_path, 
+                src=img_file_path,
                 alt=f"cho-{cho.cho_id}"
             ), for_=box_id
         )
-        
+
         result_box = he.Div(
-            id_=f"cho_{cho.cho_id}_status", 
+            id_=f"cho_{cho.cho_id}_status",
             class_="status-box status-box-choice"
         )
         tbl_rows.append(
             he.Tr(
-                he.Td(result_box), 
-                he.Td(box), 
+                he.Td(result_box),
+                he.Td(box),
                 he.Td(img)
             )
         )
@@ -371,8 +371,8 @@ def _form_question(
     div_body = he.Div(
         he.Img(
             src=base.img_src(
-                ctx, 
-                item.itm_id, 
+                ctx,
+                item.itm_id,
                 iti_num
             ),
             alt=f"qst-{item.itm_id}"
@@ -381,11 +381,11 @@ def _form_question(
         id_=f"qst_{item.itm_id}_body",
         class_="question-body"
     )
-    
+
     return he.Div(
-        tbl_status, 
-        div_body, 
-        id_=f"qst_{item.itm_id}", 
+        tbl_status,
+        div_body,
+        id_=f"qst_{item.itm_id}",
         class_="question"
     )
 
@@ -405,16 +405,16 @@ def _form_exercise(
 
     # exercice image
     exercise_elements: list[he.Element] = list()
-    
+
     # getting instances from db (it's only 1 for an exercice)
     instances = queries.get_instances(ctx.dbs, item.itm_id)
-    
+
     # image checking
     if instances and instances[0].iti_img is not None:
         first_instance_num = instances[0].iti_num
-        
+
         img_file_path = base.img_src(
-            ctx, item.itm_id, 
+            ctx, item.itm_id,
             first_instance_num
         )
         exercise_elements += [

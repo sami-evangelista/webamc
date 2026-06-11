@@ -37,3 +37,4 @@ def get_stats():
     # Retourner la page des statistiques avec les données du camembert
     return generate_stats_page(result)
 """
+

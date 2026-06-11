@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.all import *
 from webamc.db import op, util, tables, row_op
 from . import output

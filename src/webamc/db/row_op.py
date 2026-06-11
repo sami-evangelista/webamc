@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from sqlalchemy.orm.session import Session
 
 from webamc.all import *

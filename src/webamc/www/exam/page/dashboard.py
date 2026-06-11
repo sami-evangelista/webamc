@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from webamc.www.all import *
 from webamc.db import tables, queries
 from webamc.util import fmt
@@ -11,20 +9,20 @@ def page(
         **kwargs: tp.Unpack[router.args_page_exam_t]
 ) -> he.Element:
     def format_exam(
-            item: tables.Item,
             mcq: tables.Mcq,
+            item: tables.Item,
             exam: tables.Exam
     ) -> str:
         title = item.itm_title if item.itm_title is not None else "???"
         return title + " (" + fmt.fmt_datetime(exam.exm_start) + ")"
 
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
-    
+
     exm_id = kwargs.get("exm_id")
     select_exams = he.Select(
         he.Option(he.Str(lang.txt("seq_select_an_exam")), value=""),
         *[he.Option(he.Str(format_exam(mcq, item, exam)), value=exam.exm_id)
-          for item, mcq, exam in exams],
+          for mcq, item, exam in exams],
         id_="exm_id",
         onchange="exam_dashboard_select()"
     )

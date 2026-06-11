@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """Implement action gendoc that generate some documentation files.
 
 Init some files according to src/webamc/config.py:
@@ -9,7 +7,7 @@ Init some files according to src/webamc/config.py:
 - doc/db.dot - database relational schema
 - examples/cfg/default.json - default configuration file
 
-Script must be launched from the package repository.
+Action must be executed from the package repository.
 
 """
 
@@ -37,7 +35,7 @@ def _type_desc(t: type) -> str:
             f"dict from ({_type_desc(tp.get_args(t)[0])}) to "
             f"({_type_desc(tp.get_args(t)[1])})"
         )
-    if tp.get_origin(t) == tp.Literal:  # pylint: ignore
+    if tp.get_origin(t) == tp.Literal:  # pylissnt: disable=all
         return " | ".join(json.dumps(u) for u in tp.get_args(t))
     if isinstance(t, _types.UnionType):
         return " | ".join(_type_desc(u) for u in tp.get_args(t))

@@ -16,7 +16,7 @@ def _check_dir_traversal(dir_path: str) -> bool:
                     ("itm_title", "TITLE")
             ]:
                 if key not in mdata:
-                    output.error(f"{entry_path}: missing CODE attribute")
+                    output.error(f"{entry_path}: missing {attr} attribute")
                     result = False
         if os.path.isdir(entry_path):
             result = _check_dir_traversal(entry_path) and result

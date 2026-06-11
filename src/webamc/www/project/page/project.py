@@ -200,7 +200,7 @@ def page(
         he.Option(he.Str(""), value="")
     ] + [
         he.Option(he.Str(a.atr_desc), value=a.atr_id)
-        for a in sorted(ctx.dbs.query(tables.Attr), key=lambda a: a.atr_desc) 
+        for a in sorted(ctx.dbs.query(tables.Attr), key=lambda a: a.atr_desc)
     ]
     select_attr = he.Select(
         *options_attr,
@@ -268,7 +268,7 @@ def page(
         he.Script("project_manual_association_close()"),
         style="display: flex;"
     )
-    
+
     grps = {
         grp.grp_id: grp.grp_name
         for grp in queries.get_submit_grps(ctx.dbs, session.usr_id(ctx))
