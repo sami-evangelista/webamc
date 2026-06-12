@@ -8,7 +8,6 @@ def check_col_value(
         dbs: Session,
         col: sa.Column[tp.Any],
         val: None | types.db_base_val_t,
-        req_type: types.db_query_type_t,
         check_unicity: bool = True
 ) -> tuple[bool, None | str, None | types.db_base_val_t]:
     result: tuple[bool, None | str, None | types.db_base_val_t]
@@ -47,7 +46,7 @@ def check_tbl_values(
     for col in util.get_tbl_cols(tbl):
         if col.name in val:
             cok, cerr, cval = check_col_value(
-                dbs, col, val[col.name], req_type, check_unicity=check_unicity
+                dbs, col, val[col.name], check_unicity=check_unicity
             )
             ok = ok and cok
             if cok:

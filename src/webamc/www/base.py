@@ -1,6 +1,6 @@
+from importlib import resources
 import urllib
 import fastapi as fa
-from importlib import resources
 
 from webamc.all import *
 from webamc.util import io, fmt
@@ -244,7 +244,6 @@ def mkuri(path: types.path_t, **kwargs: tp.Any) -> str:
     return result
 
 
-# edited
 def img_src(
     ctx: context.Context,
     itm_id: int,

@@ -7,9 +7,6 @@ Check the [examples](examples/) directory for MCQ examples.
 
 # Todo list
 
-- add support for dynamic questions (e.g., question with random
-  statements)
-
 - add support for grading scales
 
 - add support for the following macros/environments: explain

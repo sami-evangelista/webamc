@@ -31,7 +31,6 @@ def page(ctx: context.Context) -> fa.Response:
         elem: he.Element = he.Txt("info_no_mcq_available")
     else:
         cols: list[types.txt_t] = ["name_title", "name_sender", "name_date"]
-        gd = desc.col_desc
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
         elem = he.Table(*trs, class_="solid-table")
     return base.page(ctx, "page_title_project_inbox", elem)

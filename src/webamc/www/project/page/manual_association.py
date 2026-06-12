@@ -13,7 +13,6 @@ def page(
         args["project_code"],
         dbs=ctx.dbs
     )
-    action_params = args["action_params"]
     associations = proj.list_associations()
     students = proj.list_students()
     trs: list[he.Tr] = list()

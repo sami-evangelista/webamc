@@ -1,13 +1,16 @@
-import tempfile
+import glob
+import subprocess
+import traceback
 import shutil
 import hashlib
 import uuid
+import multiprocessing
 import concurrent.futures
 import pymupdf
 from PIL import Image
 
 from webamc.all import *
-from webamc.util import log, io
+from webamc.util import io
 from . import tex, output
 
 
@@ -375,7 +378,7 @@ def _tex_to_png(
 
         # the pdflatex commands will run on the "execution_dir"
         # directory
-        exec_result = log.log_exec(args, cwd=execution_dir)
+        exec_result = exec_and_log(args, cwd=execution_dir)
 
         pdf_file_name = os.path.join(tmp_dir, "qcm.pdf")
         png_file_name = os.path.join(tmp_dir, "qcm.png")
@@ -412,7 +415,7 @@ def _compile_question(
     begin_tag = "%webamc BEGIN"
     end_tag = "%webamc END"
 
-    if (begin_tag in content and end_tag in content):
+    if begin_tag in content and end_tag in content:
         start_idx = content.find(begin_tag) + len(begin_tag)
         end_idx = content.find(end_tag)
         var_block = content[start_idx:end_idx].strip()
@@ -503,8 +506,11 @@ def _compile_question(
             r"\AMC@watermarkfalse\fi\makeatother"
         )
 
-        if is_dynamic:
+        if not is_dynamic:
+            seed_val = 0
+            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
 
+        else:
             # creating a unique and reproducible
             # seed value for this specific instance
             seed_val = (instance_id * 123456789) % 2147483647
@@ -539,10 +545,6 @@ def _compile_question(
                 f"{clean_preamble}\n{anti_brouillon}\n{seed_magic}\n"
                 f"{custom_vars_latex}\n\\def\\thecopy{{{instance_id}}}\n"
             )
-
-        else:
-            seed_val = 0
-            dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
 
         headers_for_instance = list(CTX["headers"])
         headers_for_instance.append(("variables_fp", dynamic_header))
@@ -712,6 +714,74 @@ def _compile_dir_traversal(
     return result
 
 
+def clean_logs() -> None:
+    base_log_file = config.CONFIG["log_file"]
+    if base_log_file:
+        filename, ext = os.path.splitext(base_log_file)
+        for old_log in glob.glob(f"{filename}-*{ext}"):
+            try:
+                os.remove(old_log)
+            except OSError:
+                pass
+
+
+def exec_and_log(args: list[str], cwd: str | None = None) -> bool:
+    cmd = " ".join(args)
+
+    # running the process
+    proc_result = subprocess.run(
+        args,
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=cwd
+    )
+
+    success = proc_result.returncode == 0
+
+    if not success:
+        output.error(f"there was an error with command {cmd}")
+
+    # log file
+    base_log_file = config.CONFIG.get("log_file")
+
+    if not base_log_file:
+
+        # if log_file is none, it will write in the console
+        if proc_result.stdout:
+            sys.stdout.write(proc_result.stdout)
+        if proc_result.stderr:
+            sys.stderr.write(proc_result.stderr)
+
+    else:
+
+        # getting process number
+        p_name = multiprocessing.current_process().name
+        # extracting process number from str (process-1 => 1)
+        worker_id = ''.join(filter(str.isdigit, p_name))
+
+        if not worker_id:
+            worker_id = str(os.getpid())
+
+        filename, ext = os.path.splitext(base_log_file)
+        worker_log_file = f"{filename}-{worker_id}{ext}"
+        # ----------------------------------------------------------
+
+        with open(worker_log_file, "a", encoding="UTF-8") as f:
+            cmt = (62 + len(cmd)) * "*" + "\n"
+            f.write(cmt)
+            f.write(30 * "*" + " " + cmd + " " + 30 * "*" + "\n")
+            f.write(cmt)
+
+            if proc_result.stdout:
+                f.write(proc_result.stdout)
+            if proc_result.stderr:
+                f.write("\n" + proc_result.stderr)
+            f.write("\n")
+
+    return success
+
+
 def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     global TASKS
     TASKS = [] # TASKS is empty when the compilation starts
@@ -721,17 +791,14 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         # traverse input_dir to generate json
-        log.log_open()
+        clean_logs()
         items = _compile_dir_traversal(input_dir, tmp_dir, None)
-        log.log_close()
 
         # generate png with items and TASKS
         with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_threads
         ) as executor:
             futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
-
-            import traceback
             for future in concurrent.futures.as_completed(futures):
                 try:
                     future.result()

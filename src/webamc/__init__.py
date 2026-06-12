@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """Webamc top package."""
 
 VERSION = "1.0.0"

@@ -9,7 +9,6 @@ def data(
 ) -> fa.Response:
     session.check_can_view_mcq(ctx, mcq_result["mcq_id"])
 
-    mcq_id = mcq_result["mcq_id"]
     corr: dict[tp.Literal["cho", "qst"], dict[int, bool]] = {
         "cho": dict(),
         "qst": dict()

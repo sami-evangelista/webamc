@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# pylint: disable-all
+# pylint: skip-file
 
 """
 from sqlalchemy.orm import aliased

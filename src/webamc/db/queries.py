@@ -285,6 +285,7 @@ def get_exam_monitoring(
         "students": students_data
     }
 
+
 def gen_pack_questions(
         dbs: Session,
         item: tables.Item,
@@ -354,9 +355,8 @@ def gen_pack_questions(
     assert item.itm_type == types.ITEM_TYPE_PACK
     pack = get_pack(dbs, item.itm_id)
     spec = json.loads(pack.pak_spec)
-    query = traverse(spec)
-
     return traverse(spec).all()
+
 
 def get_submission_choices(
         dbs: Session,
@@ -539,10 +539,6 @@ def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
 
 
 def get_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
-    """
-    Retourne toutes les instances disponibles pour un Item donné.
-    Utile pour savoir combien de versions d'une question existent.
-    """
     return dbs.query(
         tables.ItemInstance
     ).where(

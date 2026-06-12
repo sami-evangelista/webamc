@@ -1,4 +1,4 @@
-# pylint: disable-all
+# pylint: skip-file
 
 from webamc.all import *
 from webamc.util import fmt

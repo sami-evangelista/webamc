@@ -6,7 +6,6 @@ def page(
         ctx: context.Context,
         **kwargs: tp.Unpack[router.args_page_admin_t]
 ) -> he.Element:
-    elements: list[he.Element] = list()
     input_csv = he.Input(
         type_="file",
         id_="csv_file",

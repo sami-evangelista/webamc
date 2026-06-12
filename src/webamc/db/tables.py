@@ -187,13 +187,11 @@ class Item(Base):
 
 class ItemInstance(Base):
     __tablename__ = "item_instance"
-
     iti_id: int = CO(ct.Integer, primary_key=True)
     iti_item: int = CO(RefItem, nullable=False)
     iti_num: int = CO(ct.Integer, nullable=False)
     iti_seed: int = CO(ct.Integer, nullable=False)
     iti_img = CO(sa.LargeBinary)
-
     __table_args__ = (
         UC("iti_item", "iti_num"),
         FK(["iti_item"], ["item.itm_id"], ondelete="CASCADE")

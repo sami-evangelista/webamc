@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import random
 import string
@@ -53,7 +51,9 @@ def command_init(args: argparse.Namespace) -> None:
         )
         return word == input(f"confirm the operation by typing {word}\n")
     if args.force or ask_confirmation():
+        db.op.connect()
         db.op.init()
+        db.op.close()
     else:
         print("deletion canceled")
 
@@ -62,8 +62,10 @@ def command_loadcsv(args: argparse.Namespace) -> None:
     delimiter: None | str = args.delimiter
     if delimiter is None:
         delimiter = ";"
+    db.op.connect()
     for i in args.input:
         loadcsv.action(i, delimiter)
+    db.op.close()
 
 
 def get_argparser() -> argparse.ArgumentParser:
@@ -189,15 +191,7 @@ def main() -> None:
         if arg_parsed.config_file is not None:
             config.DEFAULT_CONFIG_FILE = arg_parsed.config_file
         config.load()
-        requiring_db = [
-            command_init,
-            command_loadcsv
-        ]
-        if arg_parsed.command in requiring_db:  # pylint: disable=W0143
-            db.op.connect()
         arg_parsed.command(arg_parsed)
-        if arg_parsed.command in requiring_db:  # pylint: disable=W0143
-            db.op.close()
 
 if __name__ == "__main__":
     main()

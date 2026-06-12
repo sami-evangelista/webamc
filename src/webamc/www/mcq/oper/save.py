@@ -11,7 +11,7 @@ def data(
     session.check_active_registration(ctx)
     active_registration = session.active_registration(ctx)
     assert active_registration is not None
-    registration, exam, mcq = active_registration
+    registration = active_registration[0]
     exam_sub = ctx.dbs.query(tables.ExamSubmission).where(
         (tables.ExamSubmission.exs_registration == registration.reg_id)
     ).scalar()
