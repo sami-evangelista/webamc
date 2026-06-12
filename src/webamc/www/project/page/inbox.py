@@ -1,6 +1,5 @@
 from webamc.www.all import *
 from webamc.util import fmt
-from webamc.db import desc
 from webamc import project
 
 

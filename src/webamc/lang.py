@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import csv
 import typing as tp
 from importlib import resources
