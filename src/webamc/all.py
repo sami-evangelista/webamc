@@ -13,7 +13,9 @@ import typing as tp
 import typing_extensions as tp_ext
 import sqlalchemy as sa
 
-from . import config, lang, types
+from webamc.types import all as types
+from . import config, lang
+
 
 __all__ = [
     "config",

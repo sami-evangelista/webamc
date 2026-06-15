@@ -3,7 +3,7 @@ import typing as tp
 from importlib import resources
 
 from webamc.util import io
-from webamc import types
+from webamc.types import all as types
 
 
 texts: dict[types.txt_t, str]

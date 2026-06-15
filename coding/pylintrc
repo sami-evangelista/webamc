@@ -61,6 +61,7 @@ disable=
   abstract-method,
   bare-except,
   cyclic-import,
+  duplicate-code,
   file-ignored,
   global-statement,
   import-outside-toplevel,

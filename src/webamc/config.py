@@ -5,7 +5,7 @@ import pathlib
 import typing as tp
 
 from webamc.util import termout, io
-from . import types
+from webamc.types import all as types
 
 
 HOME_DIR = pathlib.Path.home()
