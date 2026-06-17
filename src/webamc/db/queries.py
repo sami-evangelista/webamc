@@ -251,7 +251,7 @@ def get_exam_monitoring(
 
             # count answers tied to this specific student's submission
             answered_count = dbs.query(
-                sa.func.count(sa.distinct(tables.Item.itm_parent))
+                sa.func.count(sa.distinct(tables.Item.itm_parent)) # pylint: disable=not-callable
             ).select_from(
                 tables.Answer
             ).join(
@@ -307,7 +307,7 @@ def gen_pack_questions(
                 & (tables.Item.itm_id == tables.Question.qst_id)
                 & (tables.Item.itm_usr == usr_id)
                 & (tables.Item.itm_standalone
-                   | (tables.Item.itm_parent == None))
+                   | (tables.Item.itm_parent._is(None)))
                 & (tables.Item.itm_id.not_in(not_in))
             )
         all_op: types.pack_spec_t ={"op": "all"}
@@ -316,7 +316,7 @@ def gen_pack_questions(
         rev: bool = spec.get("rev", False)
         result = traverse(content)
         if oper == "shuf":
-            return result.order_by(sa.func.random())
+            return result.order_by(sa.func.random()) # pylint: disable=not-callable
         if oper == "head":
             return result.limit(int(arg))
         if oper == "sort":

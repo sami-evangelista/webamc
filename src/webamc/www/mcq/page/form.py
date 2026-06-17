@@ -119,7 +119,7 @@ def page(
     for cho_id in choices:
         js += f"$('#cho_' + {cho_id}).prop('checked', true);"
         js += f"\nmcq_on_choice_click({cho_id});"
-        js += f"\nmcq_changes_done = false;"
+        js += "\nmcq_changes_done = false;"
 
     # exam mode => initiate the timer
     if exam is not None:
@@ -471,10 +471,10 @@ def _form_item(
             form_ctx
         )
     # if it's an exercice or a pack
-    else:
-        return _form_exercise(
-            ctx,
-            queries.get_item(ctx.dbs, content["itm_id"]),
-            content["itm_children"],
-            form_ctx
-        )
+    return _form_exercise(
+        ctx,
+        queries.get_item(ctx.dbs, content["itm_id"]),
+        content["itm_children"],
+        form_ctx
+    )
+        

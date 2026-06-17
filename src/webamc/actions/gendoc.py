@@ -26,7 +26,7 @@ def _type_desc(t: type) -> str:
         return "bool"
     if t == int:
         return "int"
-    if t == type(None):
+    if t is None:
         return "null"
     if tp.get_origin(t) == list:
         return f"list of ({_type_desc(tp.get_args(t)[0])})"

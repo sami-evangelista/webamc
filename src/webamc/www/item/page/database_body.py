@@ -33,7 +33,7 @@ def page(
         )
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             a_delete_instance = he.Button(
-                he.Txt("action_delete_instance"), # type: ignore
+                he.Txt("action_delete_instance"),
                 onclick=
                 f"if(confirm('{lang.txt('msg_confirm_delete_instance')}'))" + \
                 f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}",
@@ -86,7 +86,7 @@ def page(
         trs.append(
             he.Tr(
                 he.Td(
-                    he.Txt("name_instance") # type: ignore
+                    he.Txt("name_instance") 
                 ),
                 he.Td(selector)
             )

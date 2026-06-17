@@ -8,8 +8,8 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
     # build the request to select items
     where = [
         tables.Item.itm_usr == session.usr_id(ctx),
-        (tables.Item.itm_standalone == True)
-        | (tables.Item.itm_parent == None)
+        (tables.Item.itm_standalone.is_(True))
+        | (tables.Item.itm_parent.is_(None))
     ]
     where += www_db_util.get_filter_wheres("item", filters)
     try:
@@ -38,8 +38,8 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
                 tables.Item.itm_id.in_(sub_query)
                 for sub_query in sub_queries
             ]
-    except (KeyError, ValueError):
-        raise fa.HTTPException(status_code=500)
+    except (KeyError, ValueError) as exc:
+        raise fa.HTTPException(status_code=500) from exc
 
     items = ctx.dbs.query(
         tables.Item
