@@ -435,12 +435,13 @@ def _compile_question(
     # parse tex file to find questions and clean the preamble
     code, qsts = tex.extract_qst(content)
     raw_preamble = content.split(r"\begin{question}")[0]
+    
+
     clean_preamble = re.sub(
         r"\\documentclass(\[.*?\])?\{.*?\}",
         "",
         raw_preamble
     )
-    clean_preamble = clean_preamble.replace(r"\begin{document}", "")
 
     # if no question is found, display an error and abort
     if qsts == list():
@@ -513,9 +514,21 @@ def _compile_question(
         else:
             # creating a unique and reproducible
             # seed value for this specific instance
+            # seed_val = (instance_id * 123456789) % 2147483647
+            # seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
+            # f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
+            # custom_vars_latex = ""
+
             seed_val = (instance_id * 123456789) % 2147483647
-            seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
-            f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
+            
+            # We expose the seed via \WEBAMCseed for any custom random package.
+            # We also try to auto-seed the most common ones (fp and pgfmath)
+            # if they are defined, without forcing them.
+            seed_magic = (
+                f"\\def\\WEBAMCseed{{{seed_val}}}\n"
+                f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n"
+                f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi\n"
+            )
             custom_vars_latex = ""
 
             # execute external python script
