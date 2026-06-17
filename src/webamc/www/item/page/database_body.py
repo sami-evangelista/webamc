@@ -33,9 +33,9 @@ def page(
         )
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             a_delete_instance = he.Button(
-                he.Txt("Delete this instance"), # type: ignore
+                he.Txt("action_delete_instance"), # type: ignore
                 onclick=
-                f"if(confirm('Delete this instance?'))" + \
+                f"if(confirm('{lang.txt('msg_confirm_delete_instance')}'))" + \
                 f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}",
                 class_="btn-small btn-danger"
             )
@@ -58,12 +58,13 @@ def page(
     if all_instances:
         options = []
         for inst in all_instances:
+            # On génère le texte traduit une seule fois pour éviter de se répéter
+            inst_text = f"{lang.txt('name_instance')} {inst.iti_num}"
+            
             if int(inst.iti_num) == int(iti_num):
                 options.append(
                     he.Option(
-                        he.Str(
-                            f"Instance {inst.iti_num}"
-                        ),
+                        he.Str(inst_text),
                         value=inst.iti_num,
                         selected="selected"
                     )
@@ -71,9 +72,7 @@ def page(
             else:
                 options.append(
                     he.Option(
-                        he.Str(
-                            f"Instance {inst.iti_num}",
-                        ),
+                        he.Str(inst_text),
                         value=inst.iti_num
                     )
                 )

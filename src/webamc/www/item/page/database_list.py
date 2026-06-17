@@ -73,7 +73,7 @@ def div_item(ctx: context.Context, item: tables.Item) -> he.Element:
     )
     badge = ""
     if nb_instances > 1:
-        badge = f" ({nb_instances} var.)"
+        badge = f" ({nb_instances} {lang.txt('name_variants')})"
 
     # <p> containing item code
     if mcq is not None:

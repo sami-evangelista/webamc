@@ -232,3 +232,31 @@ verb_send;envoyer
 verb_start;démarrer
 verb_validate;valider
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
+error_exam_not_found;Examen introuvable.
+error_exam_access_denied;L'examen n'existe pas ou vous n'y avez pas accès.
+name_login;Login
+name_student;Étudiant
+name_progress;Progression
+name_status;Statut
+info_exam_status;Statut de l'épreuve : %s
+status_upcoming;À venir
+status_in_progress;En cours
+status_finished;Terminé
+status_online;En ligne
+status_not_started;Non commencé
+status_inactive;Inactif (> 5 min)
+name_archive;Archive
+action_download_archive;Télécharger l'archive
+name_size;Taille
+name_action;Action
+msg_no_data_exam;Aucune donnée disponible pour cet examen.
+name_file_name;Nom du fichier
+name_file;Fichier
+name_mod_date;Date de modification
+msg_file_list_exam;Liste des fichiers associés à l'examen.
+action_refresh;Rafraîchir
+name_type;Type
+action_delete_instance;Supprimer cette instance
+msg_confirm_delete_instance;Supprimer cette instance ?
+name_variants;var.
+name_instance;Instance
