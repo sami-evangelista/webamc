@@ -210,10 +210,17 @@ def get_exam_monitoring(
         global_status = "in progress"
 
     # get total questions for this exam's mcq
+
+    direct_items = dbs.query(tables.Item.itm_id).filter(
+        tables.Item.itm_parent == exam.exm_mcq
+    ).all()
+
+    parent_ids = [exam.exm_mcq] + [item.itm_id for item in direct_items]
+
     total_questions = dbs.query(tables.Question).join(
         tables.Item, tables.Question.qst_id == tables.Item.itm_id
     ).filter(
-        tables.Item.itm_parent == exam.exm_mcq
+        tables.Item.itm_parent.in_(parent_ids)
     ).count()
 
     # get students, registrations, submissions and logins
@@ -241,6 +248,7 @@ def get_exam_monitoring(
         student_status = "not started"
         last_seen: datetime.datetime | None = None
         answered_count = 0
+        score = 0.0
 
         if exam_sub is not None:
             student_status = "online"
@@ -267,6 +275,9 @@ def get_exam_monitoring(
 
             answered_count = answered_count or 0
 
+            detailed_scores = get_student_detailed_scores(dbs, exam.exm_mcq, exam_sub.exs_id)
+            score = sum(item["score"] for item in detailed_scores)
+
         students_data.append({
             "reg_id": int(reg.reg_id),
             "usr_login": str(loc_login) if loc_login else "no login",
@@ -275,7 +286,8 @@ def get_exam_monitoring(
             "status": student_status,
             "last_seen": last_seen,
             "answered_count": answered_count,
-            "total_questions": total_questions
+            "total_questions": total_questions,
+            "score": score
         })
 
     return {
@@ -587,3 +599,63 @@ def get_usr_by_cas_auth(dbs: Session, login: str) -> None | tables.Usr:
 
 def get_usr(dbs: Session, usr_id: int) -> None | tables.Usr:
     return dbs.query(tables.Usr).where(tables.Usr.usr_id == usr_id).first()
+
+
+
+
+def get_student_detailed_scores(dbs: Session, exam_id: int, sub_id: int):
+    
+    details = []
+    
+    direct_items = dbs.query(tables.Item.itm_id).filter(
+        tables.Item.itm_parent == exam_id
+    ).all()
+    parent_ids = [exam_id] + [item.itm_id for item in direct_items]
+
+    questions = dbs.query(tables.Question).join(
+        tables.Item, tables.Question.qst_id == tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_parent.in_(parent_ids)
+    ).all()
+
+    student_choices = get_submission_choices(dbs, sub_id)
+    student_checked_ids = [c.cho_id for c in student_choices]
+
+    for qst in questions:
+        choices = dbs.query(tables.Choice).join(
+            tables.Item, tables.Choice.cho_id == tables.Item.itm_id
+        ).filter(
+            tables.Item.itm_parent == qst.qst_id
+        ).all()
+        
+        correct_choice_ids = [c.cho_id for c in choices if c.cho_correct]
+        if not correct_choice_ids:
+            continue
+
+        question_choice_ids = [c.cho_id for c in choices]
+        student_answered_for_this_qst = [
+            cid for cid in student_checked_ids if cid in question_choice_ids
+        ]
+
+        question_score = 0.0
+
+        if student_answered_for_this_qst:
+            if len(correct_choice_ids) == 1:
+                if student_answered_for_this_qst[0] in correct_choice_ids:
+                    question_score = 1.0
+            else:
+                points_per_correct = 1.0 / len(correct_choice_ids)
+                q_score_temp = 0.0
+                for checked_id in student_answered_for_this_qst:
+                    if checked_id in correct_choice_ids:
+                        q_score_temp += points_per_correct
+                    else:
+                        q_score_temp -= points_per_correct
+                question_score = max(0.0, q_score_temp)
+
+        details.append({
+            "question_id": qst.qst_id,
+            "score": round(question_score, 2)
+        })
+
+    return details
