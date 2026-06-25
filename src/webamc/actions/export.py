@@ -1,20 +1,23 @@
 import io
+import typing as tp
+
 import openpyxl
 from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 from fastapi.responses import Response
 
 from webamc.www.all import context
 from webamc.db import queries, tables
 
-import typing as tp
+
 
 def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # getting global data from exam
     monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
     if not monitoring_data:
         return Response(content="Can't find exam", status_code=404)
-    
+
     # get real mcq_id
     exam = ctx.dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
     if not exam:
@@ -24,6 +27,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # init excel file
     wb = openpyxl.Workbook()
     ws = wb.active
+    assert isinstance(ws, Worksheet) # security check
     ws.title = "Notes Examen"
 
     # styles
@@ -34,11 +38,11 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     center_align = Alignment(horizontal="center", vertical="center")
 
     students = monitoring_data["students"]
-    
+
     # get all questions from db
     direct_items = ctx.dbs.query(tables.Item.itm_id).filter(tables.Item.itm_parent == mcq_id).all()
     parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
-    
+
     questions_data = ctx.dbs.query(
         tables.Question.qst_id,
         tables.Item.itm_code
@@ -82,7 +86,10 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
 
     # calculate statistics fields
     avg_score = total_class_score / present_count if present_count else 0.0
-    max_promo_score = max([s["data"]["score"] for s in student_records if not s["is_absent"]], default=0.0)
+    max_promo_score = max(
+        (s["data"]["score"] for s in student_records if not s["is_absent"]),
+        default=0.0
+    )
     total_questions = len(questions_data)
 
     # sort students alphabetically
@@ -97,8 +104,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     for _, itm_code in questions_data:
         code_str = str(itm_code)
         headers.append(code_str)
-        if len(code_str) > max_header_len:
-            max_header_len = len(code_str)
+        max_header_len = max(max_header_len, len(code_str))
     ws.append(headers)
     
     # auto-fit row height for vertical text
@@ -176,21 +182,25 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # auto-fit columns
     for col in ws.columns:
         max_length = 0
-        column_letter = col[0].column_letter
+        column_letter = get_column_letter(col_idx)
         
         for cell in col:
             try:
-                if cell.value is not None:
-                    if cell.row in [2, 3] or (cell.row == 1 and cell.column > 5):
+                # mypy checking
+                cell_value = getattr(cell, "value", None)
+                row_num = getattr(cell, "row", None)
+
+                if cell_value is not None and row_num is not None:
+                    if row_num in [2, 3] or (row_num == 1 and col_idx > 5):
                         continue
-                    max_length = max(max_length, len(str(cell.value)))
+                    max_length = max(max_length, len(str(cell_value)))
             except:
                 pass
         
         adjusted_width = max_length + 4
-        if col[0].column <= 5 and adjusted_width < 12:
+        if col_idx <= 5 and adjusted_width < 12:
             adjusted_width = 12
-        if col[0].column > 5 and adjusted_width < 6:
+        if col_idx > 5 and adjusted_width < 6:
             adjusted_width = 6
             
         ws.column_dimensions[column_letter].width = adjusted_width

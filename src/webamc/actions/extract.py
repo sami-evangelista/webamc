@@ -12,7 +12,7 @@ def _extract(tex: pathlib.Path, odir: pathlib.Path) -> None:
         try:
             soup = TexSoup.TexSoup(fd.read())
         except:
-            output.warning(f"parse error !")
+            output.warning("parse error !")
             return
         for qst in soup.find_all(cfg["tex_envs_question"]):
             odir.mkdir(parents=True, exist_ok=True)
