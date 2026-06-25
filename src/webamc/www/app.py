@@ -14,6 +14,7 @@ from webamc.www.item import router as router_item
 from webamc.www.mcq import router as router_mcq
 from webamc.www.profile import router as router_profile
 from webamc.www.ticket import router as router_ticket
+from webamc.www.stats import router as router_stats
 from . import index
 
 
@@ -63,7 +64,8 @@ for router in [
         router_item,
         router_mcq,
         router_profile,
-        router_ticket
+        router_ticket,
+        router_stats
 ]:
     app.include_router(router.router)
 

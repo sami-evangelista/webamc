@@ -147,6 +147,7 @@ txt_t = tp.Literal[
     "page_title_project_inbox",
     "page_title_project_main",
     "page_title_signout",
+    "page_title_stats",
     "page_title_ticket_error",
     "param_err_invalid_duplicate_value",
     "param_err_invalid_null_value",

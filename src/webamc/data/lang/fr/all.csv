@@ -152,6 +152,7 @@ page_title_project_inbox;boîte de réception
 page_title_project_main;QCM papier
 page_title_project;QCM papier
 page_title_signout;déconnexion
+page_title_stats;statistiques
 page_title_ticket_error;erreur de ticket
 param_err_invalid_duplicate_value;%s: valeur en double
 param_err_invalid_null_value;%s: valeur attendue
