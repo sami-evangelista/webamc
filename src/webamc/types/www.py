@@ -70,6 +70,7 @@ path_t = tp.Literal[
     "/exam/page/main",
     "/exam/page/dashboard-exam",
     "/exam/oper/register-group",
+    "/exam/oper/export-scores",
     "/help",
     "/img",
     "/item/page/database-body",
@@ -99,7 +100,7 @@ path_t = tp.Literal[
     "/ticket/page/main",
     "/ticket/oper/account-creation",
     "/ticket/oper/send",
-    "/ticket/oper/password-change"
+    "/ticket/oper/password-change",
 ]
 
 mail_file_t = tp.Literal[

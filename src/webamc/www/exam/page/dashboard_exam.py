@@ -57,6 +57,7 @@ def page(
     tr_all.extend([
         he.Td(he.Str(lang.txt("name_login"))),
         he.Td(he.Str(lang.txt("name_student"))),
+        he.Td(he.Str("Score")), # will be put in lang later
         he.Td(he.Str(lang.txt("name_progress"))),
         he.Td(he.Str(lang.txt("name_status")))
     ])
@@ -118,6 +119,7 @@ def page(
 
             he.Td(he.Str(student["usr_login"])),
             he.Td(he.Str(student_name)),
+            he.Td(he.Str(str(student["score"]))),
             he.Td(progress_element),
             he.Td(status_element)
         ])
@@ -143,6 +145,16 @@ def page(
     # registration count
     txt = lang.txt("param_seq_users_registered") % str(len(monitoring_data["students"]))
     elements.append(he.P(he.Str(txt)))
+
+    # export button
+    if len(monitoring_data["students"]) > 0:
+        btn_export = he.A(
+            he.Str("Exporter les notes"),
+            href=f"../oper/export-scores?exm_id={exam_id}",
+            class_="btn btn-primary",
+            style="margin-bottom: 15px; display: inline-block; background-color: #28a745; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px;"
+        )
+        elements.append(btn_export)
 
 
     if exam_not_start and len(monitoring_data["students"]) > 0:

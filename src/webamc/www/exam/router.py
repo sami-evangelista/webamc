@@ -34,6 +34,15 @@ def _get_exam(
     return result
 
 
+@router.get("/exam/oper/export-scores")
+def export_scores(
+    req: fa.Request,
+    exm_id: int
+) -> fa.Response:
+    from webamc.actions.export import generate_excel_scores
+    with context.Context(req) as ctx:
+        return generate_excel_scores(ctx= ctx, exam_id=exm_id)
+
 @router.post("/exam/oper/register-group")
 def route_oper_register_group(
         req: fa.Request,

@@ -88,19 +88,23 @@ def get_active_registration(
         usr_id: int
 ) -> None | tuple[tables.Exam, tables.Registration]:
     now = datetime.datetime.now()
-    exam_registration = dbs.query(
+    
+    # getting every exam of this student
+    exam_registrations = dbs.query(
         tables.Exam,
         tables.Registration
     ).where(
         (tables.Exam.exm_start <= now)
         & (tables.Registration.reg_exam == tables.Exam.exm_id)
         & (tables.Registration.reg_usr == usr_id)
-    ).first()
-    if exam_registration is None:
-        return None
-    exam, registration = exam_registration.tuple()
-    if tables.Exam.end_time(exam) >= now:
-        return exam, registration
+    ).all()
+    
+    # getting the ongoing examd
+    for row in exam_registrations:
+        exam, registration = row.tuple()
+        if tables.Exam.end_time(exam) >= now:
+            return exam, registration
+            
     return None
 
 
@@ -603,7 +607,11 @@ def get_usr(dbs: Session, usr_id: int) -> None | tables.Usr:
 
 
 
-def get_student_detailed_scores(dbs: Session, exam_id: int, sub_id: int):
+def get_student_detailed_scores(
+        dbs: Session, 
+        exam_id: int, 
+        sub_id: int
+) -> list[dict[str, tp.Any]]:
     
     details = []
     
@@ -656,6 +664,6 @@ def get_student_detailed_scores(dbs: Session, exam_id: int, sub_id: int):
         details.append({
             "question_id": qst.qst_id,
             "score": round(question_score, 2)
-        })
-
+        }) 
+        
     return details

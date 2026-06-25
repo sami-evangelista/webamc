@@ -38,7 +38,9 @@ dependencies = [
   "pymupdf>=1.27.0",
   "python-cas>=1.0.0",
   "uvicorn>=0.35.0",
-  "texsoup>=0.3.1"
+  "texsoup>=0.3.1",
+  "openpyxl>=3.1.0",
+  "types-openpyxl>=3.1.0"
 ]
 
 [tool.setuptools]
