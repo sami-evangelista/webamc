@@ -115,6 +115,8 @@ class Ul(Element):
     pass
 class Title(Element):
     pass
+class Canvas(Element):
+    pass
 
 
 class ElementList(Element):

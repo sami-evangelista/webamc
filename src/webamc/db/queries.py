@@ -667,3 +667,23 @@ def get_student_detailed_scores(
         }) 
         
     return details
+
+
+def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
+    """
+    Get all questions from an mcq of exam.
+    """
+
+    direct_items = dbs.query(tables.Item.itm_id).filter(
+        tables.Item.itm_parent == mcq_id
+    ).all()
+
+    parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
+    
+    questions = dbs.query(tables.Question).join(
+        tables.Item, tables.Question.qst_id == tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_parent.in_(parent_ids)
+    ).all()
+
+    return questions
