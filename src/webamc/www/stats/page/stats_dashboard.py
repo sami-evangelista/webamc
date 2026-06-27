@@ -104,9 +104,67 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
             choices_container
         ])
 
+    #graphe evolution
+    elements.extend([
+        he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
+        he.H2(he.Str("Évolution d'un étudiant sur un QCM"))
+        ])
+
+    students = ctx.dbs.query(tables.Usr).order_by(
+            tables.Usr.usr_name.asc(),
+            tables.Usr.usr_fst_name.asc()
+        ).all()
+        
+    student_options = [he.Option(he.Str("Sélectionnez un étudiant..."), value="")]
+    for std in students:
+        student_options.append(
+            he.Option(he.Str(f"{std.usr_fst_name} {std.usr_name}"), value=f"{std.usr_id}")
+            )
+
+    select_student = he.Select(
+        *student_options,
+        id_="evo_student_selector",
+        class_="box",
+        onchange="triggerEvolutionChart()"
+        )
+    exams_and_mcqs = ctx.dbs.query(
+        tables.Exam, tables.Item
+    ).join(
+        tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
+    ).all()
+
+    mcq_options = [he.Option(he.Str("Sélectionnez un QCM..."), value="")]
+    seen_mcqs = set() 
+    for exm, mcq in exams_and_mcqs:
+        if mcq.itm_id not in seen_mcqs:
+            seen_mcqs.add(mcq.itm_id)
+            mcq_options.append(
+                he.Option(he.Str(mcq.itm_title), value=f"{mcq.itm_id}")
+                )
+
+    select_mcq_evo = he.Select(
+        *mcq_options,
+        id_="evo_mcq_selector",
+        class_="box",
+        onchange="triggerEvolutionChart()"
+        )
+
+    evolution_canvas_container = he.Div(
+        he.Canvas(id_="evolution_chart"),
+        style_="max-width: 600px; max-height: 400px; margin: 20px auto;"
+        )
+
+    elements.extend([
+        he.Div(he.Str("1. Étudiant : "), select_student),
+        he.Br(),
+        he.Div(he.Str("2. QCM ciblé : "), select_mcq_evo),
+        evolution_canvas_container
+        ])
+
     # adding js scripts
     elements.extend([
-        he.Script(src="https://cdn.jsdelivr.net/npm/chart.js")
+        he.Script(src="https://cdn.jsdelivr.net/npm/chart.js"),
+        he.Script(src="/static?file_name=stats.js")  
     ])
     
     result = he.ElementList(*elements)

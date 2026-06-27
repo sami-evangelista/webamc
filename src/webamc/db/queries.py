@@ -280,7 +280,7 @@ def get_exam_monitoring(
             answered_count = answered_count or 0
 
             detailed_scores = get_student_detailed_scores(dbs, exam.exm_mcq, exam_sub.exs_id)
-            score = sum(item["score"] for item in detailed_scores)
+            score = sum(detailed_scores.values())
 
         students_data.append({
             "reg_id": int(reg.reg_id),
@@ -611,9 +611,9 @@ def get_student_detailed_scores(
         dbs: Session, 
         exam_id: int, 
         sub_id: int
-) -> list[dict[str, tp.Any]]:
+) -> dict[int, float]:
     
-    details = []
+    details = {}
     
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == exam_id
@@ -661,10 +661,7 @@ def get_student_detailed_scores(
                         q_score_temp -= points_per_correct
                 question_score = max(0.0, q_score_temp)
 
-        details.append({
-            "question_id": qst.qst_id,
-            "score": round(question_score, 2)
-        }) 
+        details[qst.qst_id] = round(question_score,2)
         
     return details
 

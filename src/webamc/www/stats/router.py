@@ -1,6 +1,7 @@
 from webamc.www.all import *
 from webamc.db import queries, tables
 from .model.args_graph_t import args_graph_t
+from .model.args_evo_t import args_evo_t
 
 router = fa.APIRouter()
 
@@ -61,3 +62,45 @@ def route_stats_open_graph_data(
             "data": data,
             "choices_info": choices_info 
         })
+@router.post("/stats/oper/evolution-data")
+def route_stats_evolution_data(
+    req: fa.Request,
+    args: args_evo_t
+) -> fa.Response:
+
+    with context.Context(req) as ctx:
+        submissions = ctx.dbs.query(
+            tables.ExamSubmission, tables.Exam
+        ).join(
+            tables.Exam, tables.ExamSubmission.exs_id== tables.Exam.exm_id
+        ).filter(
+            tables.ExamSubmission.exs_registration == args.student_id,
+            tables.Exam.exm_mcq == args.mcq_id
+        ).order_by(
+            tables.Exam.exm_start.asc()  
+        ).all()
+
+        labels = []
+        data = []
+
+        for sub, exm in submissions:
+            date_str = exm.exm_start.strftime("%d/%m/%Y")
+            labels.append(date_str)
+            
+            detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exm.exm_mcq, sub.exs_id)
+            
+            print(f"DEBUG: Score pour {sub.exs_id} : {detailed_scores}")
+            
+            total_score = sum(detailed_scores.values()) if detailed_scores else 0.0
+            
+            data.append(float(total_score))
+
+        if not labels:
+            labels = ["Aucun test passé"]
+            data = [0]
+
+        return fa.responses.JSONResponse({
+            "labels": labels,
+            "data": data
+        })
+

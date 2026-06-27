@@ -67,8 +67,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
             if exam_sub:
                 sub_id = exam_sub.exs_id
 
-        details = queries.get_student_detailed_scores(ctx.dbs, mcq_id, sub_id) if sub_id else []
-        scores_dict = {d["question_id"]: d["score"] for d in details}
+        scores_dict = queries.get_student_detailed_scores(ctx.dbs, mcq_id, sub_id) if sub_id else {}
         
         # save data for later
         student_records.append({
