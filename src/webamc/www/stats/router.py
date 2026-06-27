@@ -25,10 +25,14 @@ def route_stats_open_graph_data(
     """
     with context.Context(req) as ctx:
         qst_id = args.qst_id
+        exam_id = args.exam_id
 
         # getting all possible choices for this question
         # using the existing function from queries.py
         choices = queries.get_question_choices(ctx.dbs, qst_id)
+
+        registrations = queries.get_exam_registrations(ctx.dbs, exam_id)
+        total_students = len(registrations)
         
         labels = []
         data = []
@@ -50,18 +54,22 @@ def route_stats_open_graph_data(
             
             choices_info.append({
                 "letter": label,
-                "id": cho.cho_id
+                "id": cho.cho_id,
+                "is_correct": cho.cho_correct
             })
             
         if not labels:
-            labels = ["Aucune donnée"]
+            labels = ["No data"]
             data = [0]
             
         return fa.responses.JSONResponse({
             "labels": labels,
             "data": data,
-            "choices_info": choices_info 
+            "choices_info": choices_info,
+            "total_students": total_students
         })
+    
+
 @router.post("/stats/oper/evolution-data")
 def route_stats_evolution_data(
     req: fa.Request,

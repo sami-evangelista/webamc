@@ -202,6 +202,8 @@ seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
 seq_warning_messages;message(s) d'avertissement
 seq_zip_file;fichier ZIP
+stats_answers_detail;Réponse
+stats_answer_prefix;Réponse
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse életronique modifiée avec succès.
 succ_login;Connexion réussie.

@@ -8,10 +8,18 @@ let evolutionChartInstance = null;
 function handleQuestionChange(qstId) {
     if (!qstId) return;
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const examId = urlParams.get("exam_id")    
+    
     fetch('/webamc/stats/oper/graph-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qst_id: parseInt(qstId) })
+        body: JSON.stringify(
+            { 
+                qst_id: parseInt(qstId),
+                exam_id: parseInt(examId)
+            }
+        )
     })
     .then(async response => {
         if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
@@ -19,7 +27,8 @@ function handleQuestionChange(qstId) {
     })
     .then(data => {
         // updating chart
-        updateChart(data.labels, data.data);
+        console.log(data.total_students)
+        updateChart(data.labels, data.data, data.total_students);
         
         // updating images
         updateDetails(qstId, data.choices_info);
@@ -36,10 +45,12 @@ function updateDetails(qstId, choicesInfo) {
         qstImg.style.display = "block";
     }
 
-    // building choices list with images
     const choicesDiv = document.getElementById("choices_container");
     if (choicesDiv && choicesInfo) {
-        choicesDiv.innerHTML = "<h3>Answers detail:</h3>";
+        const translatedTitle = choicesDiv.getAttribute("data-title") || "Détail des réponses :";
+        const translatedAnswer = choicesDiv.getAttribute("data-answer") || "Réponse";
+
+        choicesDiv.innerHTML = `<h3>${translatedTitle}</h3>`;
         
         const ul = document.createElement("ul");
         ul.style.listStyle = "none";
@@ -48,10 +59,10 @@ function updateDetails(qstId, choicesInfo) {
         choicesInfo.forEach(choice => {
             const li = document.createElement("li");
             li.style.marginBottom = "15px";
-            
-            // adding answer letter and image
+            const textColor = choice.is_correct ? "green" : "red";
+            // On utilise la traduction pour "Réponse"
             li.innerHTML = `
-                <strong>Answer ${choice.letter}:</strong><br>
+                <strong style="color: ${textColor};">${translatedAnswer} ${choice.letter} :</strong>
                 <img src="/webamc/img?itm_id=${choice.id}&iti_num=1" style="max-height: 80px; border: 1px solid #ddd; margin-top: 5px; border-radius: 4px;">
             `;
             ul.appendChild(li);
@@ -62,7 +73,7 @@ function updateDetails(qstId, choicesInfo) {
 }
 
 // drawing the chart
-function updateChart(labels, dataValues) {
+function updateChart(labels, dataValues, totalStudents) {
     const element = document.getElementById("chart");
     if (!element) {
         console.error("Error: Cannot find the element with id='chart'");
@@ -74,6 +85,8 @@ function updateChart(labels, dataValues) {
         currentChartInstance.destroy();
     }
 
+    const yAxisMax = totalStudents > 0 ? totalStudents : 10;
+
     // creating new chart
     currentChartInstance = new Chart(element, {
         type: "bar",
@@ -82,14 +95,26 @@ function updateChart(labels, dataValues) {
             datasets: [{
                 label: "Number of students", 
                 data: dataValues, 
-                backgroundColor: "#007bff"
+                backgroundColor: "#007bff",
+                maxBarThickness: 50
             }]
         },
         options: {
-            scales: { y: { beginAtZero: true } }
+            maintainAspectRatio: false,
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    max: yAxisMax,
+                    ticks: {
+                        stepSize: 1
+                    } 
+                } 
+            }
         }
     });
 }
+
+
 function triggerEvolutionChart() {
     const studentId = document.getElementById("evo_student_selector").value;
     const mcqId = document.getElementById("evo_mcq_selector").value;

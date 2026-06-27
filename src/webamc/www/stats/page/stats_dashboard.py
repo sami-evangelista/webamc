@@ -6,6 +6,8 @@ from webamc.util import fmt
 
 def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     
+    ########## (first diagram) ########
+
     # getting exams with their titles
     exams = ctx.dbs.query(
         tables.Exam, tables.Item
@@ -90,21 +92,28 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         qst_image_element = he.Img(
             id_="qst_image", 
             src="", 
-            style_="display: none; max-width: 100%; border: 1px solid #ccc; margin-top: 20px;"
+            style_="display: none; max-width: 100%; border: 1px solid #ccc; margin-top: 20px; margin-left: auto; margin-right: auto;"
         )
-        choices_container = he.Div(id_="choices_container", style_="margin-top: 20px;")
+        choices_container = he.Div(
+            id_="choices_container", 
+            style_="margin-top: 20px; display: flex; flex-direction: column; text-align: center;" 
+        )
+
+        choices_container.set_attr("data-title", lang.txt("stats_answers_detail"))
+        choices_container.set_attr("data-answer", lang.txt("stats_answer_prefix"))
         
         # adding elements to page
         elements.extend([
             he.Hr(),
             he.Div(he.Str("2. Choisir une question :")),
             select_qst,
-            canvas_container,
             qst_image_element,
+            canvas_container,
             choices_container
         ])
 
-    #graphe evolution
+    ########## graphe evolution (Second diagram) ########
+
     elements.extend([
         he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
         he.H2(he.Str("Évolution d'un étudiant sur un QCM"))

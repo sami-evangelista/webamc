@@ -206,6 +206,8 @@ txt_t = tp.Literal[
     "seq_upload_student_list",
     "seq_warning_messages",
     "seq_zip_file",
+    "stats_answers_detail",
+    "stats_answers_prefix",
     "succ",
     "succ_account_created",
     "succ_eaddr_changed",
