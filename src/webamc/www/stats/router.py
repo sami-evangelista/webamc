@@ -1,3 +1,4 @@
+import random
 from webamc.www.all import *
 from webamc.db import queries, tables
 from .model.args_graph_t import args_graph_t
@@ -28,8 +29,41 @@ def route_stats_open_graph_data(
         exam_id = args.exam_id
 
         # getting all possible choices for this question
-        # using the existing function from queries.py
         choices = queries.get_question_choices(ctx.dbs, qst_id)
+
+        DEV_MODE = True
+        
+        # simulation of fake random data to test stats graphs
+        if DEV_MODE:
+            total_students = random.randint(40, 100)
+            
+            labels = []
+            data = []
+            choices_info = []
+            
+            for i, cho in enumerate(choices):
+                label = chr(65 + i) if i < 26 else str(i + 1)
+                labels.append(f"Réponse {label}")
+                
+                count = random.randint(0, int(total_students / len(choices)))
+                data.append(count)
+                
+                choices_info.append({
+                    "letter": label,
+                    "id": cho.cho_id,
+                    "is_correct": cho.cho_correct 
+                })
+                
+            if not labels:
+                labels = ["No data"]
+                data = [0]
+                
+            return fa.responses.JSONResponse({
+                "labels": labels,
+                "data": data,
+                "choices_info": choices_info,
+                "total_students": total_students
+            })
 
         registrations = queries.get_exam_registrations(ctx.dbs, exam_id)
         total_students = len(registrations)

@@ -18,7 +18,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     ).all()
     
     exam_options: list[he.Element] = [
-        he.Option(he.Str("Sélectionnez un examen..."), value="")
+        he.Option(he.Str(lang.txt("stats_select_exam")), value="")
     ]
     
     for exm, itm in exams:
@@ -43,8 +43,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
 
     # building page
     elements: list[he.Element] = [
-        he.H1(he.Str("Tableau de bord des statistiques")),
-        he.Div(he.Str("1. Choisir un examen :")),
+        he.H1(he.Str(lang.txt("stats_title"))),
+        he.Div(he.Str(lang.txt("stats_choose_exam"))),
         select_exam,
         he.Br(), he.Br()
     ]
@@ -63,14 +63,14 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
             questions = []
 
         qst_options: list[he.Element] = [
-            he.Option(he.Str("Sélectionnez une question..."), value="")
+            he.Option(he.Str(lang.txt("stats_select_qst")), value="")
         ]
 
         for i, qst in enumerate(questions):
             label = chr(65 + i) if i < 26 else str(i + 1)
             qst_options.append(
                 he.Option(
-                    he.Str(f"Question {label}"),
+                    he.Str(f"{lang.txt('stats_qst_prefix')} {label}"),
                     value=f"{qst.qst_id}"
                 )
             )
@@ -85,38 +85,46 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         # chart container with fixed size
         canvas_container = he.Div(
             he.Canvas(id_="chart"),
-            style_="max-width: 600px; max-height: 400px; margin: 0 auto;"
+            style_="max-width: 600px; max-height: 400px; margin: auto;"
         )
-
-        # containers for question image and choices
+        
         qst_image_element = he.Img(
             id_="qst_image", 
             src="", 
-            style_="display: none; max-width: 100%; border: 1px solid #ccc; margin-top: 20px; margin-left: auto; margin-right: auto;"
+            style_="display: none; max-width: 100%; border: 1px solid #ccc; margin-bottom: 20px;"
         )
         choices_container = he.Div(
             id_="choices_container", 
-            style_="margin-top: 20px; display: flex; flex-direction: column; text-align: center;" 
+            style_="display: flex; flex-direction: column; align-items: flex-start; text-align: left;"
         )
 
         choices_container.set_attr("data-title", lang.txt("stats_answers_detail"))
         choices_container.set_attr("data-answer", lang.txt("stats_answer_prefix"))
         
+        left_column = he.Div(
+            qst_image_element,
+            choices_container
+        )
+
+        dashboard_flex_layout = he.Div(
+            left_column,
+            canvas_container,
+            style_="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 20px; margin-top: 20px;"
+        )
+
         # adding elements to page
         elements.extend([
             he.Hr(),
-            he.Div(he.Str("2. Choisir une question :")),
+            he.Div(he.Str(lang.txt("stats_choose_qst"))),
             select_qst,
-            qst_image_element,
-            canvas_container,
-            choices_container
+            dashboard_flex_layout
         ])
 
     ########## graphe evolution (Second diagram) ########
 
     elements.extend([
         he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
-        he.H2(he.Str("Évolution d'un étudiant sur un QCM"))
+        he.H2(he.Str(lang.txt("stats_evo_title")))
         ])
 
     students = ctx.dbs.query(tables.Usr).order_by(
@@ -124,7 +132,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
             tables.Usr.usr_fst_name.asc()
         ).all()
         
-    student_options = [he.Option(he.Str("Sélectionnez un étudiant..."), value="")]
+    student_options = [he.Option(he.Str(lang.txt("stats_select_student")), value="")]
     for std in students:
         student_options.append(
             he.Option(he.Str(f"{std.usr_fst_name} {std.usr_name}"), value=f"{std.usr_id}")
@@ -142,7 +150,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
     ).all()
 
-    mcq_options = [he.Option(he.Str("Sélectionnez un QCM..."), value="")]
+    mcq_options = [he.Option(he.Str(lang.txt("stats_select_mcq")), value="")]
     seen_mcqs = set() 
     for exm, mcq in exams_and_mcqs:
         if mcq.itm_id not in seen_mcqs:
@@ -164,9 +172,9 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         )
 
     elements.extend([
-        he.Div(he.Str("1. Étudiant : "), select_student),
+        he.Div(he.Str(lang.txt("stats_student_prefix")), select_student),
         he.Br(),
-        he.Div(he.Str("2. QCM ciblé : "), select_mcq_evo),
+        he.Div(he.Str(lang.txt("stats_mcq_prefix")), select_mcq_evo),
         evolution_canvas_container
         ])
 

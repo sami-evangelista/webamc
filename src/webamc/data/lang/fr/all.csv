@@ -202,8 +202,19 @@ seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
 seq_warning_messages;message(s) d'avertissement
 seq_zip_file;fichier ZIP
-stats_answers_detail;Réponse
+stats_title;Tableau de bord des statistiques
+stats_select_exam;Sélectionnez un examen...
+stats_choose_exam;1. Choisir un examen :
+stats_select_qst;Sélectionnez une question...
+stats_choose_qst;2. Choisir une question :
+stats_qst_prefix;Question
+stats_answers_detail;Détail des réponses :
 stats_answer_prefix;Réponse
+stats_evo_title;Évolution d'un étudiant sur un QCM
+stats_select_student;Sélectionnez un étudiant...
+stats_select_mcq;Sélectionnez un QCM...
+stats_student_prefix;1. Étudiant :
+stats_mcq_prefix;2. QCM ciblé :
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse életronique modifiée avec succès.
 succ_login;Connexion réussie.
