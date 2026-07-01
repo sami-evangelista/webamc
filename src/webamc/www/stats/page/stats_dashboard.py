@@ -168,7 +168,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
 
     evolution_canvas_container = he.Div(
         he.Canvas(id_="evolution_chart"),
-        style_="max-width: 600px; max-height: 400px; margin: 20px auto;"
+        style_="max-width: 600px; height: 500px; margin: 20px auto;"
         )
 
     elements.extend([

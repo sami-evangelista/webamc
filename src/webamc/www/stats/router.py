@@ -114,12 +114,14 @@ def route_stats_evolution_data(
         submissions = ctx.dbs.query(
             tables.ExamSubmission, tables.Exam
         ).join(
-            tables.Exam, tables.ExamSubmission.exs_id== tables.Exam.exm_id
+            tables.Registration, tables.ExamSubmission.exs_registration == tables.Registration.reg_id
+        ).join(
+            tables.Exam, tables.Registration.reg_exam == tables.Exam.exm_id
         ).filter(
-            tables.ExamSubmission.exs_registration == args.student_id,
+            tables.Registration.reg_usr == args.student_id,
             tables.Exam.exm_mcq == args.mcq_id
         ).order_by(
-            tables.Exam.exm_start.asc()  
+            tables.Exam.exm_start.asc()
         ).all()
 
         labels = []
@@ -131,18 +133,21 @@ def route_stats_evolution_data(
             
             detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exm.exm_mcq, sub.exs_id)
             
-            print(f"DEBUG: Score pour {sub.exs_id} : {detailed_scores}")
             
             total_score = sum(detailed_scores.values()) if detailed_scores else 0.0
             
             data.append(float(total_score))
 
         if not labels:
-            labels = ["Aucun test passé"]
+            labels = ["No data"]
             data = [0]
+
+        questions = queries.get_exam_questions(ctx.dbs, args.mcq_id)
+        max_points = len(questions) if questions else 10
 
         return fa.responses.JSONResponse({
             "labels": labels,
-            "data": data
+            "data": data,
+            "max_score": max_points
         })
 

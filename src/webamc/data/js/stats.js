@@ -134,12 +134,12 @@ function triggerEvolutionChart() {
         return response.json();
     })
     .then(data => {
-        drawEvolutionChart(data.labels, data.data);
+        drawEvolutionChart(data.labels, data.data, data.max_score);
     })
     .catch(error => console.error('Erreur:', error));
 }
 
-function drawEvolutionChart(labels, dataValues) {
+function drawEvolutionChart(labels, dataValues, maxScore) {
     const element = document.getElementById("evolution_chart");
     if (!element) return;
 
@@ -147,26 +147,38 @@ function drawEvolutionChart(labels, dataValues) {
         evolutionChartInstance.destroy();
     }
 
+    const yAxisMax = maxScore > 0 ? maxScore : 10;
+
+    let calculatedStepSize = 1;
+    if (yAxisMax > 8) {
+        calculatedStepSize = yAxisMax / 8; 
+    }
+
     evolutionChartInstance = new Chart(element, {
-        type: "line", 
+        type: "bar", 
         data: {
             labels: labels, 
             datasets: [{
                 label: "Note obtenue", 
                 data: dataValues, 
-                borderColor: "#28a745", 
-                backgroundColor: "rgba(40, 167, 69, 0.2)", 
-                borderWidth: 2,
-                pointBackgroundColor: "#17a2b8", 
-                pointRadius: 5,
-                fill: true,
-                tension: 0.3 
+                backgroundColor: "#007bff", 
+                maxBarThickness: 50,
+                minBarLength: 5 
             }]
         },
         options: {
+            maintainAspectRatio: false,
             scales: { 
                 y: { 
                     beginAtZero: true,
+                    max: yAxisMax, 
+                    ticks: {
+                        stepSize: calculatedStepSize,
+                        autoSkip: false,
+                        callback: function(value) {
+                            return value.toFixed(1); 
+                        }
+                    },
                     title: { display: true, text: 'Score' }
                 },
                 x: {
