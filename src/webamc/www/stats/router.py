@@ -80,8 +80,15 @@ def route_stats_open_graph_data(
             count = ctx.dbs.query(tables.Answer).join(
                 tables.ItemInstance,
                 tables.Answer.ans_instance == tables.ItemInstance.iti_id
+            ).join(
+                tables.ExamSubmission,
+                tables.Answer.ans_submission == tables.ExamSubmission.exs_id
+            ).join(
+                tables.Registration,
+                tables.ExamSubmission.exs_registration == tables.Registration.reg_id
             ).filter(
-                tables.ItemInstance.iti_item == cho.cho_id
+                tables.ItemInstance.iti_item == cho.cho_id,
+                tables.Registration.reg_exam == exam_id
             ).count()
             
             data.append(count)
