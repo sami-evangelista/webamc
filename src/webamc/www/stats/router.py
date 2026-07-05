@@ -1,6 +1,7 @@
 import random
 from webamc.www.all import *
 from webamc.db import queries, tables
+from .model.args_mcq_overview_t import args_mcq_overview_t
 from .model.args_graph_t import args_graph_t
 from .model.args_evo_t import args_evo_t
 
@@ -31,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -157,4 +158,73 @@ def route_stats_evolution_data(
             "data": data,
             "max_score": max_points
         })
+    
 
+
+
+@router.post("/stats/oper/mcq-overview-data")
+def route_stats_mcq_overview_data(
+    req: fa.Request,
+    args: args_mcq_overview_t
+) -> fa.Response:
+    """
+    AJAX route to send MCQ overview success rates.
+    format: JSON
+    """
+    with context.Context(req) as ctx:
+        exam_id = args.exam_id
+
+        # getting exam object to find mcq_id
+        exam = ctx.dbs.query(tables.Exam).filter(tables.Exam.exm_id == exam_id).first()
+        if exam is None:
+            return fa.responses.JSONResponse({"labels": [], "data": [], "qst_ids": []})
+
+        # getting questions for this mcq
+        questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
+
+        # getting all submissions tied to this specific exam
+        submissions = ctx.dbs.query(tables.ExamSubmission).join(
+            tables.Registration, tables.ExamSubmission.exs_registration == tables.Registration.reg_id
+        ).filter(
+            tables.Registration.reg_exam == exam_id
+        ).all()
+
+        submission_count = len(submissions)
+        question_totals = {qst.qst_id: 0.0 for qst in questions}
+
+        # getting all registrations (total students expected)
+        registrations = queries.get_exam_registrations(ctx.dbs, exam_id)
+        total_students = len(registrations)
+
+        # calculating total scores per question across all submissions
+        for sub in submissions:
+            detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exam.exm_mcq, sub.exs_id)
+            for qst_id, score in detailed_scores.items():
+                if qst_id in question_totals:
+                    question_totals[qst_id] += score
+
+        labels = []
+        data = []
+        qst_ids = []
+
+        # building labels and calculating success percentage (0.0 to 1.0 -> 0% to 100%)
+        # building labels and calculating success percentage
+        for i, qst in enumerate(questions):
+            # Récupération de l'Item pour avoir le itm_code
+            itm = queries.get_item(ctx.dbs, qst.qst_id)
+            
+            # Si la question a un code, on l'utilise, sinon on met "Qst X" par sécurité
+            label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
+            labels.append(label)
+            
+            avg_score = question_totals[qst.qst_id] / total_students if total_students > 0 else 0.0
+            percentage = round(avg_score * 100, 1)
+            
+            data.append(percentage)
+            qst_ids.append(qst.qst_id)
+            
+        return fa.responses.JSONResponse({
+            "labels": labels,
+            "data": data,
+            "qst_ids": qst_ids
+        })

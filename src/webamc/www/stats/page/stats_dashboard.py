@@ -5,8 +5,8 @@ from webamc.db import tables, queries
 from webamc.util import fmt
 
 def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
-    
-    ########## (first diagram) ########
+
+    elements: list[he.Element] = []
 
     # getting exams with their titles
     exams = ctx.dbs.query(
@@ -19,7 +19,49 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     
     exam_options: list[he.Element] = [
         he.Option(he.Str(lang.txt("stats_select_exam")), value="")
+    ]    
+
+    ########## MCQ Overview (Third diagram) ########
+
+    overview_exam_options: list[he.Element] = [
+        he.Option(he.Str("Sélectionner un examen pour la vue d'ensemble"), value="")
     ]
+    
+    # rebuilding the list of options using the fetched exams
+    for exm, itm in exams:
+        overview_exam_options.append(
+            he.Option(
+                he.Str(f"{itm.itm_title} (Date: {exm.exm_start.strftime('%d/%m/%Y')})"), 
+                value=f"{exm.exm_id}"
+            )
+        )
+
+    # exam selector dropdown for the overview chart
+    select_overview_exam = he.Select(
+        *overview_exam_options,
+        id_="overview_exam_selector",
+        class_="box",
+        onchange="loadMcqOverview(this.value)"
+    )
+
+    # chart container with fixed size
+    overview_canvas_container = he.Div(
+        he.Canvas(id_="mcq_overview_chart"),
+        style_="max-width: 800px; height: 400px; margin: 20px auto;"
+    )
+
+    # adding elements to page
+    elements.extend([
+        he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
+        he.H2(he.Str("Vue d'ensemble globale du QCM")),
+        he.Div(he.Str("Choisir un examen :")),
+        select_overview_exam,
+        overview_canvas_container
+    ])
+
+    ########## (first diagram) ########
+
+    
     
     for exm, itm in exams:
         # selecting current exam
@@ -42,12 +84,12 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     )
 
     # building page
-    elements: list[he.Element] = [
+    elements.extend([
         he.H1(he.Str(lang.txt("stats_title"))),
         he.Div(he.Str(lang.txt("stats_choose_exam"))),
         select_exam,
         he.Br(), he.Br()
-    ]
+    ])
 
 
     # question selector and chart
@@ -178,12 +220,16 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         evolution_canvas_container
         ])
 
+
+
+    
     # adding js scripts
     elements.extend([
         he.Script(src="https://cdn.jsdelivr.net/npm/chart.js"),
         he.Script(src="/static?file_name=stats.js")  
     ])
-    
+
     result = he.ElementList(*elements)
+
     
     return base.page(ctx, "page_title_stats", result)

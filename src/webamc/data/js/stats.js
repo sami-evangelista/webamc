@@ -6,11 +6,29 @@ let evolutionChartInstance = null;
 
 // handling question change
 function handleQuestionChange(qstId) {
-    if (!qstId) return;
+    if (!qstId) {
+        console.error("Annulation : qstId est vide.");
+        return;
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const examId = urlParams.get("exam_id")    
-    
+    let examId = urlParams.get("exam_id");
+
+    // fallback: if exam_id is not in URL, get it from the overview selector
+    if (!examId) {
+        const overviewSelector = document.getElementById("overview_exam_selector");
+        if (overviewSelector) {
+            examId = overviewSelector.value;
+        }
+    }
+
+
+    // safety check
+    if (!examId) {
+        console.error("Error: exam_id introuvable ni dans l'URL ni dans le selecteur.");
+        return;
+    }
+
     fetch('/webamc/stats/oper/graph-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -27,7 +45,6 @@ function handleQuestionChange(qstId) {
     })
     .then(data => {
         // updating chart
-        console.log(data.total_students)
         updateChart(data.labels, data.data, data.total_students);
         
         // updating images
@@ -60,7 +77,7 @@ function updateDetails(qstId, choicesInfo) {
             const li = document.createElement("li");
             li.style.marginBottom = "15px";
             const textColor = choice.is_correct ? "green" : "red";
-            // On utilise la traduction pour "Réponse"
+            
             li.innerHTML = `
                 <strong style="color: ${textColor};">${translatedAnswer} ${choice.letter} :</strong>
                 <img src="/webamc/img?itm_id=${choice.id}&iti_num=1" style="max-height: 80px; border: 1px solid #ddd; margin-top: 5px; border-radius: 4px;">
@@ -183,6 +200,90 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
                 },
                 x: {
                     title: { display: true, text: 'Date de passage' }
+                }
+            }
+        }
+    });
+}
+
+
+
+// storing mcq overview chart instance
+let mcqChartInstance = null;
+
+// fetching data and drawing the MCQ overview chart
+function loadMcqOverview(examId) {
+    if (!examId) return;
+
+    fetch('/webamc/stats/oper/mcq-overview-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam_id: parseInt(examId) })
+    })
+    .then(async response => {
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        // data.labels -> ["Question A", "Question B", ...]
+        // data.data -> [85, 42, ...] (success percentage)
+        // data.qst_ids -> [12, 15, ...] (real question IDs from DB)
+        drawMcqChart(data.labels, data.data, data.qst_ids);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// drawing the mcq overview chart
+function drawMcqChart(labels, dataValues, qstIds) {
+    const element = document.getElementById("mcq_overview_chart"); 
+    if (!element) return;
+
+    // destroying previous chart if exists
+    if (mcqChartInstance) {
+        mcqChartInstance.destroy();
+    }
+
+    // creating new chart
+    mcqChartInstance = new Chart(element, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Success rate (%)", 
+                data: dataValues,
+                backgroundColor: "#28a745", 
+                maxBarThickness: 50
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100 // max value for percentage
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 90, // Force le texte à 90 degrés
+                        minRotation: 90  // Empêche Chart.js de le remettre droit
+                    }
+                }
+            },
+            // handling click event on bars
+            // handling click event on bars
+            onClick: (event, activeElements) => {
+                if (activeElements.length > 0) {
+                    const dataIndex = activeElements[0].index;
+                    const clickedQstId = qstIds[dataIndex];
+                    
+                    const qstSelector = document.getElementById("qst_selector");
+                    if (qstSelector) {
+                        qstSelector.value = clickedQstId;
+                    }
+
+                    handleQuestionChange(clickedQstId);
+                } else {
+                    console.log("Clic dans le vide (pas sur une barre).");
                 }
             }
         }
