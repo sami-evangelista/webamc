@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -41,12 +41,14 @@ def route_stats_open_graph_data(
             labels = []
             data = []
             choices_info = []
+            total_answered = 0
             
             for i, cho in enumerate(choices):
                 label = chr(65 + i) if i < 26 else str(i + 1)
                 labels.append(f"Réponse {label}")
                 
                 count = random.randint(0, int(total_students / len(choices)))
+                total_answered += count
                 data.append(count)
                 
                 choices_info.append({
@@ -55,6 +57,16 @@ def route_stats_open_graph_data(
                     "is_correct": cho.cho_correct 
                 })
                 
+            no_response = max(0, total_students - total_answered)
+            labels.append("Sans réponse")
+            data.append(no_response)
+            choices_info.append({
+                "letter": "∅",
+                "id": None,
+                "is_correct": False,
+                "is_no_response": True 
+            })
+
             if not labels:
                 labels = ["No data"]
                 data = [0]
@@ -97,8 +109,35 @@ def route_stats_open_graph_data(
             choices_info.append({
                 "letter": label,
                 "id": cho.cho_id,
-                "is_correct": cho.cho_correct
+                "is_correct": cho.cho_correct,
+                "is_no_response" : False
             })
+
+
+        choice_ids = [cho.cho_id for cho in choices]
+        students_who_answered = ctx.dbs.query(tables.Registration.reg_id).join(
+            tables.ExamSubmission, tables.Registration.reg_id == tables.ExamSubmission.exs_registration
+        ).join(
+            tables.Answer, tables.ExamSubmission.exs_id == tables.Answer.ans_submission
+        ).join(
+            tables.ItemInstance, tables.Answer.ans_instance == tables.ItemInstance.iti_id
+        ).filter(
+            tables.ItemInstance.iti_item.in_(choice_ids),
+            tables.Registration.reg_exam == exam_id 
+        ).distinct().count()
+        
+        no_response = total_students - students_who_answered
+        if no_response < 0:
+            no_response = 0
+            
+        labels.append("Sans réponse")
+        data.append(no_response)
+        choices_info.append({
+            "letter": "∅",
+            "id": None,
+            "is_correct": False,
+            "is_no_response": True
+        })
             
         if not labels:
             labels = ["No data"]

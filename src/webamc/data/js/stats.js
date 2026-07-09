@@ -44,8 +44,25 @@ function handleQuestionChange(qstId) {
         return response.json();
     })
     .then(data => {
+        const backgroundColors = [];
+        
+        const redShades = ["#dc3545", "#e4606d", "#ef8a93", "#f6b4b9"];
+        let redIndex = 0;
+
+        data.choices_info.forEach(choice => {
+            if (choice.is_no_response){
+                choice.exactColor = "#6c757d"; }
+            else if (choice.is_correct) {
+                choice.exactColor = "#28a745"; 
+            } else {
+                choice.exactColor = redShades[redIndex % redShades.length];
+                redIndex++;
+            }
+            backgroundColors.push(choice.exactColor);
+        });
+
         // updating chart
-        updateChart(data.labels, data.data, data.total_students);
+        updateChart(data.labels, data.data, data.total_students, backgroundColors);
         
         // updating images
         updateDetails(qstId, data.choices_info);
@@ -76,12 +93,18 @@ function updateDetails(qstId, choicesInfo) {
         choicesInfo.forEach(choice => {
             const li = document.createElement("li");
             li.style.marginBottom = "15px";
-            const textColor = choice.is_correct ? "green" : "red";
-            
+            const textColor = choice.exactColor;
+
+            if (choice.is_no_response) {
+                li.innerHTML = `
+                    <strong style="color: ${textColor};">${translatedAnswer} ${choice.letter} :</strong>
+                    <span style="color: #666; font-style: italic; margin-left: 10px;">(Aucune réponse)</span>
+                `;}
+            else{
             li.innerHTML = `
                 <strong style="color: ${textColor};">${translatedAnswer} ${choice.letter} :</strong>
                 <img src="/webamc/img?itm_id=${choice.id}&iti_num=1" style="max-height: 80px; border: 1px solid #ddd; margin-top: 5px; border-radius: 4px;">
-            `;
+            `;}
             ul.appendChild(li);
         });
 
@@ -90,7 +113,7 @@ function updateDetails(qstId, choicesInfo) {
 }
 
 // drawing the chart
-function updateChart(labels, dataValues, totalStudents) {
+function updateChart(labels, dataValues, totalStudents,colors) {
     const element = document.getElementById("chart");
     if (!element) {
         console.error("Error: Cannot find the element with id='chart'");
@@ -112,7 +135,7 @@ function updateChart(labels, dataValues, totalStudents) {
             datasets: [{
                 label: "Number of students", 
                 data: dataValues, 
-                backgroundColor: "#007bff",
+                backgroundColor: colors ||"#007bff",
                 maxBarThickness: 50
             }]
         },
@@ -225,16 +248,31 @@ function loadMcqOverview(examId) {
         return response.json();
     })
     .then(data => {
+        const barColors = [];
+
+        data.data.forEach(percentage => {
+            if (percentage >= 80) {
+                barColors.push("#28a745"); 
+            } else if (percentage >= 60) {
+                barColors.push("#85c85b"); 
+            } else if (percentage >= 40) {
+                barColors.push("#ffc107"); 
+            } else if (percentage >= 20) {
+                barColors.push("#fd7e14"); 
+            } else {
+                barColors.push("#dc3545"); 
+            }
+        });
         // data.labels -> ["Question A", "Question B", ...]
         // data.data -> [85, 42, ...] (success percentage)
         // data.qst_ids -> [12, 15, ...] (real question IDs from DB)
-        drawMcqChart(data.labels, data.data, data.qst_ids);
+        drawMcqChart(data.labels, data.data, data.qst_ids,barColors);
     })
     .catch(error => console.error('Error:', error));
 }
 
 // drawing the mcq overview chart
-function drawMcqChart(labels, dataValues, qstIds) {
+function drawMcqChart(labels, dataValues, qstIds, colors) {
     const element = document.getElementById("mcq_overview_chart"); 
     if (!element) return;
 
@@ -251,7 +289,7 @@ function drawMcqChart(labels, dataValues, qstIds) {
             datasets: [{
                 label: "Success rate (%)", 
                 data: dataValues,
-                backgroundColor: "#28a745", 
+                backgroundColor: colors|| "#28a745", 
                 maxBarThickness: 50
             }]
         },
@@ -260,12 +298,12 @@ function drawMcqChart(labels, dataValues, qstIds) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100 // max value for percentage
+                    max: 100 //
                 },
                 x: {
                     ticks: {
-                        maxRotation: 90, // Force le texte à 90 degrés
-                        minRotation: 90  // Empêche Chart.js de le remettre droit
+                        maxRotation: 90,
+                        minRotation: 90 
                     }
                 }
             },
