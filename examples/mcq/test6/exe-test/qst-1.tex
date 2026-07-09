@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{automultiplechoice}
+\usepackage{fp}
+\usepackage{multicol}
+
+%webamc TITLE=Question multiples
+%webamc INSTANCES=5
+
+%webamc BEGIN
+\FPeval\vQb{trunc(1+random*50,0)} 
+\FPeval\rQb{clip(100 + vQb)} 
+\FPeval\eQb{clip(rQb + 10)}
+%webamc END
+
+\begin{questionmult}{http2}
+  HTML est un langage :
+  \begin{multicols}{2} 
+  \begin{reponses}
+  \bonne{de balisage}
+  \bonne{interprété}
+  \mauvaise{compilé}
+  \mauvaise{de bas niveau}
+  \mauvaise{fonctionel}
+  \mauvaise{de programmation logique}
+  \end{reponses}
+  \end{multicols}
+\end{questionmult} 

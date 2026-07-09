@@ -1,7 +1,3 @@
-\documentclass{article}
-\usepackage{automultiplechoice}
-\usepackage{fp}
-
 %webamc TITLE=Question Longue
 %webamc INSTANCES=5
 
@@ -11,7 +7,6 @@
 \FPeval\eQb{clip(rQb + 10)}
 %webamc END
 
-\begin{document}
 \begin{question}{q_longue}
   Calculer : 100 + \vQb{}
   \begin{reponses}
@@ -19,4 +14,3 @@
     \mauvaise{\eQb}
   \end{reponses}
 \end{question}
-\end{document}

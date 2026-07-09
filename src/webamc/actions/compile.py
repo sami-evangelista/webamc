@@ -13,6 +13,8 @@ from webamc.all import *
 from webamc.util import io
 from . import tex, output
 
+import re
+
 
 JSON_SPEC = "items.json"
 
@@ -434,7 +436,7 @@ def _compile_question(
 
     # parse tex file to find questions and clean the preamble
     code, qsts = tex.extract_qst(content)
-    raw_preamble = content.split(r"\begin{question}")[0]
+    raw_preamble = re.split(r"\\begin\{question(?:mult)?\}", content, maxsplit=1)[0]
     
 
     clean_preamble = re.sub(

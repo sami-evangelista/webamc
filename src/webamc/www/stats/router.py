@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -119,6 +119,42 @@ def route_stats_evolution_data(
 ) -> fa.Response:
 
     with context.Context(req) as ctx:
+        
+        DEV_MODE = True
+        
+        # simulation of fake random data to test evolution graphs
+        if DEV_MODE:
+            import datetime
+            
+            # we need max_points first to generate realistic scores
+            questions = queries.get_exam_questions(ctx.dbs, args.mcq_id)
+            max_points = len(questions) if questions else 10
+            
+            labels = []
+            data = []
+            
+            # random number of exam attempts for this fake student (e.g., between 4 and 8)
+            num_attempts = random.randint(4, 8)
+            
+            # starting date (e.g., 100 days ago)
+            current_date = datetime.datetime.now() - datetime.timedelta(days=100)
+            
+            for _ in range(num_attempts):
+                # adding random days to make chronological sense
+                current_date += datetime.timedelta(days=random.randint(7, 20))
+                labels.append(current_date.strftime("%d/%m/%Y"))
+                
+                # fake score between 0 and max_points
+                fake_score = round(random.uniform(0.0, float(max_points)), 1)
+                data.append(fake_score)
+                
+            return fa.responses.JSONResponse({
+                "labels": labels,
+                "data": data,
+                "max_score": max_points
+            })
+
+        # --- Real Data Logic ---
         submissions = ctx.dbs.query(
             tables.ExamSubmission, tables.Exam
         ).join(
@@ -140,7 +176,6 @@ def route_stats_evolution_data(
             labels.append(date_str)
             
             detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exm.exm_mcq, sub.exs_id)
-            
             
             total_score = sum(detailed_scores.values()) if detailed_scores else 0.0
             
@@ -182,6 +217,37 @@ def route_stats_mcq_overview_data(
         # getting questions for this mcq
         questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
 
+        DEV_MODE = True
+        
+        # simulation of fake random data to test stats graphs
+        if DEV_MODE:
+            labels = []
+            data = []
+            qst_ids = []
+            
+            for i, qst in enumerate(questions):
+                # Récupération de l'Item pour avoir le itm_code
+                itm = queries.get_item(ctx.dbs, qst.qst_id)
+                label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
+                
+                labels.append(label)
+                
+                # generating a fake success percentage between 10% and 100%
+                fake_percentage = round(random.uniform(10.0, 100.0), 1)
+                data.append(fake_percentage)
+                
+                qst_ids.append(qst.qst_id)
+                
+            if not labels:
+                labels = ["No data"]
+                data = [0]
+                
+            return fa.responses.JSONResponse({
+                "labels": labels,
+                "data": data,
+                "qst_ids": qst_ids
+            })
+
         # getting all submissions tied to this specific exam
         submissions = ctx.dbs.query(tables.ExamSubmission).join(
             tables.Registration, tables.ExamSubmission.exs_registration == tables.Registration.reg_id
@@ -207,7 +273,6 @@ def route_stats_mcq_overview_data(
         data = []
         qst_ids = []
 
-        # building labels and calculating success percentage (0.0 to 1.0 -> 0% to 100%)
         # building labels and calculating success percentage
         for i, qst in enumerate(questions):
             # Récupération de l'Item pour avoir le itm_code
