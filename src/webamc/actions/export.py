@@ -5,11 +5,11 @@ import openpyxl
 from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.formatting.rule import FormulaRule
 from fastapi.responses import Response
 
 from webamc.www.all import context
 from webamc.db import queries, tables
-
 
 
 def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
@@ -53,9 +53,6 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     ).all()
 
     # pre-calculate stats
-    present_count = 0
-    total_class_score = 0.0
-    q_success_counts = {qst_id: 0 for qst_id, _ in questions_data}
     student_records: list[dict[str, tp.Any]] = []
 
     for student in students:
@@ -76,19 +73,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
             "scores": scores_dict
         })
 
-        if not is_absent:
-            present_count += 1
-            total_class_score += student["score"]
-            for qst_id, _ in questions_data:
-                if scores_dict.get(qst_id, 0.0) > 0:
-                    q_success_counts[qst_id] += 1
-
     # calculate statistics fields
-    avg_score = total_class_score / present_count if present_count else 0.0
-    max_promo_score = max(
-        (s["data"]["score"] for s in student_records if not s["is_absent"]),
-        default=0.0
-    )
     total_questions = len(questions_data)
 
     # sort students alphabetically
@@ -97,7 +82,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         (x["data"]["usr_fst_name"] or "").lower()
     ))
 
-    # write row 1: Headers
+    # write row 1: headers
     headers = ["Nom", "Prénom", "Login", "Note", "Max"]
     max_header_len = 0
     for _, itm_code in questions_data:
@@ -109,17 +94,22 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # auto-fit row height for vertical text
     ws.row_dimensions[1].height = max(40, max_header_len * 6)
 
-    # write row 2: Max points row (using floats)
-    row2 = ["", "", "Note Max", float(max_promo_score), float(total_questions)]
+    # compute boundaries for excel formulas
+    last_row = 3 + len(student_records)
+    last_col_letter = get_column_letter(5 + len(questions_data))
+
+    # write row 2: max points row (using excel formula)
+    row2 = ["", "", "Note Max", f"=MAX(D4:D{last_row})", float(total_questions)]
     for _ in questions_data:
         row2.append(1.0)
     ws.append(row2)
 
-    # write row 3: Average row (using floats)
-    row3 = ["", "", "Moyenne", float(avg_score), ""]
-    for qst_id, _ in questions_data:
-        rate = (q_success_counts[qst_id] / present_count * 100) if present_count else 0
-        row3.append(f"{round(rate)}%")
+    # write row 3: average row (using excel formulas for percentages)
+    row3 = ["", "", "Moyenne", f"=AVERAGE(D4:D{last_row})", ""]
+    for i in range(len(questions_data)):
+        col_letter = get_column_letter(6 + i)
+        # Excel AVERAGE ignores empty/text cells automatically!
+        row3.append(f"=AVERAGE({col_letter}4:{col_letter}{last_row})")
     ws.append(row3)
 
     # format rows 1, 2 and 3
@@ -130,8 +120,11 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
                 cell.alignment = vertical_align
             elif row_idx in [2, 3] and col_idx >= 4:
                 cell.alignment = center_align
-                # force float formatting display (.0)
-                if isinstance(cell.value, (int, float)):
+                
+                # apply percentage format to success rates in row 3
+                if row_idx == 3 and col_idx > 5:
+                    cell.number_format = '0%'
+                elif isinstance(cell.value, (int, float)):
                     cell.number_format = '0.0'
 
     # fill student rows
@@ -140,20 +133,25 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         is_absent = record["is_absent"]
         scores_dict = record["scores"]
 
+        current_row = ws.max_row + 1
+
+        # set sum formula instead of fixed score
+        note_formula = "ABS" if is_absent else f"=SUM(F{current_row}:{last_col_letter}{current_row})"
+
         row_data = [
             student["usr_name"],
             student["usr_fst_name"],
             student["usr_login"],
-            "ABS" if is_absent else float(student["score"]),
+            note_formula,
             float(student["total_questions"])
         ]
 
-        # add 1.0 or 0.0 for questions
+        # add 1 or 0 for questions
         for qst_id, _ in questions_data:
             if is_absent:
                 row_data.append("")
             else:
-                val = 1.0 if scores_dict.get(qst_id, 0.0) > 0 else 0.0
+                val = 1 if scores_dict.get(qst_id, 0.0) > 0 else 0
                 row_data.append(val)
 
         ws.append(row_data)
@@ -167,19 +165,24 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
             if isinstance(cell.value, (int, float)):
                 cell.number_format = '0.0'
 
-        # apply styling
+        # apply grey style only for absent students
         if is_absent:
             for col_idx in range(5, len(row_data) + 1):
                 ws.cell(row=current_row, column=col_idx).fill = grey_fill
-        else:
-            col_offset = 6
-            for i, (qst_id, _) in enumerate(questions_data):
-                val = 1.0 if scores_dict.get(qst_id, 0.0) > 0 else 0.0
-                if val == 0.0:
-                    ws.cell(row=current_row, column=col_offset + i).fill = red_fill
-                    
+
+    # apply conditional formatting for incorrect/empty answers
+    score_range = f"F4:{last_col_letter}{last_row}"
+    
+    # rule: if student is NOT absent (col D <> "ABS") AND cell is empty or 0 => fill red
+    red_rule = FormulaRule(
+        formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'], 
+        stopIfTrue=True, 
+        fill=red_fill
+    )
+    ws.conditional_formatting.add(score_range, red_rule)
+
     # auto-fit columns
-    for col in ws.columns:
+    for col_idx, col in enumerate(ws.columns, start=1):
         max_length = 0
         column_letter = get_column_letter(col_idx)
         
