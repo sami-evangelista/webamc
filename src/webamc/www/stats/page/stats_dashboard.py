@@ -4,7 +4,11 @@ from webamc.www.all import *
 from webamc.db import tables, queries
 from webamc.util import fmt
 
+from webamc.www import session
+
 def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
+
+    current_usr_id = session.usr_id(ctx)
 
     elements: list[he.Element] = []
 
@@ -13,6 +17,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         tables.Exam, tables.Item
     ).join(
         tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_usr == current_usr_id
     ).order_by(
         tables.Exam.exm_start.desc()
     ).all()
@@ -190,6 +196,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         tables.Exam, tables.Item
     ).join(
         tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_usr == current_usr_id 
     ).all()
 
     mcq_options = [he.Option(he.Str(lang.txt("stats_select_mcq")), value="")]

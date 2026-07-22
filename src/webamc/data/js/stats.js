@@ -179,6 +179,56 @@ function triggerEvolutionChart() {
     .catch(error => console.error('Erreur:', error));
 }
 
+// function drawEvolutionChart(labels, dataValues, maxScore) {
+//     const element = document.getElementById("evolution_chart");
+//     if (!element) return;
+
+//     if (evolutionChartInstance) {
+//         evolutionChartInstance.destroy();
+//     }
+
+//     const yAxisMax = maxScore > 0 ? maxScore : 10;
+
+//     let calculatedStepSize = 1;
+//     if (yAxisMax > 8) {
+//         calculatedStepSize = yAxisMax / 8; 
+//     }
+
+//     evolutionChartInstance = new Chart(element, {
+//         type: "bar", 
+//         data: {
+//             labels: labels, 
+//             datasets: [{
+//                 label: "Note obtenue", 
+//                 data: dataValues, 
+//                 backgroundColor: "#007bff", 
+//                 maxBarThickness: 50,
+//                 minBarLength: 5 
+//             }]
+//         },
+//         options: {
+//             maintainAspectRatio: false,
+//             scales: { 
+//                 y: { 
+//                     beginAtZero: true,
+//                     max: yAxisMax, 
+//                     ticks: {
+//                         stepSize: calculatedStepSize,
+//                         autoSkip: false,
+//                         callback: function(value) {
+//                             return value.toFixed(1); 
+//                         }
+//                     },
+//                     title: { display: true, text: 'Score' }
+//                 },
+//                 x: {
+//                     title: { display: true, text: 'Date de passage' }
+//                 }
+//             }
+//         }
+//     });
+// }
+
 function drawEvolutionChart(labels, dataValues, maxScore) {
     const element = document.getElementById("evolution_chart");
     if (!element) return;
@@ -195,15 +245,20 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
     }
 
     evolutionChartInstance = new Chart(element, {
-        type: "bar", 
+        type: "line",
         data: {
             labels: labels, 
             datasets: [{
                 label: "Note obtenue", 
                 data: dataValues, 
-                backgroundColor: "#007bff", 
-                maxBarThickness: 50,
-                minBarLength: 5 
+                
+                borderColor: "#007bff",
+                backgroundColor: "#007bff",
+                borderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                fill: false,
+                tension: 0.1
             }]
         },
         options: {

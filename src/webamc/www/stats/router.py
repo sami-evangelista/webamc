@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
