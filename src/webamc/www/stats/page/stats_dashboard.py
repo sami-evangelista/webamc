@@ -50,6 +50,37 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         onchange="loadMcqOverview(this.value)"
     )
 
+    sort_options = [
+        he.Option(he.Str("Par nom "), value="name_asc"),
+        he.Option(he.Str("Par score (Du plus haut au plus bas)"), value="score_desc"),
+        he.Option(he.Str("Par score (Du plus bas au plus haut)"), value="score_asc")
+    ]
+    select_sort = he.Select(
+        *sort_options,
+        id_="sel_sort_mcq",
+        class_="box",
+        onchange="if(typeof renderMcqOverview === 'function') renderMcqOverview();"
+    )
+
+    chk_group = he.Input(
+        type="checkbox", 
+        id_="chk_group_exo", 
+        onchange="if(typeof renderMcqOverview === 'function') renderMcqOverview();"
+    )
+    lbl_group = he.Label(he.Str(" Grouper par exercice "), for_="chk_group_exo")
+
+    controls_div = he.Div(
+        he.Div(he.Str("Choisir un examen :")),
+        he.Div(select_overview_exam, style_="margin-bottom: 25px;"), 
+        
+        he.Div(he.Str("Trier :")),
+        he.Div(select_sort, style_="margin-bottom: 15px;"),
+        
+        he.Div(chk_group, lbl_group, style_="margin-bottom: 12px;"),
+        
+        style_="text-align: left; margin-bottom: 20px;"
+    )
+
     # chart container with fixed size
     overview_canvas_container = he.Div(
         he.Canvas(id_="mcq_overview_chart"),
@@ -60,8 +91,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     elements.extend([
         he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
         he.H2(he.Str("Vue d'ensemble globale du QCM")),
-        he.Div(he.Str("Choisir un examen :")),
-        select_overview_exam,
+        controls_div,
         overview_canvas_container
     ])
 

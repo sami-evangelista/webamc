@@ -288,8 +288,9 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
 
 // storing mcq overview chart instance
 let mcqChartInstance = null;
+let rawMcqData = [];
 
-// fetching data and drawing the MCQ overview chart
+// fetching data and storing it
 function loadMcqOverview(examId) {
     if (!examId) return;
 
@@ -303,27 +304,87 @@ function loadMcqOverview(examId) {
         return response.json();
     })
     .then(data => {
-        const barColors = [];
-
-        data.data.forEach(percentage => {
-            if (percentage >= 80) {
-                barColors.push("#28a745"); 
-            } else if (percentage >= 60) {
-                barColors.push("#85c85b"); 
-            } else if (percentage >= 40) {
-                barColors.push("#ffc107"); 
-            } else if (percentage >= 20) {
-                barColors.push("#fd7e14"); 
-            } else {
-                barColors.push("#dc3545"); 
+        rawMcqData = data.labels.map((label, index) => {
+            let exo = "Autre"; 
+            
+            if (label && label.includes('/')) {
+                const parts = label.split('/');
+                parts.pop(); 
+                exo = parts.join('/'); 
             }
+            
+            return {
+                label: label,
+                score: data.data[index],
+                qstId: data.qst_ids[index],
+                exo: exo
+            };
         });
-        // data.labels -> ["Question A", "Question B", ...]
-        // data.data -> [85, 42, ...] (success percentage)
-        // data.qst_ids -> [12, 15, ...] (real question IDs from DB)
-        drawMcqChart(data.labels, data.data, data.qst_ids,barColors);
+
+        renderMcqOverview();
     })
     .catch(error => console.error('Error:', error));
+}
+// filters, sorts and groups data before drawing the chart
+function renderMcqOverview() {
+    if (!rawMcqData || rawMcqData.length === 0) return;
+
+    const chkGroup = document.getElementById("chk_group_exo");
+    const selSort = document.getElementById("sel_sort_mcq");
+
+    const groupChecked = chkGroup ? chkGroup.checked : false;
+    const sortMode = selSort ? selSort.value : "name_asc";
+
+    let processedData = [];
+
+    const sortItems = (a, b) => {
+        if (sortMode === "score_desc") return b.score - a.score;
+        if (sortMode === "score_asc") return a.score - b.score;
+        if (sortMode === "name_asc") return a.label.localeCompare(b.label);
+        return 0;
+    };
+
+    if (groupChecked) {
+        const groups = {};
+        rawMcqData.forEach(item => {
+            if (!groups[item.exo]) groups[item.exo] = [];
+            groups[item.exo].push(item);
+        });
+
+        const sortedExos = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+
+        sortedExos.forEach((exo, index) => {
+            groups[exo].sort(sortItems);
+            processedData.push(...groups[exo]); 
+
+            if (index < sortedExos.length - 1) {
+                processedData.push({
+                    label: " ".repeat(index + 1), 
+                    score: 0,
+                    qstId: null, 
+                    exo: "gap",
+                    isGap: true
+                });
+            }
+        });
+    } else {
+        processedData = [...rawMcqData].sort(sortItems);
+    }
+
+    const labels = processedData.map(d => d.label);
+    const dataValues = processedData.map(d => d.score);
+    const qstIds = processedData.map(d => d.qstId);
+
+    const barColors = processedData.map(item => {
+        if (item.isGap) return "rgba(0,0,0,0)"; 
+        if (item.score >= 80) return "#28a745"; 
+        if (item.score >= 60) return "#85c85b"; 
+        if (item.score >= 40) return "#ffc107"; 
+        if (item.score >= 20) return "#fd7e14"; 
+        return "#dc3545"; 
+    });
+
+    drawMcqChart(labels, dataValues, qstIds, barColors);
 }
 
 // drawing the mcq overview chart
@@ -363,11 +424,12 @@ function drawMcqChart(labels, dataValues, qstIds, colors) {
                 }
             },
             // handling click event on bars
-            // handling click event on bars
             onClick: (event, activeElements) => {
                 if (activeElements.length > 0) {
                     const dataIndex = activeElements[0].index;
                     const clickedQstId = qstIds[dataIndex];
+                    
+                    if (!clickedQstId) return;
                     
                     const qstSelector = document.getElementById("qst_selector");
                     if (qstSelector) {
