@@ -332,3 +332,38 @@ def route_stats_mcq_overview_data(
             "data": data,
             "qst_ids": qst_ids
         })
+
+@router.post("/stats/oper/tags-data")
+def route_stats_tags_data(req: fa.Request) -> fa.Response:
+    """
+    AJAX route to send Tags success rates (to find the hardest tags).
+    format: JSON
+    """
+    with context.Context(req) as ctx:
+        
+        DEV_MODE = True
+        
+        if DEV_MODE:
+            # Simulation de tags aléatoires pour le professeur
+            noms_tags = ["Bases de données", "Algorithmique", "Réseau", "Programmation C", "Web", "Sécurité", "Mathématiques"]
+            labels = []
+            data = []
+            tag_ids = []
+            
+            for i, nom in enumerate(noms_tags):
+                labels.append(nom)
+                # Génération d'un pourcentage de réussite aléatoire entre 15% et 95%
+                fake_percentage = round(random.uniform(15.0, 95.0), 1)
+                data.append(fake_percentage)
+                tag_ids.append(i + 1)
+                
+            return fa.responses.JSONResponse({
+                "labels": labels,
+                "data": data,
+                "tag_ids": tag_ids
+            })
+
+        # --- LOGIQUE POUR VRAIES DONNÉES (À adapter selon la structure de ta DB) ---
+        # Ici tu devras requêter tables.Tag, tables.ItemTag, etc. pour calculer
+        # la moyenne de réussite par Tag pour le current_user.
+        return fa.responses.JSONResponse({"labels": [], "data": [], "tag_ids": []})

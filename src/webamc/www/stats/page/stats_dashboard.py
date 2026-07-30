@@ -258,6 +258,38 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         evolution_canvas_container
         ])
 
+# Fourth diagram
+
+    sort_tags_options = [
+        he.Option(he.Str("Par difficulté (Du plus dur au plus facile)"), value="score_asc"),
+        he.Option(he.Str("Par réussite (Du plus facile au plus dur)"), value="score_desc"),
+        he.Option(he.Str("Par nom (A-Z)"), value="name_asc")
+    ]
+    select_tags_sort = he.Select(
+        *sort_tags_options,
+        id_="sel_sort_tags",
+        class_="box",
+        onchange="renderTagsOverview()"
+    )
+
+    tags_controls_div = he.Div(
+        he.Div(he.Str("Trier les tags :")),
+        he.Div(select_tags_sort, style_="margin-bottom: 15px;"),
+        style_="text-align: left; margin-bottom: 20px;"
+    )
+
+    tags_canvas_container = he.Div(
+        he.Canvas(id_="tags_overview_chart"),
+        style_="max-width: 800px; height: 400px; margin: 20px auto;"
+    )
+
+    elements.extend([
+        he.Hr(style_="margin: 40px 0; border: 2px solid #eee;"),
+        he.H2(he.Str("Analyse des Tags (Points faibles)")),
+        tags_controls_div,
+        tags_canvas_container
+    ])
+
 
 
     

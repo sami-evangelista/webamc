@@ -444,3 +444,103 @@ function drawMcqChart(labels, dataValues, qstIds, colors) {
         }
     });
 }
+
+
+let tagsChartInstance = null;
+let rawTagsData = [];
+
+function loadTagsOverview() {
+    fetch('/webamc/stats/oper/tags-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}) 
+    })
+    .then(async response => {
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        rawTagsData = data.labels.map((label, index) => {
+            return {
+                label: label,
+                score: data.data[index],
+                tagId: data.tag_ids[index]
+            };
+        });
+
+        renderTagsOverview();
+    })
+    .catch(error => console.error('Error fetching tags:', error));
+}
+
+
+function renderTagsOverview() {
+    if (!rawTagsData || rawTagsData.length === 0) return;
+
+    const selSort = document.getElementById("sel_sort_tags");
+    const sortMode = selSort ? selSort.value : "score_asc"; 
+
+    const sortItems = (a, b) => {
+        if (sortMode === "score_desc") return b.score - a.score;
+        if (sortMode === "score_asc") return a.score - b.score;
+        if (sortMode === "name_asc") return a.label.localeCompare(b.label);
+        return 0;
+    };
+
+    const processedData = [...rawTagsData].sort(sortItems);
+
+    const labels = processedData.map(d => d.label);
+    const dataValues = processedData.map(d => d.score);
+
+    const barColors = dataValues.map(percentage => {
+        if (percentage >= 80) return "#28a745"; 
+        if (percentage >= 60) return "#85c85b"; 
+        if (percentage >= 40) return "#ffc107"; 
+        if (percentage >= 20) return "#fd7e14"; 
+        return "#dc3545"; 
+    });
+
+    drawTagsChart(labels, dataValues, barColors);
+}
+
+function drawTagsChart(labels, dataValues, colors) {
+    const element = document.getElementById("tags_overview_chart"); 
+    if (!element) return;
+
+    if (tagsChartInstance) {
+        tagsChartInstance.destroy();
+    }
+
+    tagsChartInstance = new Chart(element, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Taux de réussite par Tag (%)", 
+                data: dataValues,
+                backgroundColor: colors || "#fd7e14", 
+                maxBarThickness: 50
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100 
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45 
+                    }
+                }
+            }
+        }
+    });
+}
+setTimeout(() => {
+    if (document.getElementById("tags_overview_chart")) {
+        loadTagsOverview();
+    }
+}, 100);
