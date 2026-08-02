@@ -368,6 +368,8 @@ cols_visible = {
     "usr_fst_name",
     "usr_id",
     "usr_name",
+    "rvs_usr",
+    "rvs_mcq"
 }
 
 

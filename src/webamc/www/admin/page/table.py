@@ -19,11 +19,20 @@ def page(
     ).tbl_name
     tbl = db_util.get_tbl(tbl_name)
     pkey = db_util.get_tbl_pkey(tbl)
+    # cols = [
+    #     col
+    #     for col in db_util.get_tbl_cols(tbl)
+    #     if www_db_util.is_visible(col)
+    # ]
+    all_tbl_cols = db_util.get_tbl_cols(tbl)
+
     cols = [
         col
-        for col in db_util.get_tbl_cols(tbl)
+        for col in all_tbl_cols
         if www_db_util.is_visible(col)
     ]
+    
+
 
     # table head with column description and new button
     js = "admin_new_row_btn_click()"

@@ -302,10 +302,14 @@ class ExamSubmission(Base):
 class ReviewSubmission(Base):
     __tablename__ = "review_submission"
     rvs_id: int = CO(RefSubmission, primary_key=True)
-    rvs_exam: int = CO(RefExam, nullable=False)
+    rvs_usr: int = CO(RefUsr, nullable=False)
+    rvs_mcq: int = CO(RefItem, nullable=False)
+
+    
     __table_args__ = (
         FK(["rvs_id"], ["submission.sub_id"], ondelete="CASCADE"),
-        FK(["rvs_exam"], ["exam.exm_id"], ondelete="CASCADE"),
+        FK(["rvs_usr"], ["usr.usr_id"], ondelete="CASCADE"),
+        FK(["rvs_mcq"], ["item.itm_id"], ondelete="CASCADE"),
     )
 
 
@@ -383,7 +387,8 @@ TBL_CODES: dict[str, list[str]] = {
     "tbl": ["tbl_name"],
     "usr": ["usr_code"],
     "usr_attr": ["uat_usr", "uat_attr"],
-    "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"]
+    "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"],
+    "review_submission": ["rvs_usr", "rvs_mcq"]
 }
 
 
