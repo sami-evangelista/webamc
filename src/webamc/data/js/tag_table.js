@@ -52,32 +52,77 @@ class TagTable {
         }
     }
 
+    // add_tag() {
+    //     const input_id = this.input_id();
+    //     const  _this = this;
+    //     const success = function (result) {
+    //         for(const value of result.result.values) {
+    //             const go = function () {
+    //                 _this.tags[value.tag_id] = value;
+    //                 $('#' + input_id).val('');
+    //                 $('#' + input_id).focus();
+    //                 _this.html();
+    //             }
+    //             if(!(value.tag_id in _this.tags)) {
+    //                 if(_this.add_fun == null) {
+    //                     go();
+    //                 } else {
+    //                     _this.add_fun(value['tag_id'], go);
+    //                 }
+    //             }
+    //         }
+    //     };
+    //     const where = {
+    //         'col': 'tag_name',
+    //         'op': '=',
+    //         'val': $('#' + input_id).val()
+    //     };
+    //     xhr_db_select('tag', [ where ], success);
+    // }
+
     add_tag() {
         const input_id = this.input_id();
-        const  _this = this;
-        const success = function (result) {
-            for(const value of result.result.values) {
-                const go = function () {
-                    _this.tags[value.tag_id] = value;
-                    $('#' + input_id).val('');
-                    $('#' + input_id).focus();
-                    _this.html();
-                }
-                if(!(value.tag_id in _this.tags)) {
-                    if(_this.add_fun == null) {
-                        go();
-                    } else {
-                        _this.add_fun(value['tag_id'], go);
-                    }
+        const tag_name_input = $('#' + input_id).val().trim();
+        if (!tag_name_input) return;
+
+        const _this = this;
+
+        const attachTag = function(tag_obj) {
+            const go = function () {
+                _this.tags[tag_obj.tag_id] = tag_obj;
+                $('#' + input_id).val('').focus();
+                _this.html();
+            };
+            if (!(tag_obj.tag_id in _this.tags)) {
+                if (_this.add_fun == null) {
+                    go();
+                } else {
+                    _this.add_fun(tag_obj.tag_id, go);
                 }
             }
         };
+
         const where = {
             'col': 'tag_name',
             'op': '=',
-            'val': $('#' + input_id).val()
+            'val': tag_name_input
         };
-        xhr_db_select('tag', [ where ], success);
+        
+        xhr_db_select('tag', [ where ], function (result) {
+            const values = result.result.values;
+            if (values.length > 0) {
+                attachTag(values[0]);
+            } else {
+                const new_tag_data = { 'tag_name': tag_name_input };
+                xhr_db_insert('tag', new_tag_data, function(insert_res) {
+                    if (insert_res && insert_res.result && insert_res.result.values) {
+                        attachTag(insert_res.result.values[0]);
+                    } else {
+                        attachTag({ 'tag_id': insert_res.id, 'tag_name': tag_name_input });
+                    }
+                });
+            }
+        });
     }
 
     tag_element(tag_id, tag) {
@@ -136,6 +181,42 @@ class TagTable {
         xhr_db_select('tag', [ where ], success);
     }
     
+    // html() {
+    //     var html = '<div>';
+    //     if(this.add_btn) {
+    //         html += this.input_add();
+    //     }
+    //     for(const tag_id in this.tags) {
+    //         html += this.tag_element(tag_id, this.tags[tag_id]);
+    //     }
+    //     html += '</div>';
+    //     html += '<datalist id="' + this.datalist_id() + '"></datalist>';
+    //     $('#' + this.container_id).html(html);
+        
+    //     if(this.del_btn) {
+    //         for(const tag_id in this.tags) {
+    //             const _this = this;
+    //             $('#' + this.tag_element_id(tag_id)).click(function () {
+    //                 _this.del_tag(tag_id);
+    //             });
+    //         }
+    //     }
+    //     if(this.add_btn) {
+    //         const _this = this;
+    //         $('#' + this.a_add_id()).click(function () {
+    //             _this.add_tag();
+    //         });
+    //         $('#' + this.input_id()).keypress(function () {
+    //             _this.input_keypressed();
+    //         });
+    //         $('#' + this.input_id()).on('keyup', function (e) {
+    //             if(e.key == "Enter") {
+    //                 _this.add_tag();
+    //             }
+    //         });
+    //     }
+    // }
+
     html() {
         var html = '<div>';
         if(this.add_btn) {
@@ -158,14 +239,23 @@ class TagTable {
         }
         if(this.add_btn) {
             const _this = this;
-            $('#' + this.a_add_id()).click(function () {
-                _this.add_tag();
-            });
-            $('#' + this.input_id()).keypress(function () {
+            const input_el = $('#' + this.input_id());
+            const add_btn_el = $('#' + this.a_add_id());
+            
+            if (add_btn_el.length > 0) {
+                add_btn_el.click(function () {
+                    _this.add_tag();
+                });
+            }
+
+            input_el.keypress(function () {
                 _this.input_keypressed();
             });
-            $('#' + this.input_id()).on('keyup', function (e) {
-                if(e.key == "Enter") {
+            
+            // Validation directe par la touche Entrée
+            input_el.on('keydown', function (e) {
+                if (e.key === "Enter" || e.keyCode === 13) {
+                    e.preventDefault();
                     _this.add_tag();
                 }
             });

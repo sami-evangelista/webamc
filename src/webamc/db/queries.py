@@ -505,6 +505,7 @@ def get_item_tags(dbs: Session, itm_id: int) -> list[tables.Tag]:
     ).all()
 
 
+
 def get_mcq(
         dbs: Session,
         mcq_id: int

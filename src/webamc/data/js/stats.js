@@ -251,7 +251,6 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
             datasets: [{
                 label: "Note obtenue", 
                 data: dataValues, 
-                
                 borderColor: "#007bff",
                 backgroundColor: "#007bff",
                 borderWidth: 2,
@@ -460,11 +459,17 @@ function loadTagsOverview() {
         return response.json();
     })
     .then(data => {
+        if (!data.labels || !data.data) {
+            console.warn("No tags data received.");
+            return;
+        }
+        
         rawTagsData = data.labels.map((label, index) => {
             return {
                 label: label,
                 score: data.data[index],
-                tagId: data.tag_ids[index]
+                tagId: data.tag_ids ? data.tag_ids[index] : null,
+                count: (data.counts && data.counts[index]) ? data.counts[index] : 0
             };
         });
 
@@ -478,33 +483,36 @@ function renderTagsOverview() {
     if (!rawTagsData || rawTagsData.length === 0) return;
 
     const selSort = document.getElementById("sel_sort_tags");
-    const sortMode = selSort ? selSort.value : "score_asc"; 
+    const sortMode = selSort ? selSort.value : "score_asc";
 
-    const sortItems = (a, b) => {
+    // 1. Tri dynamique des données
+    const processedData = [...rawTagsData].sort((a, b) => {
         if (sortMode === "score_desc") return b.score - a.score;
         if (sortMode === "score_asc") return a.score - b.score;
         if (sortMode === "name_asc") return a.label.localeCompare(b.label);
         return 0;
-    };
-
-    const processedData = [...rawTagsData].sort(sortItems);
-
-    const labels = processedData.map(d => d.label);
-    const dataValues = processedData.map(d => d.score);
-
-    const barColors = dataValues.map(percentage => {
-        if (percentage >= 80) return "#28a745"; 
-        if (percentage >= 60) return "#85c85b"; 
-        if (percentage >= 40) return "#ffc107"; 
-        if (percentage >= 20) return "#fd7e14"; 
-        return "#dc3545"; 
     });
 
-    drawTagsChart(labels, dataValues, barColors);
+    // 2. Extraction des tableaux synchronisés après le tri
+    const labels = processedData.map(d => d.label);
+    const dataValues = processedData.map(d => d.score);
+    const counts = processedData.map(d => d.count || 0); // <-- Extraction propre du nombre d'évaluations
+
+    // 3. Attribution des couleurs par palier de réussite
+    const barColors = dataValues.map(percentage => {
+        if (percentage >= 80) return "#28a745";
+        if (percentage >= 60) return "#85c85b";
+        if (percentage >= 40) return "#ffc107";
+        if (percentage >= 20) return "#fd7e14";
+        return "#dc3545";
+    });
+
+    // 4. Envoi de toutes les données synchronisées au graphique
+    drawTagsChart(labels, dataValues, barColors, counts);
 }
 
-function drawTagsChart(labels, dataValues, colors) {
-    const element = document.getElementById("tags_overview_chart"); 
+function drawTagsChart(labels, dataValues, colors, counts = []) {
+    const element = document.getElementById("tags_overview_chart");
     if (!element) return;
 
     if (tagsChartInstance) {
@@ -516,9 +524,9 @@ function drawTagsChart(labels, dataValues, colors) {
         data: {
             labels: labels,
             datasets: [{
-                label: "Taux de réussite par Tag (%)", 
+                label: "Taux de réussite par Tag (%)",
                 data: dataValues,
-                backgroundColor: colors || "#fd7e14", 
+                backgroundColor: colors || "#fd7e14",
                 maxBarThickness: 50
             }]
         },
@@ -527,18 +535,35 @@ function drawTagsChart(labels, dataValues, colors) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100 
+                    max: 100
                 },
                 x: {
                     ticks: {
                         maxRotation: 45,
-                        minRotation: 45 
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const percent = context.parsed.y || context.raw;
+                            const count = counts[context.dataIndex] || 0; // <-- Lecture directe et sécurisée
+
+                            if (count > 0) {
+                                const s = count > 1 ? "s" : "";
+                                return `${percent}% de réussite (${count} réponse${s} évaluée${s})`;
+                            }
+                            return `${percent}% de réussite`;
+                        }
                     }
                 }
             }
         }
     });
 }
+
 setTimeout(() => {
     if (document.getElementById("tags_overview_chart")) {
         loadTagsOverview();

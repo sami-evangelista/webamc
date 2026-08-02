@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -159,7 +159,7 @@ def route_stats_evolution_data(
 
     with context.Context(req) as ctx:
         
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test evolution graphs
         if DEV_MODE:
@@ -256,7 +256,7 @@ def route_stats_mcq_overview_data(
         # getting questions for this mcq
         questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -265,7 +265,7 @@ def route_stats_mcq_overview_data(
             qst_ids = []
             
             for i, qst in enumerate(questions):
-                # Récupération de l'Item pour avoir le itm_code
+                # getting item to get the itm_code
                 itm = queries.get_item(ctx.dbs, qst.qst_id)
                 label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
                 
@@ -336,24 +336,33 @@ def route_stats_mcq_overview_data(
 @router.post("/stats/oper/tags-data")
 def route_stats_tags_data(req: fa.Request) -> fa.Response:
     """
-    AJAX route to send Tags success rates (to find the hardest tags).
+    AJAX route to send Tags success rates based on real database scores
+    or simulated data in DEV_MODE.
     format: JSON
     """
     with context.Context(req) as ctx:
         
-        DEV_MODE = True
+        DEV_MODE = False
         
+        # --- DEV MODE TO TEST THE FRONTEND ---
         if DEV_MODE:
-            # Simulation de tags aléatoires pour le professeur
-            noms_tags = ["Bases de données", "Algorithmique", "Réseau", "Programmation C", "Web", "Sécurité", "Mathématiques"]
+            noms_tags = [
+                "Bases de données",
+                "Algorithmique",
+                "Réseau",
+                "Programmation C",
+                "Web",
+                "Sécurité",
+                "Mathématiques"
+            ]
             labels = []
             data = []
             tag_ids = []
             
             for i, nom in enumerate(noms_tags):
                 labels.append(nom)
-                # Génération d'un pourcentage de réussite aléatoire entre 15% et 95%
-                fake_percentage = round(random.uniform(15.0, 95.0), 1)
+                # Génération d'un pourcentage moyen aléatoire entre 25% et 90%
+                fake_percentage = round(random.uniform(25.0, 90.0), 1)
                 data.append(fake_percentage)
                 tag_ids.append(i + 1)
                 
@@ -363,7 +372,86 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
                 "tag_ids": tag_ids
             })
 
-        # --- LOGIQUE POUR VRAIES DONNÉES (À adapter selon la structure de ta DB) ---
-        # Ici tu devras requêter tables.Tag, tables.ItemTag, etc. pour calculer
-        # la moyenne de réussite par Tag pour le current_user.
-        return fa.responses.JSONResponse({"labels": [], "data": [], "tag_ids": []})
+        # --- 2. MODE PRODUCTION (Vraies données de la DB par professeur) ---
+        current_usr_id = session.usr_id(ctx)
+
+        # Récupération de tous les examens créés par le professeur connecté
+        teacher_exams = ctx.dbs.query(tables.Exam).join(
+            tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
+        ).filter(
+            tables.Item.itm_usr == current_usr_id
+        ).all()
+
+        if not teacher_exams:
+            return fa.responses.JSONResponse({"labels": [], "data": [], "tag_ids": []})
+
+        tag_stats: dict[int, list[float]] = {}
+        tag_names: dict[int, str] = {}
+
+        all_item_tags = ctx.dbs.query(tables.ItemTag).all()
+        for it in all_item_tags:
+            print(f"🚨 UN TAG EST ENREGISTRÉ SUR L'ITEM ID : {it.itg_item} (Tag ID: {it.itg_tag})")
+
+        for exam in teacher_exams:
+            submissions = ctx.dbs.query(tables.ExamSubmission).join(
+                tables.Registration, tables.ExamSubmission.exs_registration == tables.Registration.reg_id
+            ).filter(
+                tables.Registration.reg_exam == exam.exm_id
+            ).all()
+
+            for sub in submissions:
+                detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exam.exm_mcq, sub.exs_id)
+
+                for qst_id, score in detailed_scores.items():
+                    # On récupère l'item
+                    item_obj = queries.get_item(ctx.dbs, qst_id)
+                    
+                    # On collecte tous les ID possibles à tester (l'ID direct ET le parent s'il existe)
+                    ids_to_check = [qst_id]
+                    if item_obj and item_obj.itm_parent:
+                        ids_to_check.append(item_obj.itm_parent)
+
+                    # On cherche les tags sur tous ces ID
+                    tags = []
+                    for check_id in ids_to_check:
+                        found_tags = queries.get_item_tags(ctx.dbs, check_id)
+                        if found_tags:
+                            tags.extend(found_tags)
+
+                    print(f"🔍 Exam {exam.exm_id} | Question lue: {qst_id} | Tags trouvés: {[t.tag_name for t in tags]}")
+
+                    for tag in tags:
+                        if tag.tag_id not in tag_stats:
+                            tag_stats[tag.tag_id] = [0.0, 0.0]
+                            tag_names[tag.tag_id] = str(tag.tag_name)
+
+                        tag_stats[tag.tag_id][0] += float(score)
+                        tag_stats[tag.tag_id][1] += 1.0
+
+
+
+        labels = []
+        data = []
+        tag_ids = []
+        counts = []
+
+        for tag_id, (total_score, count) in tag_stats.items():
+            labels.append(tag_names[tag_id])
+            avg_percent = round((total_score / count) * 100, 1) if count > 0 else 0.0
+            data.append(avg_percent)
+            tag_ids.append(tag_id)
+            counts.append(int(count))
+
+        # --- TEST / LOGS PYTHON ---
+        print("👉 1. NB EXAMS DU PROF :", len(teacher_exams))
+        print("👉 2. DICTIONNAIRE TAGS :", tag_stats)
+        print("👉 3. LABELS FINAUX :", labels)
+        print("👉 4. DATA FINALES :", data)
+        # --------------------------
+
+        return fa.responses.JSONResponse({
+            "labels": labels,
+            "data": data,
+            "tag_ids": tag_ids,
+            "counts": counts
+        })
