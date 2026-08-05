@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -159,7 +159,7 @@ def route_stats_evolution_data(
 
     with context.Context(req) as ctx:
         
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test evolution graphs
         if DEV_MODE:
@@ -256,7 +256,7 @@ def route_stats_mcq_overview_data(
         # getting questions for this mcq
         questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
 
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -342,7 +342,7 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
     """
     with context.Context(req) as ctx:
         
-        DEV_MODE = False
+        DEV_MODE = True
         
         # --- DEV MODE TO TEST THE FRONTEND ---
         if DEV_MODE:
