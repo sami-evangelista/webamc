@@ -49,7 +49,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         *exam_options,
         id_="exam_selector",
         class_="box",
-        onchange="window.location.href = '?exam_id=' + this.value;"
+        onchange="if(typeof loadExamDetail === 'function') { loadExamDetail(this.value); } else { window.location.href = '?exam_id=' + this.value; }"
     )
 
     header_section = he.Div(
@@ -62,7 +62,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         style_=header_style
     )
 
-    # --- CARTE 1 : questions ---
+    # --- card 1 : questions ---
     card_question_detail = he.Div()
     if exam_id is not None:
         exam = ctx.dbs.query(tables.Exam).filter(tables.Exam.exm_id == exam_id).first()
@@ -71,11 +71,13 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         qst_options: list[he.Element] = [
             he.Option(he.Str(lang.txt("stats_select_qst")), value="")
         ]
-        for i, qst in enumerate(questions):
-            label = chr(65 + i) if i < 26 else str(i + 1)
+        for qst in questions:
+            itm = queries.get_item(ctx.dbs, qst.qst_id)
+            code_display = str(itm.itm_code) if (itm and itm.itm_code) else f"Qst {qst.qst_id}"
+            
             qst_options.append(
                 he.Option(
-                    he.Str(f"{lang.txt('stats_qst_prefix')} {label}"),
+                    he.Str(code_display),
                     value=f"{qst.qst_id}"
                 )
             )
@@ -90,7 +92,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         qst_image_element = he.Img(
             id_="qst_image", 
             src="", 
-            style_="display: none; max-width: 100%; border: 1px solid #e2e8f0; border-radius: 4px; margin-bottom: 15px;"
+            style_="display: none; width: 100%; max-height: 380px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 15px; cursor: zoom-in; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #f8fafc;",
+            onclick="document.getElementById('modal_image').src = this.src; document.getElementById('image_modal').style.display = 'flex';"
         )
         
         choices_container = he.Div(
@@ -100,10 +103,10 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         choices_container.set_attr("data-title", lang.txt("stats_answers_detail"))
         choices_container.set_attr("data-answer", lang.txt("stats_answer_prefix"))
 
-        left_column = he.Div(qst_image_element, choices_container, style_="flex: 1; min-width: 280px;")
+        left_column = he.Div(qst_image_element, choices_container, style_="flex: 1.2; min-width: 360px;")
         right_column = he.Div(
             he.Canvas(id_="chart"),
-            style_="flex: 1; min-width: 300px; min-height: 300px;"
+            style_="flex: 1; min-width: 300px; min-height: 320px;"
         )
 
         card_question_detail = he.Div(
@@ -250,6 +253,17 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         style_=card_style
     )
 
+    image_modal = he.Div(
+        he.Img(
+            id_="modal_image", 
+            src="", 
+            style_="max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); object-fit: contain;"
+        ),
+        id_="image_modal",
+        style_="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.80); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out;",
+        onclick="this.style.display = 'none';"
+    )
+
     # --- dashboard ---
     dashboard_root = he.Div(
         header_section,
@@ -257,6 +271,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         card_overview,
         card_evolution,
         card_tags,
+        image_modal,
         style_=dashboard_style
     )
 
