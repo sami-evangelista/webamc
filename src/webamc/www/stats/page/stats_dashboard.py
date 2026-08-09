@@ -265,9 +265,10 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     )
 
     # --- dashboard ---
+    question_element = card_question_detail if exam_id is not None else he.Empty()
     dashboard_root = he.Div(
         header_section,
-        card_question_detail if exam_id is not None else "",
+        question_element,
         card_overview,
         card_evolution,
         card_tags,

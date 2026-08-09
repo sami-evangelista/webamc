@@ -101,6 +101,7 @@ path_t = tp.Literal[
     "/ticket/oper/account-creation",
     "/ticket/oper/send",
     "/ticket/oper/password-change",
+    "/stats/page/dashboard",
 ]
 
 mail_file_t = tp.Literal[
