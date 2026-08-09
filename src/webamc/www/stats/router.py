@@ -32,7 +32,7 @@ def route_stats_open_graph_data(
         # getting all possible choices for this question
         choices = queries.get_question_choices(ctx.dbs, qst_id)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -159,7 +159,7 @@ def route_stats_evolution_data(
 
     with context.Context(req) as ctx:
         
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test evolution graphs
         if DEV_MODE:
@@ -256,7 +256,7 @@ def route_stats_mcq_overview_data(
         # getting questions for this mcq
         questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
 
-        DEV_MODE = True
+        DEV_MODE = False
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
@@ -314,10 +314,8 @@ def route_stats_mcq_overview_data(
 
         # building labels and calculating success percentage
         for i, qst in enumerate(questions):
-            # Récupération de l'Item pour avoir le itm_code
             itm = queries.get_item(ctx.dbs, qst.qst_id)
             
-            # Si la question a un code, on l'utilise, sinon on met "Qst X" par sécurité
             label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
             labels.append(label)
             
@@ -342,7 +340,7 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
     """
     with context.Context(req) as ctx:
         
-        DEV_MODE = True
+        DEV_MODE = False
         
         # --- DEV MODE TO TEST THE FRONTEND ---
         if DEV_MODE:
@@ -361,7 +359,6 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
             
             for i, nom in enumerate(noms_tags):
                 labels.append(nom)
-                # Génération d'un pourcentage moyen aléatoire entre 25% et 90%
                 fake_percentage = round(random.uniform(25.0, 90.0), 1)
                 data.append(fake_percentage)
                 tag_ids.append(i + 1)
@@ -372,10 +369,9 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
                 "tag_ids": tag_ids
             })
 
-        # --- 2. MODE PRODUCTION (Vraies données de la DB par professeur) ---
         current_usr_id = session.usr_id(ctx)
 
-        # Récupération de tous les examens créés par le professeur connecté
+        # getting all exams created by the teacher
         teacher_exams = ctx.dbs.query(tables.Exam).join(
             tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
         ).filter(
@@ -389,8 +385,6 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
         tag_names: dict[int, str] = {}
 
         all_item_tags = ctx.dbs.query(tables.ItemTag).all()
-        for it in all_item_tags:
-            print(f"🚨 UN TAG EST ENREGISTRÉ SUR L'ITEM ID : {it.itg_item} (Tag ID: {it.itg_tag})")
 
         for exam in teacher_exams:
             submissions = ctx.dbs.query(tables.ExamSubmission).join(
@@ -403,22 +397,21 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
                 detailed_scores = queries.get_student_detailed_scores(ctx.dbs, exam.exm_mcq, sub.exs_id)
 
                 for qst_id, score in detailed_scores.items():
-                    # On récupère l'item
+                    # getting the item
                     item_obj = queries.get_item(ctx.dbs, qst_id)
                     
-                    # On collecte tous les ID possibles à tester (l'ID direct ET le parent s'il existe)
+                    # collecting all possible ids to test
                     ids_to_check = [qst_id]
                     if item_obj and item_obj.itm_parent:
                         ids_to_check.append(item_obj.itm_parent)
 
-                    # On cherche les tags sur tous ces ID
+                    # searching tags from these ids
                     tags = []
                     for check_id in ids_to_check:
                         found_tags = queries.get_item_tags(ctx.dbs, check_id)
                         if found_tags:
                             tags.extend(found_tags)
 
-                    print(f"🔍 Exam {exam.exm_id} | Question lue: {qst_id} | Tags trouvés: {[t.tag_name for t in tags]}")
 
                     for tag in tags:
                         if tag.tag_id not in tag_stats:
@@ -441,13 +434,6 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
             data.append(avg_percent)
             tag_ids.append(tag_id)
             counts.append(int(count))
-
-        # --- TEST / LOGS PYTHON ---
-        print("👉 1. NB EXAMS DU PROF :", len(teacher_exams))
-        print("👉 2. DICTIONNAIRE TAGS :", tag_stats)
-        print("👉 3. LABELS FINAUX :", labels)
-        print("👉 4. DATA FINALES :", data)
-        # --------------------------
 
         return fa.responses.JSONResponse({
             "labels": labels,

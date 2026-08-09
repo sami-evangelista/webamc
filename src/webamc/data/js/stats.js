@@ -485,7 +485,6 @@ function renderTagsOverview() {
     const selSort = document.getElementById("sel_sort_tags");
     const sortMode = selSort ? selSort.value : "score_asc";
 
-    // 1. Tri dynamique des données
     const processedData = [...rawTagsData].sort((a, b) => {
         if (sortMode === "score_desc") return b.score - a.score;
         if (sortMode === "score_asc") return a.score - b.score;
@@ -493,12 +492,10 @@ function renderTagsOverview() {
         return 0;
     });
 
-    // 2. Extraction des tableaux synchronisés après le tri
     const labels = processedData.map(d => d.label);
     const dataValues = processedData.map(d => d.score);
-    const counts = processedData.map(d => d.count || 0); // <-- Extraction propre du nombre d'évaluations
+    const counts = processedData.map(d => d.count || 0); 
 
-    // 3. Attribution des couleurs par palier de réussite
     const barColors = dataValues.map(percentage => {
         if (percentage >= 80) return "#28a745";
         if (percentage >= 60) return "#85c85b";
@@ -507,7 +504,6 @@ function renderTagsOverview() {
         return "#dc3545";
     });
 
-    // 4. Envoi de toutes les données synchronisées au graphique
     drawTagsChart(labels, dataValues, barColors, counts);
 }
 
@@ -549,7 +545,7 @@ function drawTagsChart(labels, dataValues, colors, counts = []) {
                     callbacks: {
                         label: function(context) {
                             const percent = context.parsed.y || context.raw;
-                            const count = counts[context.dataIndex] || 0; // <-- Lecture directe et sécurisée
+                            const count = counts[context.dataIndex] || 0; 
 
                             if (count > 0) {
                                 const s = count > 1 ? "s" : "";

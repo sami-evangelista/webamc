@@ -230,6 +230,13 @@ from 1 to 5. This is useful if you want to create question packs based
 on their difficulty (see this
 Section~\ref{subsec:submission/json-file-format}).
 %%%%%
+\paragraph{Attribute \name{INSTANCES}}
+This defines the number of unique variations (instances) to generate
+for the component. It must be an integer. When set to a value greater
+than 1, webamc will compile the question multiple times, providing a
+unique seed and executing any associated Python script for each instance
+(see Section~\ref{subsec:submission/dynamic}). Default value is \verb+1+.
+%%%%%
 \paragraph{Attribute \name{RND}}
 This defines whether or not the component content (e.g., questions of
 an exercise or answers of a question) is randomized. Accepted values
@@ -281,6 +288,7 @@ table:
     \hline
     \name{CODE}       & 2 & 0 & 2 & 0 & 0\\
     \name{DIFFICULTY} & 1 & 0 & 1 & 1 & 1\\
+    \name{INSTANCES}  & 1 & 0 & 1 & 1 & 1\\
     \name{RND}        & 1 & 0 & 1 & 1 & 1\\
     \name{STANDALONE} & 0 & 0 & 0 & 1 & 1\\
     \name{TAG}        & 1 & 0 & 1 & 1 & 1\\
@@ -288,6 +296,94 @@ table:
     \name{VISIBLE}    & 1 & 0 & 1 & 1 & 1\\
   \end{tabular}
 \end{center}
+
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamic Questions and Instances}
+\label{subsec:submission/dynamic}
+Webamc allows you to generate multiple distinct versions (instances)
+of a single question automatically. This feature is particularly
+useful for creating exercises with randomized numerical values,
+variables, or varying scenarios.
+
+To generate multiple instances, use the \name{INSTANCES} attribute
+(e.g., \verb+%webamc INSTANCES=10+). For each instance generated,
+webamc creates a unique internal seed. You can leverage these
+instances to inject dynamic data into your latex code in several
+ways.
+
+%%%%%%%%%%
+\subsubsection{Built-in latex random seeds}
+For each instance, a reproducible, unique seed is computed. Webamc
+automatically exposes this seed to latex
+through the \verb+\WEBAMCseed+ macro. Furthermore, to make
+integration with popular latex math and random packages seamless,
+webamc will attempt to auto-seed them if they are defined in your
+preamble:
+\begin{tex}
+\FPseed=\WEBAMCseed
+\pgfmathsetseed{\WEBAMCseed}
+\end{tex}
+Additionally, the macro \verb+\thecopy+ is defined and holds the
+current instance number (starting from 1).
+
+%%%%%%%%%%
+\subsubsection{Latex Custom Variables Block}
+You can define a block of latex code that will be dynamically
+injected into the preamble for each instance. This block must be
+enclosed between \verb+%webamc BEGIN+ and \verb+%webamc END+ tags
+in your \file{qst-XXX.tex} file.
+\begin{tex}
+%webamc BEGIN
+\pgfmathparse{random(1, 10)}
+\let\MYrandomval\pgfmathresult
+%webamc END
+\end{tex}
+Webamc will extract this block, remove it from the standard
+question body, and place it safely in the generated latex
+document preamble so that your variables are computed and
+available before the question is rendered.
+
+%%%%%%%%%%
+\subsubsection{External Python Scripts}
+For more complex logic, webamc allows you to compute dynamic
+variables using Python. If a Python script with the exact same
+base name as your question file (e.g., \file{qst-math.py}
+for \file{qst-math.tex}) is present in the same directory,
+webamc will automatically execute it before compiling each
+instance.
+
+During execution:
+\begin{itemize}
+\item The standard Python \verb+random+ module is automatically
+  seeded with the instance's unique seed, ensuring reproducibility.
+\item Any variable you wish to pass to latex must be placed
+  inside a Python dictionary named \verb+VAR+.
+\end{itemize}
+
+For example, if your file \file{qst-math.py} contains:
+\begin{verbatim}
+import random
+A = random.randint(1, 10)
+B = random.randint(1, 10)
+VAR = {
+    "Aval": A,
+    "Bval": B,
+    "Sum": A + B
+}
+\end{verbatim}
+
+Webamc will process this dictionary and automatically generate the
+corresponding latex macros. These macros are injected into the
+preamble for that specific instance:
+\begin{tex}
+\def\VARAval{...}
+\def\VARBval{...}
+\def\VARSum{...}
+\end{tex}
+
+You can then directly use \verb+\VARAval+, \verb+\VARBval+,
+and \verb+\VARSum+ in your \file{qst-math.tex} statement without
+writing any complex latex math logic.
 %%%%%%%%%%%%%%%%%%%%
 \subsection{Component compilation and submission}
 The \command{webamc compile} command takes two arguments:

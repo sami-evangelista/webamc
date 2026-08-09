@@ -52,37 +52,10 @@ class TagTable {
         }
     }
 
-    // add_tag() {
-    //     const input_id = this.input_id();
-    //     const  _this = this;
-    //     const success = function (result) {
-    //         for(const value of result.result.values) {
-    //             const go = function () {
-    //                 _this.tags[value.tag_id] = value;
-    //                 $('#' + input_id).val('');
-    //                 $('#' + input_id).focus();
-    //                 _this.html();
-    //             }
-    //             if(!(value.tag_id in _this.tags)) {
-    //                 if(_this.add_fun == null) {
-    //                     go();
-    //                 } else {
-    //                     _this.add_fun(value['tag_id'], go);
-    //                 }
-    //             }
-    //         }
-    //     };
-    //     const where = {
-    //         'col': 'tag_name',
-    //         'op': '=',
-    //         'val': $('#' + input_id).val()
-    //     };
-    //     xhr_db_select('tag', [ where ], success);
-    // }
-
     add_tag() {
         const input_id = this.input_id();
         const tag_name_input = $('#' + input_id).val().trim();
+        
         if (!tag_name_input) return;
 
         const _this = this;
@@ -110,17 +83,12 @@ class TagTable {
         
         xhr_db_select('tag', [ where ], function (result) {
             const values = result.result.values;
+            
             if (values.length > 0) {
                 attachTag(values[0]);
             } else {
-                const new_tag_data = { 'tag_name': tag_name_input };
-                xhr_db_insert('tag', new_tag_data, function(insert_res) {
-                    if (insert_res && insert_res.result && insert_res.result.values) {
-                        attachTag(insert_res.result.values[0]);
-                    } else {
-                        attachTag({ 'tag_id': insert_res.id, 'tag_name': tag_name_input });
-                    }
-                });
+                alert("Le tag '" + tag_name_input + "' n'existe pas.");
+                $('#' + input_id).val('').focus();
             }
         });
     }
@@ -252,7 +220,6 @@ class TagTable {
                 _this.input_keypressed();
             });
             
-            // Validation directe par la touche Entrée
             input_el.on('keydown', function (e) {
                 if (e.key === "Enter" || e.keyCode === 13) {
                     e.preventDefault();
