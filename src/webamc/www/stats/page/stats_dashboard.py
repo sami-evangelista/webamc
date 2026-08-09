@@ -11,12 +11,12 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     elements: list[he.Element] = []
 
     # --- DESIGN SYSTEM ---
-    dashboard_style = "max-width: 1200px; margin: 0 auto; padding: 20px; color: #334155;"
+    dashboard_style = "max-width: 1400px; margin: 0 auto; padding: 20px; color: #334155;"
     header_style = "margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;"
     card_style = "background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); padding: 24px; margin-bottom: 30px;"
     card_header_style = "display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9;"
     controls_group_style = "display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 0.9rem; color: #64748b;"
-    chart_container_style = "position: relative; width: 100%; min-height: 380px; display: flex; justify-content: center; align-items: center;"
+    chart_container_style = "position: relative; width: 100%; min-height: 500px; display: flex; justify-content: center; align-items: center;"
     qst_layout_style = "display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; margin-top: 15px; justify-content: space-between;"
 
     # --- db requests ---
@@ -106,7 +106,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         left_column = he.Div(qst_image_element, choices_container, style_="flex: 1.2; min-width: 360px;")
         right_column = he.Div(
             he.Canvas(id_="chart"),
-            style_="flex: 1; min-width: 300px; min-height: 320px;"
+            style_="flex: 1.5; min-width: 400px; min-height: 450px;"
         )
 
         card_question_detail = he.Div(
