@@ -304,14 +304,8 @@ function loadMcqOverview(examId) {
     })
     .then(data => {
         rawMcqData = data.labels.map((label, index) => {
-            let exo = "Autre"; 
-            
-            if (label && label.includes('/')) {
-                const parts = label.split('/');
-                parts.pop(); 
-                exo = parts.join('/'); 
-            }
-            
+            let exo = (data.exo_names && data.exo_names[index]) ? data.exo_names[index] : "Autre";   
+                     
             return {
                 label: label,
                 score: data.data[index],

@@ -256,13 +256,14 @@ def route_stats_mcq_overview_data(
         # getting questions for this mcq
         questions = queries.get_exam_questions(ctx.dbs, exam.exm_mcq)
 
-        DEV_MODE = False
+        DEV_MODE = True
         
         # simulation of fake random data to test stats graphs
         if DEV_MODE:
             labels = []
             data = []
             qst_ids = []
+            exo_names = []
             
             for i, qst in enumerate(questions):
                 # getting item to get the itm_code
@@ -270,6 +271,15 @@ def route_stats_mcq_overview_data(
                 label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
                 
                 labels.append(label)
+
+                exo_name = "Autre"
+
+                if itm.itm_parent:
+                    parent_itm = queries.get_item(ctx.dbs, itm.itm_parent)
+                    if parent_itm:
+                        exo_name = parent_itm.itm_title or parent_itm.itm_code or "Exercice sans nom"
+
+                exo_names.append(exo_name)
                 
                 # generating a fake success percentage between 10% and 100%
                 fake_percentage = round(random.uniform(10.0, 100.0), 1)
@@ -284,7 +294,8 @@ def route_stats_mcq_overview_data(
             return fa.responses.JSONResponse({
                 "labels": labels,
                 "data": data,
-                "qst_ids": qst_ids
+                "qst_ids": qst_ids,
+                "exo_names": exo_names
             })
 
         # getting all submissions tied to this specific exam
@@ -311,6 +322,7 @@ def route_stats_mcq_overview_data(
         labels = []
         data = []
         qst_ids = []
+        exo_names = []
 
         # building labels and calculating success percentage
         for i, qst in enumerate(questions):
@@ -318,6 +330,14 @@ def route_stats_mcq_overview_data(
             
             label = str(itm.itm_code) if itm.itm_code else f"Qst {i+1}"
             labels.append(label)
+
+            exo_name = "Autre"
+            if itm.itm_parent:
+                parent_itm = queries.get_item(ctx.dbs, itm.itm_parent)
+                if parent_itm:
+                    exo_name = parent_itm.itm_title or parent_itm.itm_code or "Exercice sans nom"
+
+            exo_names.append(exo_name)
             
             avg_score = question_totals[qst.qst_id] / total_students if total_students > 0 else 0.0
             percentage = round(avg_score * 100, 1)
@@ -328,7 +348,8 @@ def route_stats_mcq_overview_data(
         return fa.responses.JSONResponse({
             "labels": labels,
             "data": data,
-            "qst_ids": qst_ids
+            "qst_ids": qst_ids,
+            "exo_names": exo_names
         })
 
 @router.post("/stats/oper/tags-data")
