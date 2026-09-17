@@ -60,7 +60,7 @@ def page(
         for inst in all_instances:
             # On génère le texte traduit une seule fois pour éviter de se répéter
             inst_text = f"{lang.txt('name_instance')} {inst.iti_num}"
-            
+
             if int(inst.iti_num) == int(iti_num):
                 options.append(
                     he.Option(
@@ -86,7 +86,7 @@ def page(
         trs.append(
             he.Tr(
                 he.Td(
-                    he.Txt("name_instance") 
+                    he.Txt("name_instance")
                 ),
                 he.Td(selector)
             )

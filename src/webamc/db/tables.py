@@ -305,7 +305,7 @@ class ReviewSubmission(Base):
     rvs_usr: int = CO(RefUsr, nullable=False)
     rvs_mcq: int = CO(RefItem, nullable=False)
 
-    
+
     __table_args__ = (
         FK(["rvs_id"], ["submission.sub_id"], ondelete="CASCADE"),
         FK(["rvs_usr"], ["usr.usr_id"], ondelete="CASCADE"),

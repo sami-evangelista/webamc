@@ -1,0 +1,4 @@
+\newcommand\myadd[2]{%
+  \pgfkeys{/pgf/number format/.cd,fixed,fixed zerofill,precision=0}%
+  \pgfmathparse{add(#1,#2)}\pgfmathprintnumber{\pgfmathresult}%
+}

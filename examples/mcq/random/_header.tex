@@ -1,6 +1,12 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{pgf}
 
-\usepackage{automultiplechoice}
-\usepackage{fp}
+\ifdefined\WEBAMC
+\geometry{hmargin=0cm,headheight=0cm,headsep=0cm,footskip=0cm,top=0cm,bottom=0cm}
+\else
+\geometry{hmargin=2cm,headheight=2cm,headsep=.3cm,footskip=1cm,top=3cm,bottom=2.5cm}
+\usepackage[francais,bloc,ensemble]{automultiplechoice}
+\fi

@@ -57,7 +57,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
 
     for student in students:
         is_absent = student["status"] == "not started"
-        
+
         sub_id = None
         if not is_absent:
             exam_sub = ctx.dbs.query(tables.ExamSubmission).filter_by(exs_registration=student["reg_id"]).first()
@@ -65,7 +65,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
                 sub_id = exam_sub.exs_id
 
         scores_dict = queries.get_student_detailed_scores(ctx.dbs, mcq_id, sub_id) if sub_id else {}
-        
+
         # save data for later
         student_records.append({
             "data": student,
@@ -90,7 +90,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         headers.append(code_str)
         max_header_len = max(max_header_len, len(code_str))
     ws.append(headers)
-    
+
     # auto-fit row height for vertical text
     ws.row_dimensions[1].height = max(40, max_header_len * 6)
 
@@ -120,7 +120,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
                 cell.alignment = vertical_align
             elif row_idx in [2, 3] and col_idx >= 4:
                 cell.alignment = center_align
-                
+
                 # apply percentage format to success rates in row 3
                 if row_idx == 3 and col_idx > 5:
                     cell.number_format = '0%'
@@ -172,11 +172,11 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
 
     # apply conditional formatting for incorrect/empty answers
     score_range = f"F4:{last_col_letter}{last_row}"
-    
+
     # rule: if student is NOT absent (col D <> "ABS") AND cell is empty or 0 => fill red
     red_rule = FormulaRule(
-        formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'], 
-        stopIfTrue=True, 
+        formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'],
+        stopIfTrue=True,
         fill=red_fill
     ) # type: ignore[no-untyped-call]
     ws.conditional_formatting.add(score_range, red_rule)
@@ -185,7 +185,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     for col_idx, col in enumerate(ws.columns, start=1):
         max_length = 0
         column_letter = get_column_letter(col_idx)
-        
+
         for cell in col:
             try:
                 # mypy checking
@@ -198,15 +198,15 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
                     max_length = max(max_length, len(str(cell_value)))
             except:
                 pass
-        
+
         adjusted_width = max_length + 4
         if col_idx <= 5 and adjusted_width < 12:
             adjusted_width = 12
         if col_idx > 5 and adjusted_width < 6:
             adjusted_width = 6
-            
+
         ws.column_dimensions[column_letter].width = adjusted_width
-        
+
     # save and return response
     stream = io.BytesIO()
     wb.save(stream)

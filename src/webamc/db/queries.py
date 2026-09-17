@@ -88,7 +88,7 @@ def get_active_registration(
         usr_id: int
 ) -> None | tuple[tables.Exam, tables.Registration]:
     now = datetime.datetime.now()
-    
+
     # getting every exam of this student
     exam_registrations = dbs.query(
         tables.Exam,
@@ -98,13 +98,13 @@ def get_active_registration(
         & (tables.Registration.reg_exam == tables.Exam.exm_id)
         & (tables.Registration.reg_usr == usr_id)
     ).all()
-    
+
     # getting the ongoing examd
     for row in exam_registrations:
         exam, registration = row.tuple()
         if tables.Exam.end_time(exam) >= now:
             return exam, registration
-            
+
     return None
 
 
@@ -609,13 +609,13 @@ def get_usr(dbs: Session, usr_id: int) -> None | tables.Usr:
 
 
 def get_student_detailed_scores(
-        dbs: Session, 
-        exam_id: int, 
+        dbs: Session,
+        exam_id: int,
         sub_id: int
 ) -> dict[int, float]:
-    
+
     details = {}
-    
+
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == exam_id
     ).all()
@@ -636,7 +636,7 @@ def get_student_detailed_scores(
         ).filter(
             tables.Item.itm_parent == qst.qst_id
         ).all()
-        
+
         correct_choice_ids = [c.cho_id for c in choices if c.cho_correct]
         if not correct_choice_ids:
             continue
@@ -663,7 +663,7 @@ def get_student_detailed_scores(
                 question_score = max(0.0, q_score_temp)
 
         details[qst.qst_id] = round(question_score,2)
-        
+
     return details
 
 
@@ -677,7 +677,7 @@ def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
     ).all()
 
     parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
-    
+
     questions = dbs.query(tables.Question).join(
         tables.Item, tables.Question.qst_id == tables.Item.itm_id
     ).filter(

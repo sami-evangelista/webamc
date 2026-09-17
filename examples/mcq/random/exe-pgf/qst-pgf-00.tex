@@ -1,0 +1,32 @@
+%webamc INSTANCES=10
+
+\begin{question}{mcq-random}
+  
+%webamc BEGIN
+\pgfmathrandominteger{\dabase}{11}{55}%
+\pgfmathrandominteger{\db}{90}{126}%
+\pgfmathrandominteger{\dc}{0}{255}%
+\pgfmathrandominteger{\dd}{1}{254}%
+\pgfmathtruncatemacro{\da}{\dabase *4 +3}%
+\pgfmathtruncatemacro{\daok}{\da -3}%
+%webamc END
+
+Quelle est l'adresse réseau de \da.\db.\dc.\dd/10 ? 
+
+\begin{reponses}
+  \bonne{\da.64.0.0}
+  \mauvaise{\da.128.0.0}
+  \mauvaise{\da.192.0.0}
+  \mauvaise{\da.224.0.0}
+  \mauvaise{\da.255.255.255}
+  \mauvaise{\da.\db.\dc.\dd}
+  \mauvaise{\da.\myadd{\db}{-1}.0.0}
+  \mauvaise{\da.\myadd{\da}{1}.0.0}
+  \mauvaise{\myadd{\da}{1}.255.255.255}
+  \mauvaise{\myadd{\da}{2}.255.255.255}
+  \mauvaise{\daok.255.255.255}
+  \lastchoices
+  \mauvaise{Autre}
+\end{reponses}
+
+\end{question}

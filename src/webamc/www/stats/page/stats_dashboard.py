@@ -33,12 +33,12 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     # --- head section ---
     exam_options: list[he.Element] = [
         he.Option(he.Str(lang.txt("stats_select_exam")), value="")
-    ]    
-    
+    ]
+
     for exm, itm in exams:
         is_selected = (exam_id == exm.exm_id)
         opt = he.Option(
-            he.Str(f"{itm.itm_title} ({exm.exm_start.strftime('%d/%m/%Y')})"), 
+            he.Str(f"{itm.itm_title} ({exm.exm_start.strftime('%d/%m/%Y')})"),
             value=f"{exm.exm_id}"
         )
         if is_selected:
@@ -74,7 +74,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         for qst in questions:
             itm = queries.get_item(ctx.dbs, qst.qst_id)
             code_display = str(itm.itm_code) if (itm and itm.itm_code) else f"Qst {qst.qst_id}"
-            
+
             qst_options.append(
                 he.Option(
                     he.Str(code_display),
@@ -90,14 +90,14 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         )
 
         qst_image_element = he.Img(
-            id_="qst_image", 
-            src="", 
+            id_="qst_image",
+            src="",
             style_="display: none; width: 100%; max-height: 380px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 15px; cursor: zoom-in; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #f8fafc;",
             onclick="document.getElementById('modal_image').src = this.src; document.getElementById('image_modal').style.display = 'flex';"
         )
-        
+
         choices_container = he.Div(
-            id_="choices_container", 
+            id_="choices_container",
             style_="display: flex; flex-direction: column; gap: 8px; width: 100%;"
         )
         choices_container.set_attr("data-title", lang.txt("stats_answers_detail"))
@@ -126,7 +126,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     for exm, itm in exams:
         overview_exam_options.append(
             he.Option(
-                he.Str(f"{itm.itm_title} ({exm.exm_start.strftime('%d/%m/%Y')})"), 
+                he.Str(f"{itm.itm_title} ({exm.exm_start.strftime('%d/%m/%Y')})"),
                 value=f"{exm.exm_id}"
             )
         )
@@ -148,13 +148,13 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     )
 
     chk_group = he.Input(
-        type="checkbox", 
-        id_="chk_group_exo", 
+        type="checkbox",
+        id_="chk_group_exo",
         onchange="if(typeof renderMcqOverview === 'function') renderMcqOverview();"
     )
     lbl_group = he.Label(
-        chk_group, 
-        he.Str(" Grouper par exercice"), 
+        chk_group,
+        he.Str(" Grouper par exercice"),
         style_="cursor: pointer; user-select: none;"
     )
 
@@ -178,7 +178,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         tables.Usr.usr_name.asc(),
         tables.Usr.usr_fst_name.asc()
     ).all()
-        
+
     student_options = [he.Option(he.Str(lang.txt("stats_select_student")), value="")]
     for std in students:
         student_options.append(
@@ -197,11 +197,11 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     ).join(
         tables.Item, tables.Exam.exm_mcq == tables.Item.itm_id
     ).filter(
-        tables.Item.itm_usr == current_usr_id 
+        tables.Item.itm_usr == current_usr_id
     ).all()
 
     mcq_options = [he.Option(he.Str(lang.txt("stats_select_mcq")), value="")]
-    seen_mcqs = set() 
+    seen_mcqs = set()
     for exm, mcq in exams_and_mcqs:
         if mcq.itm_id not in seen_mcqs:
             seen_mcqs.add(mcq.itm_id)
@@ -255,8 +255,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
 
     image_modal = he.Div(
         he.Img(
-            id_="modal_image", 
-            src="", 
+            id_="modal_image",
+            src="",
             style_="max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); object-fit: contain;"
         ),
         id_="image_modal",
@@ -279,7 +279,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     elements.extend([
         dashboard_root,
         he.Script(src="https://cdn.jsdelivr.net/npm/chart.js"),
-        he.Script(src="/static?file_name=stats.js")  
+        he.Script(src="/static?file_name=stats.js")
     ])
 
     return base.page(ctx, "page_title_stats", he.ElementList(*elements))

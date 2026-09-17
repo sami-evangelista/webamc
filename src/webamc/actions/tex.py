@@ -39,12 +39,12 @@ def extract_qst(file_content: str) -> tex_result_t:
 
     # get questions
     qsts = list()
-    
+
     # force question and questionmult environments
     env_questions = cfg.get("tex_envs_question", ["question"])
     if isinstance(env_questions, str):
         env_questions = [env_questions]
-        
+
     if "questionmult" not in env_questions:
         env_questions.append("questionmult")
 
@@ -55,12 +55,12 @@ def extract_qst(file_content: str) -> tex_result_t:
     for tex_qst in all_tex_qsts:
         qst: tex_qst_t = dict()
         qst["itm_code"] = tex_qst.args[0].string
-        
+
         # get question type
         env_mults = cfg.get("tex_envs_question_mult", ["questionmult"])
         if isinstance(env_mults, str):
             env_mults = [env_mults]
-            
+
         qst["qst_type"] = (
             types.QUESTION_TYPE_MULTI
             if tex_qst.name in env_mults or tex_qst.name == "questionmult" else
@@ -69,7 +69,7 @@ def extract_qst(file_content: str) -> tex_result_t:
 
         # get choices inside the question
         tex_choices = tex_qst.find(cfg["tex_envs_choices"])
-        
+
         # fallback on the whole document if not found directly
         if tex_choices is None:
             tex_choices = soup.find(cfg["tex_envs_choices"])
@@ -79,7 +79,7 @@ def extract_qst(file_content: str) -> tex_result_t:
         else:
             qst["choices"] = tex_choices.children
             tex_choices.delete()
-            
+
         qst["question"] = tex_qst
         qsts.append(qst)
 

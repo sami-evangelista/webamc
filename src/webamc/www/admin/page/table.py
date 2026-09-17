@@ -31,7 +31,7 @@ def page(
         for col in all_tbl_cols
         if www_db_util.is_visible(col)
     ]
-    
+
 
 
     # table head with column description and new button

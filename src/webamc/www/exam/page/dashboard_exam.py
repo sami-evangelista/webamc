@@ -137,7 +137,7 @@ def page(
         )
 
     header_status = he.H3(
-        he.Str(lang.txt("info_exam_status") % display_exam_status), 
+        he.Str(lang.txt("info_exam_status") % display_exam_status),
         style=f"color: {e_color}; margin-bottom: 15px;"
     )
     elements.append(header_status)

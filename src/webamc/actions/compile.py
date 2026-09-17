@@ -437,7 +437,7 @@ def _compile_question(
     # parse tex file to find questions and clean the preamble
     code, qsts = tex.extract_qst(content)
     raw_preamble = re.split(r"\\begin\{question(?:mult)?\}", content, maxsplit=1)[0]
-    
+
 
     clean_preamble = re.sub(
         r"\\documentclass(\[.*?\])?\{.*?\}",
@@ -522,7 +522,7 @@ def _compile_question(
             # custom_vars_latex = ""
 
             seed_val = (instance_id * 123456789) % 2147483647
-            
+
             # We expose the seed via \WEBAMCseed for any custom random package.
             # We also try to auto-seed the most common ones (fp and pgfmath)
             # if they are defined, without forcing them.
