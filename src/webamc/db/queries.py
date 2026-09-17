@@ -263,7 +263,9 @@ def get_exam_monitoring(
 
             # count answers tied to this specific student's submission
             answered_count = dbs.query(
-                sa.func.count(sa.distinct(tables.Item.itm_parent)) # pylint: disable=not-callable
+                sa.func.count( # pylint: disable=not-callable
+                    sa.distinct(tables.Item.itm_parent)
+                )
             ).select_from(
                 tables.Answer
             ).join(
@@ -279,7 +281,9 @@ def get_exam_monitoring(
 
             answered_count = answered_count or 0
 
-            detailed_scores = get_student_detailed_scores(dbs, exam.exm_mcq, exam_sub.exs_id)
+            detailed_scores = get_student_detailed_scores(
+                dbs, exam.exm_mcq, exam_sub.exs_id
+            )
             score = sum(detailed_scores.values())
 
         students_data.append({

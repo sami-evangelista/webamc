@@ -60,8 +60,10 @@ enable=all
 disable=
   abstract-method,
   bare-except,
+  consider-using-with,
   cyclic-import,
   duplicate-code,
+  exec-used,
   file-ignored,
   global-statement,
   import-outside-toplevel,
@@ -89,6 +91,7 @@ disable=
   use-implicit-booleaness-not-comparison-to-zero,
   use-dict-literal,
   use-list-literal,
+  use-symbolic-message-instead,
   wildcard-import
 
 [REPORTS]
@@ -189,9 +192,11 @@ function-naming-style=snake_case
 function-rgx=[a-z0-9]+(_[a-z]+)*$
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
+good-names=f,
+           i,
            j,
            k,
+           l,
            ex,
            Run,
            _

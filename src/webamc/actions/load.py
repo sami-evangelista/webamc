@@ -128,7 +128,10 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 iti_img=img_bin              # png
             )
             dbs.add(db_instance)
-            output.info(f"{tex_file}: added instance {inst['iti_num']} for item {result}")
+            output.info(
+                f"{tex_file}: added instance {inst['iti_num']} " +
+                f"for item {result}"
+            )
 
         return result
 

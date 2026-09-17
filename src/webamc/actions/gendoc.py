@@ -35,7 +35,8 @@ def _type_desc(t: type) -> str:
             f"dict from ({_type_desc(tp.get_args(t)[0])}) to "
             f"({_type_desc(tp.get_args(t)[1])})"
         )
-    if tp.get_origin(t) == tp.Literal:  # pylissnt: disable=all
+    lit = tp.Literal
+    if tp.get_origin(t) == lit:  # pylint: disable=comparison-with-callable
         return " | ".join(json.dumps(u) for u in tp.get_args(t))
     if isinstance(t, _types.UnionType):
         return " | ".join(_type_desc(u) for u in tp.get_args(t))

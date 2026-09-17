@@ -3,6 +3,7 @@ import subprocess
 import traceback
 import shutil
 import hashlib
+import re
 import uuid
 import multiprocessing
 import concurrent.futures
@@ -13,7 +14,6 @@ from webamc.all import *
 from webamc.util import io
 from . import tex, output
 
-import re
 
 
 JSON_SPEC = "items.json"
@@ -436,7 +436,9 @@ def _compile_question(
 
     # parse tex file to find questions and clean the preamble
     code, qsts = tex.extract_qst(content)
-    raw_preamble = re.split(r"\\begin\{question(?:mult)?\}", content, maxsplit=1)[0]
+    raw_preamble = re.split(
+        r"\\begin\{question(?:mult)?\}", content, maxsplit=1
+    )[0]
 
 
     clean_preamble = re.sub(
@@ -514,13 +516,8 @@ def _compile_question(
             dynamic_header = f"{clean_preamble}\n{anti_brouillon}\n"
 
         else:
-            # creating a unique and reproducible
-            # seed value for this specific instance
-            # seed_val = (instance_id * 123456789) % 2147483647
-            # seed_magic = f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n\\" + \
-            # f"ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi"
-            # custom_vars_latex = ""
-
+            # creating a unique and reproducible seed value for this
+            # specific instance
             seed_val = (instance_id * 123456789) % 2147483647
 
             # We expose the seed via \WEBAMCseed for any custom random package.
@@ -528,8 +525,10 @@ def _compile_question(
             # if they are defined, without forcing them.
             seed_magic = (
                 f"\\def\\WEBAMCseed{{{seed_val}}}\n"
-                f"\\ifdefined\\FPseed\\FPseed={seed_val}\\fi\n"
-                f"\\ifdefined\\pgfmathsetseed\\pgfmathsetseed{{{seed_val}}}\\fi\n"
+                r"\ifdefined\FPseed\FPseed=\WEBAMCseed\fi"
+                "\n"
+                r"\ifdefined\pgfmathsetseed\pgfmathsetseed\WEBAMCseed\fi"
+                "\n"
             )
             custom_vars_latex = ""
 
@@ -547,9 +546,9 @@ def _compile_question(
                             var_latex = f"\\def\\VAR{key}{{{value}}}\n"
                             custom_vars_latex += var_latex
 
-                except Exception as e:
+                except Exception as ex:  # pylint: disable=W0718
                     output.error(
-                        f"Exception catched in '{py_file_path}' : {e}"
+                        f"Exception catched in '{py_file_path}' : {ex}"
                     )
 
             if var_block != "":
@@ -817,10 +816,10 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
             for future in concurrent.futures.as_completed(futures):
                 try:
                     future.result()
-                except Exception as exc:
-                    output.error(f"An error happened in worker {exc}")
+                except Exception as ex:  # pylint: disable=W0718
+                    output.error(f"An error happened in worker {ex}")
                     traceback.print_exc()
-                    raise SystemExit(1)
+                    raise SystemExit(1) from ex
 
         json_path = os.path.join(tmp_dir, JSON_SPEC)
         with open(json_path, "w", encoding="utf-8") as fd:

@@ -13,6 +13,7 @@ from webamc.db import queries, tables
 
 
 def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
+
     # getting global data from exam
     monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
     if not monitoring_data:
@@ -31,16 +32,26 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     ws.title = "Notes Examen"
 
     # styles
-    grey_fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
-    red_fill = PatternFill(start_color="FFCCCC", end_color="FFCCCC", fill_type="solid")
+    grey_fill = PatternFill(
+        start_color="D3D3D3", end_color="D3D3D3", fill_type="solid"
+    )
+    red_fill = PatternFill(
+        start_color="FFCCCC", end_color="FFCCCC", fill_type="solid"
+    )
     bold_font = Font(bold=True)
-    vertical_align = Alignment(textRotation=90, horizontal="center", vertical="bottom")
+    vertical_align = Alignment(
+        textRotation=90, horizontal="center", vertical="bottom"
+    )
     center_align = Alignment(horizontal="center", vertical="center")
 
     students = monitoring_data["students"]
 
     # get all questions from db
-    direct_items = ctx.dbs.query(tables.Item.itm_id).filter(tables.Item.itm_parent == mcq_id).all()
+    direct_items = ctx.dbs.query(
+        tables.Item.itm_id
+    ).filter(
+        tables.Item.itm_parent == mcq_id
+    ).all()
     parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
 
     questions_data = ctx.dbs.query(
@@ -60,11 +71,20 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
 
         sub_id = None
         if not is_absent:
-            exam_sub = ctx.dbs.query(tables.ExamSubmission).filter_by(exs_registration=student["reg_id"]).first()
+            exam_sub = ctx.dbs.query(
+                tables.ExamSubmission
+            ).filter_by(
+                exs_registration=student["reg_id"]
+            ).first()
             if exam_sub:
                 sub_id = exam_sub.exs_id
 
-        scores_dict = queries.get_student_detailed_scores(ctx.dbs, mcq_id, sub_id) if sub_id else {}
+        if sub_id is None:
+            scores_dict = dict()
+        else:
+            scores_dict = queries.get_student_detailed_scores(
+                ctx.dbs, mcq_id, sub_id
+            )
 
         # save data for later
         student_records.append({
@@ -99,7 +119,9 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     last_col_letter = get_column_letter(5 + len(questions_data))
 
     # write row 2: max points row (using excel formula)
-    row2 = ["", "", "Note Max", f"=MAX(D4:D{last_row})", float(total_questions)]
+    row2 = [
+        "", "", "Note Max", f"=MAX(D4:D{last_row})", float(total_questions)
+    ]
     for _ in questions_data:
         row2.append(1.0)
     ws.append(row2)
@@ -136,7 +158,11 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         current_row = ws.max_row + 1
 
         # set sum formula instead of fixed score
-        note_formula = "ABS" if is_absent else f"=SUM(F{current_row}:{last_col_letter}{current_row})"
+        if is_absent:
+            note_formula = "ABS"
+        else:
+            note_formula = f"{current_row}:{last_col_letter}{current_row}"
+            note_formula = f"SUM(F{note_formula})"
 
         row_data = [
             student["usr_name"],
@@ -173,7 +199,8 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # apply conditional formatting for incorrect/empty answers
     score_range = f"F4:{last_col_letter}{last_row}"
 
-    # rule: if student is NOT absent (col D <> "ABS") AND cell is empty or 0 => fill red
+    # rule: if student is NOT absent (col D <> "ABS") AND cell is
+    # empty or 0 => fill red
     red_rule = FormulaRule(
         formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'],
         stopIfTrue=True,
@@ -213,10 +240,12 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     stream.seek(0)
 
     headers_response = {
-        'Content-Disposition': f'attachment; filename="notes_examen_{exam_id}.xlsx"'
+        'Content-Disposition':
+        f'attachment; filename="notes_examen_{exam_id}.xlsx"'
     }
+    mtype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return Response(
         content=stream.read(),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        media_type=mtype,
         headers=headers_response
     )
