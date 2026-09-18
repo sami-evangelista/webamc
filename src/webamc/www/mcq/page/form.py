@@ -34,6 +34,7 @@ _mcq_content_exercise_t = tp.TypedDict(
 
 _mcq_content_t = tp.Union[_mcq_content_question_t, _mcq_content_exercise_t]
 
+
 def page(
         ctx: context.Context,
         mcq_id: int,
@@ -63,7 +64,6 @@ def page(
     if iti_num is not None:
         if session.has_admin_right(ctx, item):
             selected_instance = int(iti_num)
-
 
     # setup and generate the content
     content, choices = _setup(
@@ -129,7 +129,7 @@ def page(
         )
         d = tables.Exam.end_time(exam)
         js += f"\nvar sec_duration = 60 * {exam.exm_duration};"
-        js += f"\nvar end_time = new Date({d.year}, {d.month-1}, {d.day}, "
+        js += f"\nvar end_time = new Date({d.year}, {d.month - 1}, {d.day}, "
         js += f"{d.hour}, {d.minute});"
         js += "\nmcq_init_timer(sec_duration, end_time);"
         js += "\nmcq_init_save_timer();"
@@ -170,7 +170,7 @@ def page(
     ]
     if exam is None:
         btns.append(("checkmark", "verb_send", None, "mcq_validate()"))
-    else :
+    else:
         btns.append(("checkmark", "verb_send", None, "mcq_save_answers()"))
 
     side_buttons = [
@@ -197,8 +197,10 @@ def _gen_mcq_content(
             instances = queries.get_instances(ctx.dbs, item.itm_id)
             chosen_instance = 1
             if instances:
-                if instance_num is not None and \
-                    any(i.iti_num == instance_num for i in instances):
+                if (
+                        instance_num is not None
+                        and any(i.iti_num == instance_num for i in instances)
+                ):
                     chosen_instance = instance_num
                 else:
                     # choosing random instance
@@ -235,8 +237,10 @@ def _gen_mcq_content(
             insts = queries.get_instances(ctx.dbs, item_qst.itm_id)
             c_num = 1
             if insts:
-                if instance_num is not None and \
-                    any(i.iti_num == instance_num for i in insts):
+                if (
+                        instance_num is not None
+                        and any(i.iti_num == instance_num for i in insts)
+                ):
                     c_num = instance_num
                 else:
                     c_num = random.choice(insts).iti_num
@@ -266,11 +270,10 @@ def _setup(
     # content. this guarantees that question packs always contain the
     # same questions and that questions/exercices always appear in the
     # same order
-    usr_id = session.usr_id(ctx)
     exam_sub = ctx.dbs.query(
         tables.ExamSubmission
     ).where(
-        (tables.ExamSubmission.exs_registration == registration.reg_id)
+        tables.ExamSubmission.exs_registration == registration.reg_id
     ).first()
     if exam_sub is not None:
         content = tp.cast(_mcq_content_t, json.loads(exam_sub.exs_content))
@@ -299,13 +302,13 @@ def _setup(
 def _form_question(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int | None,       # instance num
+        iti_num: int | None,
         form_ctx: _form_ctx_t
 ) -> he.Element:
     form_ctx["qst_id"] = item.itm_id
     form_ctx["qst_num"] += 1
 
-    # getting questionf from database
+    # getting question from database
     qst = queries.get_question(ctx.dbs, item.itm_id)
 
     box_status = he.Div(
@@ -341,7 +344,10 @@ def _form_question(
 
         box_id = f"cho_{cho.cho_id}"
         box_name = f"cho_{item.itm_id}"
-        box_type = "checkbox" if qst.qst_type == types.QUESTION_TYPE_MULTI else "radio"
+        if qst.qst_type == types.QUESTION_TYPE_MULTI:
+            box_type = "checkbox"
+        else:
+            box_type = "radio"
 
         box = he.Input(
             id_=box_id,
@@ -461,6 +467,7 @@ def _form_item(
         content: _mcq_content_t,
         form_ctx: _form_ctx_t
 ) -> he.Element:
+
     # if it's a dict with iti_num, new question struct
     if isinstance(content, dict) and "iti_num" in content:
         qst_content = tp.cast(_mcq_content_question_t, content)
@@ -470,6 +477,7 @@ def _form_item(
             qst_content["iti_num"],
             form_ctx
         )
+
     # if it's an exercice or a pack
     return _form_exercise(
         ctx,
@@ -477,4 +485,3 @@ def _form_item(
         content["itm_children"],
         form_ctx
     )
-

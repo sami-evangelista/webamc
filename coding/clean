@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# remove trailing spaces and tabs in py files
+# script must be called from root directory
+
+find src -name \*.py -exec sed -i 's/[ \t]*$//' {} \;

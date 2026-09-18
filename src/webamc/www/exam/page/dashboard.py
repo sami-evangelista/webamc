@@ -28,11 +28,9 @@ def page(
     )
 
     # select with groups
+    q = queries.get_submit_grps(ctx.dbs, session.usr_id(ctx))
     select_grp = he.Select(
-        *[he.Option(he.Str(grp.grp_name), value=grp.grp_id)
-          for grp in queries.get_submit_grps(
-                  ctx.dbs, session.usr_id(ctx)
-          )],
+        *[he.Option(he.Str(grp.grp_name), value=grp.grp_id) for grp in q],
         id_="grp_id"
     )
     img_add = base.static_img(

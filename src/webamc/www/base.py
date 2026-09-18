@@ -37,7 +37,8 @@ css_urls = [
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
     + "/build/css/alertify.min.css",
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
-    + "/build/css/themes/default.min.css"
+    + "/build/css/themes/default.min.css",
+    "https://cdn.jsdelivr.net/npm/chart.js"
 ]
 js_urls = [
     "https://code.jquery.com/jquery-3.7.1.min.js",
@@ -64,7 +65,7 @@ menu_items: list[menu_item_t] = [
      "exam",
      "page_title_exam",
      "/exam/page/main"),
-     (session.has_submission_right,
+    (session.has_submission_right,
      True,
      "doc-table",
      "page_title_stats",
@@ -466,14 +467,17 @@ def static_file(file_name: str) -> fa.Response:
 
 
 def help_page(help_id: types.help_t) -> fa.Response:
-    path =  resources.files("webamc") / "data" / "help" / config.CONFIG["lang"]
+    path = resources.files("webamc") / "data" / "help" / config.CONFIG["lang"]
     for p in [
             path / f"{help_id}.html",
             path / f"{help_id}.htm",
             path / help_id
     ]:
         try:
-            with resources.as_file(p) as resource, open(resource) as fd:
+            with (
+                    resources.as_file(p) as resource,
+                    open(resource, encoding="utf-8") as fd
+            ):
                 return fa.responses.HTMLResponse(fd.read())
         except FileNotFoundError:
             continue

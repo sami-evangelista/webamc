@@ -31,7 +31,7 @@ def data(
 
     # private function to map all the answers
     # it's save the question id with the instance num in a dict
-    def map_instances(node: dict[str, tp.Any])->None:
+    def map_instances(node: dict[str, tp.Any]) -> None:
         if "iti_num" in node:
             itm_to_itinum[node["itm_id"]] = node["iti_num"]
         if "itm_children" in node:

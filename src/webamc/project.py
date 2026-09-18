@@ -70,7 +70,7 @@ action_params_t = tp_ext.TypedDict(
 )
 association_t = dict[
     tuple[int, int],  # (student, copy)
-    tuple[None | str, None | str, None | str] # (auto, manual, name-file)
+    tuple[None | str, None | str, None | str]  # (auto, manual, name-file)
 ]
 dir_t = tp.Literal[
     "copies",

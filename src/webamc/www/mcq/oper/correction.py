@@ -1,6 +1,6 @@
 import datetime
 from webamc.www.all import *
-from webamc.db import tables, queries
+from webamc.db import tables
 from webamc.www.mcq import router
 
 
@@ -52,11 +52,15 @@ def data(
         for cho_id, cho_chosen in qst_choices.items():
             if cho_chosen:
                 cho_id_int = int(cho_id)
-                cho_instance = ctx.dbs.query(tables.ItemInstance).filter_by(
+                cho_instance = ctx.dbs.query(
+                    tables.ItemInstance
+                ).filter_by(
                     iti_item=cho_id_int, iti_num=1
                 ).first()
                 if not cho_instance:
-                    cho_instance = ctx.dbs.query(tables.ItemInstance).filter_by(
+                    cho_instance = ctx.dbs.query(
+                        tables.ItemInstance
+                    ).filter_by(
                         iti_item=cho_id_int
                     ).first()
 

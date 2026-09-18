@@ -47,7 +47,10 @@ def page(
             he.Str("sort"),
             class_="px-4 py-2 bg-[#ff0080] rounded",
             onclick="pack_add_filter('sort')",
-            title="Trier les questions en fonctions du code ou de la difficulté",
+            title=(
+                "Trier les questions en fonctions du code "
+                "ou de la difficulté"
+            ),
         )
     ]
     div_add_filter_buttons = he.Div(
@@ -80,7 +83,10 @@ def page(
     label = he.Label(
         he.Str("Importer"),
         for_="import_button",
-        class_="px-4 py-2 bg-green-500 rounded cursor-pointer hover:bg-green-600"
+        class_=(
+            "px-4 py-2 bg-green-500 rounded cursor-pointer "
+            "hover:bg-green-600"
+        )
     )
     file_input = he.Input(
         type_="file",
@@ -104,13 +110,19 @@ def page(
         onclick="pack_download_json()",
         id="download_button",
         disabled=True,
-        class_="px-4 py-2 bg-green-500 rounded disabled:bg-[#cccccc] disabled:border-[#999999] disabled:text-[#666666]"
+        class_=(
+            "px-4 py-2 bg-green-500 rounded disabled:bg-[#cccccc] "
+            "disabled:border-[#999999] disabled:text-[#666666]"
+        )
     )
     button10 = he.Button(
         he.Str("Sauvegarder"),
         id="save_button",
         disabled=True,
-        class_="px-4 py-2 bg-red-500 rounded disabled:border-[#999999] disabled:bg-[#cccccc] disabled:text-[#666666]"
+        class_=(
+            "px-4 py-2 bg-red-500 rounded disabled:border-[#999999] "
+            "disabled:bg-[#cccccc] disabled:text-[#666666]"
+        )
     )
 
     div4 = he.Div(

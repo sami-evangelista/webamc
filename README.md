@@ -28,7 +28,7 @@ To analyse the python code:
 $ pip3 install --upgrade mypy pylint pycodestyle autoflake vulture
 $ mypy --config-file coding/mypy.ini --strict src/webamc
 $ pylint --rcfile coding/pylintrc src/webamc
-$ pycodestyle --ignore=E712,E711,E302,W50,E722 src/webamc
+$ pycodestyle --ignore=E302,W50,E722,E126,E301,E501 src/webamc
 $ autoflake --recursive --remove-all-unused-imports src/webamc
 $ vulture --exclude src/webamc/test src
 ```

@@ -18,10 +18,10 @@ def page(
     trs: list[he.Tr] = list()
     js = list()
     first = True
-    for page, copy in sorted(associations.keys()):
-        manual, auto, name_file = associations[page, copy]
+    for pg, copy in sorted(associations.keys()):
+        manual, auto, name_file = associations[pg, copy]
         tds: list[he.Td] = list()
-        tds.append(he.Td(he.Str(f"{page}/{copy}")))
+        tds.append(he.Td(he.Str(f"{pg}/{copy}")))
         if name_file is None:
             tds.append(he.Td(he.Txt("seq_no_name")))
         else:
@@ -57,8 +57,8 @@ def page(
         options.insert(0, he.Option(he.Str(""), value=""))
         select_user = he.Select(
             *options,
-            id_=f"assoc-{page}-{copy}",
-            onchange=f"project_associate_manual({page}, {copy})"
+            id_=f"assoc-{pg}-{copy}",
+            onchange=f"project_associate_manual({pg}, {copy})"
         )
         tds.append(he.Td(he.Empty()))
         tds.append(he.Td(select_user))
@@ -67,7 +67,7 @@ def page(
         assoc = manual if manual is not None else auto
         if assoc is not None:
             js += [
-                f"$('#assoc-{page}-{copy}').val('{assoc}');"
+                f"$('#assoc-{pg}-{copy}').val('{assoc}');"
             ]
     table = he.Table(*trs)
     a_close = base.static_img(

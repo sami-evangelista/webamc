@@ -15,7 +15,6 @@ from webamc.util import io
 from . import tex, output
 
 
-
 JSON_SPEC = "items.json"
 
 amc_mdata_t = tp.TypedDict(
@@ -203,7 +202,6 @@ def _item_set_png_file(item: item_t) -> None:
 
 
 def check_pack(json_file: str) -> str:
-    exn_msg = f"{json_file}: invalid pack specification"
     def check(spec: tp.Any) -> bool:
         if isinstance(spec, list):
             return all(check(x) for x in spec)
@@ -231,6 +229,7 @@ def check_pack(json_file: str) -> str:
                 )
             return True
         return False
+    exn_msg = f"{json_file}: invalid pack specification"
     try:
         result = io.read_file_content(json_file)
         if not check(json.loads(result)):
@@ -286,7 +285,7 @@ def parse_amc_mdata(
 def _pdf_to_png(pdf: str, png: str) -> bool:
     try:
         result = True
-        with pymupdf.open(pdf) as pages: # type: ignore[no-untyped-call]
+        with pymupdf.open(pdf) as pages:  # type: ignore[no-untyped-call]
             if len(pages) > 1:
                 output.warning(f"{pdf} contains more than 1 page")
             pix = pages[0].get_pixmap(alpha=True, dpi=150)
@@ -440,7 +439,6 @@ def _compile_question(
         r"\\begin\{question(?:mult)?\}", content, maxsplit=1
     )[0]
 
-
     clean_preamble = re.sub(
         r"\\documentclass(\[.*?\])?\{.*?\}",
         "",
@@ -535,7 +533,7 @@ def _compile_question(
             # execute external python script
             # and translate its VAR dict into latex definitions
             if has_py_script:
-                env: dict[str,tp.Any] = {}
+                env: dict[str, tp.Any] = {}
                 try:
                     import random
                     random.seed(seed_val)
@@ -779,7 +777,6 @@ def exec_and_log(args: list[str], cwd: str | None = None) -> bool:
 
         filename, ext = os.path.splitext(base_log_file)
         worker_log_file = f"{filename}-{worker_id}{ext}"
-        # ----------------------------------------------------------
 
         with open(worker_log_file, "a", encoding="UTF-8") as f:
             cmt = (62 + len(cmd)) * "*" + "\n"
@@ -798,7 +795,7 @@ def exec_and_log(args: list[str], cwd: str | None = None) -> bool:
 
 def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     global TASKS
-    TASKS = [] # TASKS is empty when the compilation starts
+    TASKS = list()  # TASKS is empty when the compilation starts
 
     print(f"Compilation starts with {max_threads} threads")
     # everything will be written in a temporary directory
@@ -816,7 +813,7 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
             for future in concurrent.futures.as_completed(futures):
                 try:
                     future.result()
-                except Exception as ex:  # pylint: disable=W0718
+                except Exception as ex:
                     output.error(f"An error happened in worker {ex}")
                     traceback.print_exc()
                     raise SystemExit(1) from ex

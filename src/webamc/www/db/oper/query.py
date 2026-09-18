@@ -64,7 +64,7 @@ def data(
                 rvalues.append([get_db_object_values(new_obj)])
                 rrvalues.append([])
             elif typ == "update":
-                ctx.dbs.query(tbl).where(wheres).update(values) # type: ignore
+                ctx.dbs.query(tbl).where(wheres).update(values)  # type: ignore
                 rvalues.append([dict(values.items())])
                 rrvalues.append([{
                     col_name: www_db_util.format_value(

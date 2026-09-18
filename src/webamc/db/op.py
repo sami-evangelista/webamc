@@ -7,7 +7,7 @@ from webamc.all import *
 conn: sa.engine.base.Connection
 engine: sa.engine.base.Engine
 conn_done: bool = False
-Session: sessionmaker[ORMSession] # pylint: disable=unsubscriptable-object
+Session: sessionmaker[ORMSession]  # pylint: disable=unsubscriptable-object
 
 
 def connect() -> None:

@@ -193,5 +193,6 @@ def main() -> None:
         config.load()
         arg_parsed.command(arg_parsed)
 
+
 if __name__ == "__main__":
     main()

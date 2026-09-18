@@ -34,9 +34,10 @@ def page(
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             a_delete_instance = he.Button(
                 he.Txt("action_delete_instance"),
-                onclick=
-                f"if(confirm('{lang.txt('msg_confirm_delete_instance')}'))" + \
-                f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}",
+                onclick=(
+                    f"if(confirm('{lang.txt('msg_confirm_delete_instance')}'))"
+                    f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}"
+                ),
                 class_="btn-small btn-danger"
             )
             tr = he.Tr(
@@ -58,7 +59,6 @@ def page(
     if all_instances:
         options = []
         for inst in all_instances:
-            # On génère le texte traduit une seule fois pour éviter de se répéter
             inst_text = f"{lang.txt('name_instance')} {inst.iti_num}"
 
             if int(inst.iti_num) == int(iti_num):
@@ -79,8 +79,10 @@ def page(
 
         selector = he.Select(
             *options,
-            onchange=f"item_admin_code_click({item.itm_id}, this.value);"+ \
-            " return false;",
+            onchange=(
+                f"item_admin_code_click({item.itm_id}, this.value);"
+                " return false;"
+            ),
             class_="select-instance"
         )
         trs.append(
@@ -132,7 +134,7 @@ def page(
             ),
             alt=f"{item.itm_code}-inst-{iti_num}"
         )
-        tr=he.Tr(
+        tr = he.Tr(
             he.Td(
                 he.Txt("name_statement")
             ),
@@ -217,7 +219,7 @@ def page(
 def _content(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int=1
+        iti_num: int = 1
 ) -> None | he.Element:
     try:
         if item.itm_type == types.ITEM_TYPE_EXERCISE:

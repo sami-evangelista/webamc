@@ -305,4 +305,3 @@ def save_answers(ans_point: dict[int, dict[str, int]]) -> bool:
     op.commit()
     return True
 """
-

@@ -51,8 +51,8 @@ def data(
         ctx.dbs.query(
             tables.Ticket
         ).where(
-            (tables.Ticket.tkt_usr==usr_id)
-            & (tables.Ticket.tkt_type==args["tkt_type"])
+            (tables.Ticket.tkt_usr == usr_id)
+            & (tables.Ticket.tkt_type == args["tkt_type"])
         ).delete()
     ticket = tables.Ticket(
         tkt_usr=usr_id,

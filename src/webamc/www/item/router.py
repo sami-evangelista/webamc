@@ -12,8 +12,7 @@ args_page_item_t = tp_ext.TypedDict("args_page_item_t", {
     "itm_id": int
 })
 
-args_oper_delete_instance_t = tp_ext.TypedDict(
-    "args_oper_delete_instance_t", {
+args_oper_delete_instance_t = tp_ext.TypedDict("args_oper_delete_instance_t", {
     "itm_id": int,
     "iti_num": int
 })

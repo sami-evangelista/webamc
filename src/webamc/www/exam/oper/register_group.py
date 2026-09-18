@@ -10,7 +10,7 @@ def data(
     query = ctx.dbs.query(
         tables.Grp
     ).where(
-        tables.Grp.grp_id==args["grp_id"]
+        tables.Grp.grp_id == args["grp_id"]
     )
     grp = query.first()
     if grp is None:

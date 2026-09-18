@@ -19,20 +19,11 @@ def page(
     ).tbl_name
     tbl = db_util.get_tbl(tbl_name)
     pkey = db_util.get_tbl_pkey(tbl)
-    # cols = [
-    #     col
-    #     for col in db_util.get_tbl_cols(tbl)
-    #     if www_db_util.is_visible(col)
-    # ]
-    all_tbl_cols = db_util.get_tbl_cols(tbl)
-
     cols = [
         col
-        for col in all_tbl_cols
+        for col in db_util.get_tbl_cols(tbl)
         if www_db_util.is_visible(col)
     ]
-
-
 
     # table head with column description and new button
     js = "admin_new_row_btn_click()"
@@ -72,7 +63,7 @@ def page(
     wheres = www_db_util.get_filter_wheres(tbl, args["filters"])
     query = ctx.dbs.query(tbl).where(sa.and_(*wheres))
     query_count = query.statement.with_only_columns(  # type: ignore
-        sa.func.count(pkey) # pylint: disable=not-callable
+        sa.func.count(pkey)  # pylint: disable=not-callable
     ).order_by(None)
     nrows = int(ctx.dbs.execute(query_count).scalar())  # type: ignore
     start = (args["page_num"] - 1) * row_per_page
@@ -106,9 +97,11 @@ def page(
     elements.append(script)
 
     # one row per result
+    r: tp.Any
     for row in query.all():
+        r = row
         def get_val(col_name: str) -> types.db_base_val_t:
-            return tp.cast(types.db_base_val_t, getattr(row, col_name))
+            return tp.cast(types.db_base_val_t, getattr(r, col_name))
         attrs = www_db_util.get_attributes(
             ctx, [c.name for c in cols], get_val
         )

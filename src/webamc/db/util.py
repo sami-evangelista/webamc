@@ -130,4 +130,5 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
         done.add(tbl_cls)
         todo += tbl_cls.__subclasses__()
 
+
 _init(tables.Base, tables.TBL_CODES)

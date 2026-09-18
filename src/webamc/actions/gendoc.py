@@ -116,7 +116,7 @@ def action() -> None:
                     w(
                         "\\item\\texttt{" + _texify(col_name) + "} --- "
                         + col_doc + "\n"
-                )
+                    )
             w("\\end{itemize}\n")
             w("\\end{itemize}\n")
 

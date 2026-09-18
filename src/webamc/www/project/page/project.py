@@ -121,13 +121,13 @@ def page(
         "analyse",
         "seq_analyse_answer_sheets"
     )
-    #new_action(
+    # new_action(
     #    "clean-associations",
     #    "seq_clean_associations",
     #    js="project_clean_associations()",
     #    img_txt="verb_delete",
     #    icon="broom"
-    #)
+    # )
     new_action(
         "associate_automatic",
         "seq_associate_automatic"

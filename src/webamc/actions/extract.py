@@ -7,7 +7,7 @@ from . import output
 
 
 def _extract(tex: pathlib.Path, odir: pathlib.Path) -> None:
-    with open(tex) as fd:
+    with open(tex, encoding="utf-8") as fd:
         output.info(f"parse {tex}")
         try:
             soup = TexSoup.TexSoup(fd.read())
@@ -23,7 +23,8 @@ def _extract(tex: pathlib.Path, odir: pathlib.Path) -> None:
                 + ".tex"
             )
             output.info(f"extract {tex} -> {qst_file}")
-            with open(pathlib.Path(odir / qst_file), "w") as fd:
+            path = pathlib.Path(odir / qst_file)
+            with open(path, "w", encoding="utf-8") as fd:
                 fd.write(str(qst))
 
 

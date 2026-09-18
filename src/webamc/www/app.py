@@ -21,6 +21,7 @@ from . import index
 class Settings(BaseSettings):
     config_file: None | str = None
 
+
 settings = Settings()
 config.load(settings.config_file)
 
@@ -88,7 +89,6 @@ async def route_help(help_id: types.help_t) -> fa.Response:
     return base.help_page(help_id)
 
 
-# edited
 @app.get("/img")
 async def route_img(
     req: fa.Request,
@@ -96,11 +96,7 @@ async def route_img(
     iti_num: int = 1
 ) -> fa.Response:
     with context.Context(req) as ctx:
-        # if not session.img_pushed(ctx, itm_id):
-        #     return base.page_error(ctx, 403)
-
         img = queries.get_img(ctx.dbs, itm_id, iti_num)
-
         if img is None:
             return fa.responses.HTMLResponse(
                 f"img-{itm_id}-inst-{iti_num}"

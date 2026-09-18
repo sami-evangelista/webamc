@@ -25,7 +25,7 @@ def get_viewable_mcqs(
         usr_id: int,
         grp_ids: set[int]
 ) -> list[tuple[tables.Mcq, tables.Item, tables.Usr]]:
-    """Return the list of MCQ the user identified by usr_id can view.
+    """Return the list of MCQs the user identified by usr_id can view.
 
     grp_ids is the set of group ids the user has view access on.
 
@@ -44,8 +44,8 @@ def get_viewable_mcqs(
         & (
             (tables.Item.itm_usr == usr_id)  # (1)
             | (
-                (tables.Mcq.mcq_mode == types.MCQ_MODE_REVIEW) # (2.1)
-                & (tables.Item.itm_visible) # (2.2)
+                (tables.Mcq.mcq_mode == types.MCQ_MODE_REVIEW)  # (2.1)
+                & (tables.Item.itm_visible)  # (2.2)
                 & (
                     tables.Mcq.mcq_id.in_(
                         dbs.query(
@@ -263,7 +263,7 @@ def get_exam_monitoring(
 
             # count answers tied to this specific student's submission
             answered_count = dbs.query(
-                sa.func.count( # pylint: disable=not-callable
+                sa.func.count(  # pylint: disable=not-callable
                     sa.distinct(tables.Item.itm_parent)
                 )
             ).select_from(
@@ -330,13 +330,14 @@ def gen_pack_questions(
                    | (tables.Item.itm_parent._is(None)))
                 & (tables.Item.itm_id.not_in(not_in))
             )
-        all_op: types.pack_spec_t ={"op": "all"}
+        all_op: types.pack_spec_t = {"op": "all"}
         content: types.pack_spec_t = spec.get("content", all_op)
         arg: tp.Any = spec.get("arg")
         rev: bool = spec.get("rev", False)
         result = traverse(content)
         if oper == "shuf":
-            return result.order_by(sa.func.random()) # pylint: disable=not-callable
+            o = sa.func.random()  # pylint: disable=not-callable
+            return result.order_by(o)
         if oper == "head":
             return result.limit(int(arg))
         if oper == "sort":
@@ -509,7 +510,6 @@ def get_item_tags(dbs: Session, itm_id: int) -> list[tables.Tag]:
     ).all()
 
 
-
 def get_mcq(
         dbs: Session,
         mcq_id: int
@@ -542,10 +542,6 @@ def get_admin_tables(dbs: Session, usr_id: int) -> list[tables.Tbl]:
 
 
 def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
-    """
-    Récupère l'image d'une instance spécifique d'un Item.
-    Par défaut, renvoie l'instance n°1.
-    """
     instance = dbs.query(
         tables.ItemInstance
     ).where(
@@ -610,48 +606,37 @@ def get_usr(dbs: Session, usr_id: int) -> None | tables.Usr:
     return dbs.query(tables.Usr).where(tables.Usr.usr_id == usr_id).first()
 
 
-
-
 def get_student_detailed_scores(
         dbs: Session,
         exam_id: int,
         sub_id: int
 ) -> dict[int, float]:
-
-    details = {}
-
+    result = dict()
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == exam_id
     ).all()
     parent_ids = [exam_id] + [item.itm_id for item in direct_items]
-
     questions = dbs.query(tables.Question).join(
         tables.Item, tables.Question.qst_id == tables.Item.itm_id
     ).filter(
         tables.Item.itm_parent.in_(parent_ids)
     ).all()
-
     student_choices = get_submission_choices(dbs, sub_id)
     student_checked_ids = [c.cho_id for c in student_choices]
-
     for qst in questions:
         choices = dbs.query(tables.Choice).join(
             tables.Item, tables.Choice.cho_id == tables.Item.itm_id
         ).filter(
             tables.Item.itm_parent == qst.qst_id
         ).all()
-
         correct_choice_ids = [c.cho_id for c in choices if c.cho_correct]
         if not correct_choice_ids:
             continue
-
         question_choice_ids = [c.cho_id for c in choices]
         student_answered_for_this_qst = [
             cid for cid in student_checked_ids if cid in question_choice_ids
         ]
-
         question_score = 0.0
-
         if student_answered_for_this_qst:
             if len(correct_choice_ids) == 1:
                 if student_answered_for_this_qst[0] in correct_choice_ids:
@@ -665,27 +650,18 @@ def get_student_detailed_scores(
                     else:
                         q_score_temp -= points_per_correct
                 question_score = max(0.0, q_score_temp)
-
-        details[qst.qst_id] = round(question_score,2)
-
-    return details
+        result[qst.qst_id] = round(question_score, 2)
+    return result
 
 
 def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
-    """
-    Get all questions from an mcq of exam.
-    """
-
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == mcq_id
     ).all()
-
     parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
-
-    questions = dbs.query(tables.Question).join(
+    result = dbs.query(tables.Question).join(
         tables.Item, tables.Question.qst_id == tables.Item.itm_id
     ).filter(
         tables.Item.itm_parent.in_(parent_ids)
     ).all()
-
-    return questions
+    return result

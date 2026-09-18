@@ -39,8 +39,8 @@ def page(
     }
 
     trs: list[he.Element] = list()
-    raw_exam_status = monitoring_data.get('exam_status', '')
-    exam_not_start = (raw_exam_status == "upcoming")
+    raw_exam_status = monitoring_data.get("exam_status", "")
+    exam_not_start = raw_exam_status == "upcoming"
     tr_all = []
 
     # table header with translated columns
@@ -53,20 +53,19 @@ def page(
         )
         tr_all.append(he.Td(input_all))
 
-
     tr_all.extend([
-        he.Td(he.Str(lang.txt("name_login"))),
-        he.Td(he.Str(lang.txt("name_student"))),
-        he.Td(he.Str("Score")), # will be put in lang later
-        he.Td(he.Str(lang.txt("name_progress"))),
-        he.Td(he.Str(lang.txt("name_status")))
+        he.Td(he.Txt("name_login")),
+        he.Td(he.Txt("name_student")),
+        he.Td(he.Str("Score")),  # will be put in lang later
+        he.Td(he.Txt("name_progress")),
+        he.Td(he.Txt("name_status"))
     ])
     trs.append(he.Tr(*tr_all))
 
     # rows generation
     for student in monitoring_data["students"]:
-        student_name = fmt.fmt_name(student['usr_fst_name'],
-         student['usr_name'])
+        student_name = fmt.fmt_name(student["usr_fst_name"],
+                                    student["usr_name"])
 
         row_cells = []
 
@@ -76,16 +75,17 @@ def page(
                 type_="checkbox",
                 id_=f"checkbox_{student['reg_id']}",
                 class_="checkbox_registration"
-            ).set_data("reg_id", str(student['reg_id']))
+            ).set_data(
+                "reg_id", str(student['reg_id'])
+            )
 
             row_cells.append(he.Td(input_check))
-
 
         # status with color coding and translation
         raw_student_status = student["status"]
         s_color = student_colors.get(raw_student_status, "black")
         display_student_status = translated_status.get(raw_student_status,
-        raw_student_status)
+                                                       raw_student_status)
 
         status_element = he.Span(
             he.Str(display_student_status),
@@ -93,7 +93,6 @@ def page(
         )
 
         # progress bar logic
-
         answered = student["answered_count"]
         total = student["total_questions"]
         percent = int((answered / total) * 100) if total > 0 else 0
@@ -101,22 +100,34 @@ def page(
         # green if 100%, blue otherwise
         bar_color = "#28a745" if percent == 100 else "#007bff"
 
+        style = (
+            f"width: {percent}%; height: 100%; background-color: {bar_color}; "
+            "transition: width 0.3s;"
+        )
         progress_fill = he.Div(
-            style=f"width: {percent}%; height: 100%; background-color: {bar_color}; transition: width 0.3s;"
+            style=style
+        )
+        style = (
+            "width: 100px; height: 12px; background-color: #e9ecef; "
+            "border-radius: 4px; overflow: hidden; display: inline-block; "
+            "vertical-align: middle; border: 1px solid #ccc;"
         )
         progress_bg = he.Div(
             progress_fill,
-            style="width: 100px; height: 12px; background-color: #e9ecef; border-radius: 4px; overflow: hidden; display: inline-block; vertical-align: middle; border: 1px solid #ccc;"
+            style=style
+        )
+        style = (
+            "font-size: 0.85em; margin-left: 8px; vertical-align: middle; "
+            "color: #555;"
         )
         progress_text = he.Span(
             he.Str(f" {answered}/{total}"),
-            style="font-size: 0.85em; margin-left: 8px; vertical-align: middle; color: #555;"
+            style=style
         )
         progress_element = he.Div(progress_bg, progress_text)
 
         # build row
         row_cells.extend([
-
             he.Td(he.Str(student["usr_login"])),
             he.Td(he.Str(student_name)),
             he.Td(he.Str(str(student["score"]))),
@@ -134,7 +145,7 @@ def page(
     display_exam_status = translated_status.get(
         raw_exam_status,
         raw_exam_status
-        )
+    )
 
     header_status = he.H3(
         he.Str(lang.txt("info_exam_status") % display_exam_status),
@@ -143,19 +154,26 @@ def page(
     elements.append(header_status)
 
     # registration count
-    txt = lang.txt("param_seq_users_registered") % str(len(monitoring_data["students"]))
+    txt = (
+        lang.txt("param_seq_users_registered")
+        % str(len(monitoring_data["students"]))
+    )
     elements.append(he.P(he.Str(txt)))
 
     # export button
     if len(monitoring_data["students"]) > 0:
+        style = (
+            "margin-bottom: 15px; display: inline-block; "
+            "background-color: #28a745; color: white; padding: 8px 12px; "
+            "text-decoration: none; border-radius: 4px;"
+        )
         btn_export = he.A(
             he.Str("Exporter les notes"),
             href=f"../oper/export-scores?exm_id={exam_id}",
             class_="btn btn-primary",
-            style="margin-bottom: 15px; display: inline-block; background-color: #28a745; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px;"
+            style=style
         )
         elements.append(btn_export)
-
 
     if exam_not_start and len(monitoring_data["students"]) > 0:
         img_delete = base.static_img(

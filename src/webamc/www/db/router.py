@@ -35,7 +35,7 @@ def route_input(
         query: types.db_query_t = {
             "type": "select",
             "table": tbl,
-            "where": [{"col": col_id, "op": "=", "val" : int(id_)}],
+            "where": [{"col": col_id, "op": "=", "val": int(id_)}],
             "values": dict()
         }
         _check_right(ctx, query)

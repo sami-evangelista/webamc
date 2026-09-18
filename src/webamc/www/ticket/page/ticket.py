@@ -10,16 +10,16 @@ def page(
     tkt = ctx.dbs.query(
         tables.Ticket
     ).where(
-        tables.Ticket.tkt_value==ticket
+        tables.Ticket.tkt_value == ticket
     ).first()
     if tkt is None:
         body = he.Txt("err_invalid_ticket")
         return base.page(ctx, "page_title_ticket_error", body)
     if tkt.tkt_type == types.TICKET_ACCOUNT_CREATION:
         return _page_account_creation(ctx, tkt)
-    elif tkt.tkt_type == types.TICKET_PASSWORD_CHANGE:
+    if tkt.tkt_type == types.TICKET_PASSWORD_CHANGE:
         return _page_password_change(ctx, tkt)
-    elif tkt.tkt_type == types.TICKET_EADDR_CHANGE:
+    if tkt.tkt_type == types.TICKET_EADDR_CHANGE:
         return _page_eaddr_change(ctx, tkt)
     raise fa.HTTPException(status_code=500)
 

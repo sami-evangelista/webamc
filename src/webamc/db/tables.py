@@ -251,7 +251,7 @@ class Tag(Base):
     tag_id: int = CO(ct.Integer, primary_key=True)
     tag_name: str = CO(ct.String, nullable=False, unique=True)
     tag_desc: None | str = tp.cast(None | str, CO(ct.String))
-    tag_color: None | str  = tp.cast(None | str, CO(ct.Color))
+    tag_color: None | str = tp.cast(None | str, CO(ct.Color))
 
 
 class ItemTag(Base):
@@ -304,8 +304,6 @@ class ReviewSubmission(Base):
     rvs_id: int = CO(RefSubmission, primary_key=True)
     rvs_usr: int = CO(RefUsr, nullable=False)
     rvs_mcq: int = CO(RefItem, nullable=False)
-
-
     __table_args__ = (
         FK(["rvs_id"], ["submission.sub_id"], ondelete="CASCADE"),
         FK(["rvs_usr"], ["usr.usr_id"], ondelete="CASCADE"),

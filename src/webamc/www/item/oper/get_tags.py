@@ -1,15 +1,14 @@
-from sqlalchemy import select
-from webamc.db import tables
 from typing import Any
+from sqlalchemy import select
+
+from webamc.db import tables
 from webamc.www.all import *
 
+
 def get_all_tags(ctx: context.Context) -> list[dict[str, Any]]:
-    """Getting all tags from database"""
     stmt = select(tables.Tag)
-
     res = ctx.dbs.execute(stmt)
-
-    tags = [
+    return [
         {
             "tag_id": tag.tag_id,
             "tag_name": tag.tag_name,
@@ -18,4 +17,3 @@ def get_all_tags(ctx: context.Context) -> list[dict[str, Any]]:
         }
         for tag in res.scalars().all()
     ]
-    return tags

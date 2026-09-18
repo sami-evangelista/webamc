@@ -28,7 +28,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     # init excel file
     wb = openpyxl.Workbook()
     ws = wb.active
-    assert isinstance(ws, Worksheet) # security check
+    assert isinstance(ws, Worksheet)  # security check
     ws.title = "Notes Examen"
 
     # styles
@@ -205,7 +205,7 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'],
         stopIfTrue=True,
         fill=red_fill
-    ) # type: ignore[no-untyped-call]
+    )  # type: ignore[no-untyped-call]
     ws.conditional_formatting.add(score_range, red_rule)
 
     # auto-fit columns

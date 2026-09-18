@@ -103,9 +103,9 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
         }
         if itm_code is not None:
             desc += " " + itm_code
-        info = f"{tex_file}: new {desc}"
-        dbs.add(tbl(**val))
-        output.info(info)
+            info = f"{tex_file}: new {desc}"
+            dbs.add(tbl(**val))
+            output.info(info)
 
         # inserting instance from JSON in database
         instances = item.get("instances", [])
@@ -114,8 +114,10 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
 
             # png image checking
             if not os.path.isfile(img_path):
-                output.warning(f"{tex_file} (Instance {inst['iti_num']}): " + \
-                "no image file found at {img_path}")
+                output.warning(
+                    f"{tex_file} (Instance {inst['iti_num']}): "
+                    + "no image file found at {img_path}"
+                )
                 img_bin = None
             else:
                 img_bin = io.read_bin_file_content(img_path)
@@ -139,9 +141,9 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
     json_file = os.path.join(dir_path, comp.JSON_SPEC)
     if os.path.isfile(json_file):
         with (
-            open(json_file, encoding="utf-8") as fd,
-            op.Session() as dbs,
-            dbs.begin()
+                open(json_file, encoding="utf-8") as fd,
+                op.Session() as dbs,
+                dbs.begin()
         ):
             items: list[comp.item_t] = tp.cast(
                 list[comp.item_t], json.loads(fd.read())
