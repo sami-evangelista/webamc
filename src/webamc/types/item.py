@@ -55,6 +55,7 @@ pack_spec_t = tp.Union[list["dict_pack_spec_t"], dict_pack_spec_t]
 item_mdata_t = tp.Literal[
     "CODE",
     "DIFFICULTY",
+    "INSTANCES",
     "RND",
     "STANDALONE",
     "TAG",

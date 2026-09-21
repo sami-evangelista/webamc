@@ -13,4 +13,3 @@ VAR = {
     "true": str(True),
     "false": str(False)
 }
-print(VAR)

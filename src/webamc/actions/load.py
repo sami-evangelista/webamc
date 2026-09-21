@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import zipfile
 import tempfile
 import os
@@ -57,7 +55,7 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 output.warning(f"{tex_file}: duplicate item {itm_code}")
                 return None
 
-        # new item (Le Moule)
+        # new item
         info = f"{tex_file}: new item {itm_code}"
         db_item = tables.Item(**sub_dict("itm_"))
         dbs.add(db_item)
@@ -103,13 +101,12 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
         }
         if itm_code is not None:
             desc += " " + itm_code
-            info = f"{tex_file}: new {desc}"
-            dbs.add(tbl(**val))
-            output.info(info)
+        info = f"{tex_file}: new {desc}"
+        dbs.add(tbl(**val))
+        output.info(info)
 
         # inserting instance from JSON in database
-        instances = item.get("instances", [])
-        for inst in instances:
+        for inst in item.get("instances", list()):
             img_path = os.path.join(dir_path, inst["png"])
 
             # png image checking
@@ -152,6 +149,7 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 itm_id = load_item(dbs, item)
                 if itm_id is not None:
                     num_map[item["num"]] = itm_id
+
 
 def action(archive: str, usr_id: int) -> None:
     if not os.path.isfile(archive):

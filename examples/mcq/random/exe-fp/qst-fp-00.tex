@@ -1,27 +1,20 @@
-%webamc INSTANCES=10
+%webamc INSTANCES=5
 %webamc RND=1
 
-%webamc BEGIN
-\FPeval\VQa{trunc(1+random*8,0)}
-\FPeval\VQb{trunc(4+random*5,0)}
-\FPeval\VQsomme{clip(VQa+VQb)}
-\FPeval\VQnonA{clip(VQa+VQb-1)}
-\FPeval\VQnonB{clip(VQa+VQb+1)}
-\FPeval\VQnonC{clip(VQa-VQb)}
-\def\VARa{\VQa}
-\def\VARb{\VQb}
-\def\VARsomme{\VQsomme}
-\def\VARnonA{\VQnonA}
-\def\VARnonB{\VQnonB}
-\def\VARnonC{\VQnonC}
-%webamc END
-
 \begin{question}{mcq-random/fp/00}
+  %webamc BEGIN
+  \FPeval\VQa{trunc(1+random*8,0)}
+  \FPeval\VQb{trunc(4+random*5,0)}
+  \FPeval\VQsomme{clip(VQa+VQb)}
+  \FPeval\VQnonA{clip(VQa+VQb-1)}
+  \FPeval\VQnonB{clip(VQa+VQb+1)}
+  \FPeval\VQnonC{clip(VQa-VQb)}
+  %webamc END
   Quelle est la somme de \VQa{} et \VQb{} ?
   \begin{reponses}
-    \bonne{\VARsomme}
-    \mauvaise{\VARnonA}
-    \mauvaise{\VARnonB}
-    \mauvaise{\VARnonC}
+    \bonne{\VQsomme}
+    \mauvaise{\VQnonA}
+    \mauvaise{\VQnonB}
+    \mauvaise{\VQnonC}
   \end{reponses}
 \end{question}

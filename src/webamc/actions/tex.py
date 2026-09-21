@@ -40,16 +40,8 @@ def extract_qst(file_content: str) -> tex_result_t:
     # get questions
     qsts = list()
 
-    # force question and questionmult environments
-    env_questions = cfg.get("tex_envs_question", ["question"])
-    if isinstance(env_questions, str):
-        env_questions = [env_questions]
-
-    if "questionmult" not in env_questions:
-        env_questions.append("questionmult")
-
-    all_tex_qsts = []
-    for env in env_questions:
+    all_tex_qsts = list()
+    for env in cfg["tex_envs_question"]:
         all_tex_qsts.extend(soup.find_all(env))
 
     for tex_qst in all_tex_qsts:
@@ -57,15 +49,10 @@ def extract_qst(file_content: str) -> tex_result_t:
         qst["itm_code"] = tex_qst.args[0].string
 
         # get question type
-        env_mults = cfg.get("tex_envs_question_mult", ["questionmult"])
-        if isinstance(env_mults, str):
-            env_mults = [env_mults]
-
-        qst["qst_type"] = (
-            types.QUESTION_TYPE_MULTI
-            if tex_qst.name in env_mults or tex_qst.name == "questionmult" else
-            types.QUESTION_TYPE_SINGLE
-        )
+        if tex_qst.name in cfg["tex_envs_question_mult"]:
+            qst["qst_type"] = types.QUESTION_TYPE_MULTI
+        else:
+            qst["qst_type"] = types.QUESTION_TYPE_SINGLE
 
         # get choices inside the question
         tex_choices = tex_qst.find(cfg["tex_envs_choices"])
