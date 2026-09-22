@@ -5,24 +5,12 @@ from webamc.all import *
 from . import termout
 
 
-def read_file_content(file_path: str) -> str:
-    with open(file_path, encoding="utf-8") as fd:
-        result = fd.read()
-    return result
-
-
-def read_bin_file_content(file_path: str) -> bytes:
-    with open(file_path, "rb") as fd:
-        result = fd.read()
-    return result
-
-
-def get_executable_path(executable_name: str) -> str:
-    result = shutil.which(executable_name)
+def get_executable_path(executable_name: Path) -> Path:
+    result = shutil.which(executable_name.name)
     if result is None:
         termout.error(f"could not locate {executable_name} in your path")
         sys.exit(1)
-    return result
+    return Path(result)
 
 
 def get_file_extension(file_path: str) -> str:

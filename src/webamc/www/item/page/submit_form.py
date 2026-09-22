@@ -20,7 +20,12 @@ def page(
         class_="submit"
     )
     p_zip_file = he.P(
-        he.Txt("seq_zip_file"), input_zip
+        base.mkhelp(
+            he.Span(he.Txt("seq_zip_file")),
+            "seq_zip_file",
+            "item_submit"
+        ),
+        input_zip
     )
     div_file = he.Div(p_zip_file, a_submit, class_="box")
     div_result = he.Div(id_="div-submit-result")

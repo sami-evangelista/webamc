@@ -166,6 +166,7 @@ exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
 })
 
 help_t = tp.Literal[
+    "item_submit",
     "project_new",
     "project_parameters",
     "project_upload_source"

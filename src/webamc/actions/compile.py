@@ -1,11 +1,10 @@
-import glob
+from pathlib import Path
 import subprocess
 import traceback
 import shutil
-import hashlib
 import uuid
 import multiprocessing
-import concurrent.futures
+from concurrent import futures
 import typeguard
 import pymupdf
 from PIL import Image
@@ -35,10 +34,10 @@ amc_mdata_t = tp.TypedDict(
 instance_t = tp.TypedDict(
     "instance_t",
     {
+        "iti_img": bytes,
         "iti_num": int,
         "iti_seed": int,
-        "png": str,
-        "iti_img": bytes
+        "png": str
     },
     total=False
 )
@@ -64,7 +63,6 @@ item_t = tp.TypedDict(
         "itm_usr": int,
         "itm_visible": bool,
         "pak_spec": str,
-        "png": str,
         "qst_type": types.question_type_t,
         "instances": list[instance_t]
     },
@@ -87,14 +85,16 @@ ctx_t = tp.TypedDict(
         "num": int,
         "headers": list[tuple[str, str]],
         "stack": list[tuple[str, int, int]],
-        "mdata": list[amc_mdata_t]
+        "mdata": list[amc_mdata_t],
+        "log_dir": Path | None
     }
 )
 CTX: ctx_t = {
     "num": 0,
     "headers": list(),
     "stack": list(),
-    "mdata": list()
+    "mdata": list(),
+    "log_dir": None
 }
 WEBAMC_COMMENT = "%webamc "
 
@@ -103,15 +103,15 @@ WEBAMC_COMMENT = "%webamc "
 task_t = tp.TypedDict(
     "task_t",
     {
-        "input_tex": str,
-        "output_dir": str,
+        "input_tex": Path,
+        "output_dir": Path,
         "item": item_t,
-        "mcq_dir": str | None,
+        "mcq_dir": Path | None,
         "tex_content": str | None,
         "info": str | None,
         "headers": list[tuple[str, str]],
         "instance_id": int,
-        "png_file": str,
+        "png_file": Path,
         "seed": int,
         "dyn_code": str | None,
         "dyn_vars": dict[str, str]
@@ -155,9 +155,9 @@ def _ctx_pop_header() -> None:
     CTX["headers"].pop()
 
 
-def _ctx_new_item(input_tex: str, read_mdata: bool = True) -> item_t:
+def _ctx_new_item(input_tex: Path, read_mdata: bool = True) -> item_t:
     item: item_t = dict()
-    item["tex_file"] = input_tex
+    item["tex_file"] = str(input_tex)
     if read_mdata:
         _ctx_push_mdata(parse_amc_mdata(input_tex))
     for mdata in CTX["mdata"][::-1]:
@@ -188,28 +188,10 @@ def _ctx_new_item(input_tex: str, read_mdata: bool = True) -> item_t:
     return item
 
 
-def _item_set_png_file(item: item_t) -> None:
-    t = item["itm_type"]
-    h: str = {
-        types.ITEM_TYPE_CHOICE: "cho",
-        types.ITEM_TYPE_EXERCISE: "exe",
-        types.ITEM_TYPE_PACK: "pak",
-        types.ITEM_TYPE_QUESTION: "qst"
-    }[t]
-    if t != types.ITEM_TYPE_CHOICE:
-        code = item["itm_code"]
-    else:
-        h = f"{h}[{item['itm_order']}]"
-        code, _, _ = CTX["stack"][-1]
-    h = f"{h}/{code}"
-    hval = hashlib.md5(h.encode()).hexdigest()
-    item["png"] = os.path.join("png", hval[0:2], hval[2:] + ".png")
-
-
-def check_pack(json_file: str) -> str:
+def check_pack(json_file: Path) -> str:
     exn_msg = f"{json_file}: invalid pack specification"
     try:
-        result = io.read_file_content(json_file)
+        result = json_file.read_text()
         typeguard.check_type(json.loads(result), types.pack_spec_t)
     except typeguard.TypeCheckError as ex:
         raise ValueError(exn_msg) from ex
@@ -219,11 +201,11 @@ def check_pack(json_file: str) -> str:
 
 
 def parse_amc_mdata(
-        file_path: str,
+        file_path: Path,
         file_content: str | None = None
 ) -> amc_mdata_t:
     if file_content is None:
-        file_content = io.read_file_content(file_path)
+        file_content = file_path.read_text()
     result: amc_mdata_t = dict()
     lg = len(WEBAMC_COMMENT)
     for line in file_content.split("\n"):
@@ -261,7 +243,7 @@ def parse_amc_mdata(
     return result
 
 
-def _pdf_to_png(pdf: str, png: str) -> bool:
+def _pdf_to_png(pdf: Path, png: Path) -> bool:
     try:
         result = True
         with pymupdf.open(pdf) as pages:  # type: ignore[no-untyped-call]
@@ -275,7 +257,7 @@ def _pdf_to_png(pdf: str, png: str) -> bool:
     return result
 
 
-def _crop_png(png: str) -> bool:
+def _crop_png(png: Path) -> bool:
     try:
         result = True
         with Image.open(png) as img:
@@ -286,23 +268,93 @@ def _crop_png(png: str) -> bool:
     return result
 
 
+def _exec_and_log(
+        args: list[str],
+        cwd: Path | None = None
+) -> bool:
+
+    cmd = " ".join(args)
+
+    # running the process
+    proc_result = subprocess.run(
+        args,
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=cwd,
+        input=""
+    )
+
+    result = proc_result.returncode == 0
+
+    if not result:
+        output.error(f"there was an error with command {cmd}")
+
+    # log output
+    if config.CONFIG["log_file"] is None:
+
+        # if log_file is none, it will write in the console
+        if proc_result.stdout:
+            sys.stdout.write(proc_result.stdout)
+        if proc_result.stderr:
+            sys.stderr.write(proc_result.stderr)
+
+    else:
+
+        assert CTX["log_dir"] is not None
+
+        # getting process number
+        p_name = multiprocessing.current_process().name
+
+        # extracting process number from str (process-1 => 1)
+        worker_id = "".join(filter(str.isdigit, p_name))
+        if not worker_id:
+            worker_id = str(os.getpid())
+
+        log_file = CTX["log_dir"] / f"{worker_id}.log"
+
+        with open(log_file, "a", encoding="UTF-8") as f:
+            cmt = 79 * "*" + "\n"
+            f.write(cmt)
+            f.write("* " + " " + cmd + "\n")
+            f.write(cmt)
+            if proc_result.stdout:
+                f.write(proc_result.stdout)
+            if proc_result.stderr:
+                f.write("\n" + proc_result.stderr)
+            f.write("\n")
+
+    return result
+
+
+def _merge_logs() -> None:
+    assert CTX["log_dir"] is not None
+    assert config.CONFIG["log_file"] is not None
+    log = "\n".join(
+        log.read_text()
+        for log in CTX["log_dir"].iterdir()
+        if log.is_file()
+    )
+    Path(config.CONFIG["log_file"]).write_text(log, encoding="utf-8")
+
+
 def _tex_to_png(
-        input_tex: str,
-        output_dir: str,
+        input_tex: Path,
+        output_dir: Path,
         item: item_t,
-        mcq_dir: str | None,
+        mcq_dir: Path | None,
         headers: list[tuple[str, str]],
         tex_content: str | None,
         info: str | None,
         instance_id: int,
-        png_file: str,
+        png_file: Path,
         seed: int,
         dyn_vars: dict[str, str],
-        dyn_code: str | None
+        dyn_code: str | None,
 ) -> None:
 
     # use png_file from task directly instead of looking for item["png"]
-    output_png = os.path.join(output_dir, png_file)
+    output_png = output_dir / png_file
 
     msg = f"compile {input_tex}"
     if info is not None:
@@ -311,18 +363,18 @@ def _tex_to_png(
     output.info(msg)
 
     # check that pdflatex executable can be found
-    tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
+    tex2pdf_exe = Path(config.CONFIG["tex2pdf_exe"])
     tex2pdf_exe_args = config.CONFIG["tex2pdf_exe_args"]
-    if not os.path.isabs(tex2pdf_exe):
+    if not tex2pdf_exe.is_absolute():
         tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
 
-    dir_path = os.path.dirname(input_tex)
+    dir_path = input_tex.parent
 
     # the directory when pdflatex will execute
     execution_dir = mcq_dir if mcq_dir is not None else dir_path
 
     if tex_content is None:
-        tex_content = io.read_file_content(input_tex)
+        tex_content = input_tex.read_text()
 
     # create the content of the tex file to compile
     tex_headers = "\n%\n".join(
@@ -358,12 +410,12 @@ def _tex_to_png(
         + rf"\def\WEBAMCseed{{{seed}}} % seed of the instance" + "\n"
         + "%%%%%%%%%%\n"
         + tex_headers + "\n"
-        + tex_dyn
         + "%%%%%%%%%%\n"
         + "% try to auto-seed some common latex packages (fp and pgfmath)\n"
         + r"\ifdefined\FPseed\FPseed=\WEBAMCseed\fi" + "\n"
         + r"\ifdefined\pgfmathsetseed\pgfmathsetseed\WEBAMCseed\fi" + "\n"
         + "%%%%%%%%%%\n"
+        + tex_dyn + "\n"
         + r"\begin{document}" + "\n"
         + r"\pagestyle{empty}" + "\n"
         + "%%%%%%%%%%\n"
@@ -375,44 +427,43 @@ def _tex_to_png(
     # create a temporary dir to create pngs, it will delete himself at the end
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        # create a trash temporary directory, it contains tex files,
-        # it will delete himself at the end
-        tex_file_path = os.path.join(tmp_dir, "main.tex")
+        tmp_path = Path(tmp_dir)
+        tex_file_path = tmp_path / "main.tex"
         with open(tex_file_path, "w", encoding="utf-8") as tmp_file:
             tmp_file.write(tex_content)
 
         args = [
-            tex2pdf_exe,
+            str(tex2pdf_exe),
             *[arg.format(
-                out_dir=tmp_dir,
-                tex_file=tex_file_path
+                out_dir=str(tmp_dir),
+                tex_file=str(tex_file_path)
             ) for arg in tex2pdf_exe_args]
         ]
 
         # the pdflatex commands will run on the "execution_dir"
         # directory
-        exec_result = exec_and_log(args, cwd=execution_dir)
+        exec_result = _exec_and_log(args, cwd=execution_dir)
 
-        pdf_file_name = os.path.join(tmp_dir, "main.pdf")
-        png_file_name = os.path.join(tmp_dir, "main.png")
+        pdf_file_name = tmp_path / "main.pdf"
+        png_file_name = tmp_path / "main.png"
 
         # create the output_png directory, if exists, the subprocess
         # will not crash.
-        os.makedirs(os.path.dirname(output_png), exist_ok=True)
+        output_png.parent.mkdir(parents=True, exist_ok=True)
 
         if (
             exec_result
-            and os.path.exists(pdf_file_name)
-            and os.path.getsize(pdf_file_name) > 0
+            and pdf_file_name.exists()
+            and pdf_file_name.stat().st_size > 0
             and _pdf_to_png(pdf_file_name, png_file_name)
             and _crop_png(png_file_name)
         ):
-            shutil.move(png_file_name, output_png)
+            png_file_name.rename(output_png)
 
 
-def _generate_png_path() -> str:
+def _generate_png_path() -> Path:
     h = uuid.uuid4().hex
-    return f"png/{h[:2]}/{h}.png"
+    return Path("png") / str(h[:2]) / f"{h}.png"
 
 
 def _extract_code(content: str) -> tuple[str, str]:
@@ -437,21 +488,21 @@ def _extract_code(content: str) -> tuple[str, str]:
 
 
 def _compile_question(
-        input_tex: str,
-        output_dir: str,
-        mcq_dir: None | str
+        input_tex: Path,
+        output_dir: Path,
+        mcq_dir: None | Path
 ) -> list[item_t]:
 
-    content = io.read_file_content(input_tex)
+    content = input_tex.read_text()
     content, dyn_code = _extract_code(content)
 
     # check if an external python script exists for this question
-    py_file_path = os.path.splitext(input_tex)[0] + ".py"
-    has_py_script = os.path.isfile(py_file_path)
+    py_file_path = input_tex.parent / (input_tex.stem + ".py")
+    has_py_script = py_file_path.exists() and py_file_path.is_file()
     py_code = ""
     if has_py_script:
-        output.info(f"Extern python filed found: {py_file_path}")
-        py_code = io.read_file_content(py_file_path)
+        output.info(f"external python file found: {py_file_path}")
+        py_code = py_file_path.read_text()
 
     # parse tex file to find questions
     code, qsts = tex.extract_qst(content)
@@ -473,7 +524,7 @@ def _compile_question(
     if mcq_dir is not None:
         root_mcq_dir = mcq_dir
     else:
-        root_mcq_dir = os.path.dirname(input_tex)
+        root_mcq_dir = input_tex.parent
 
     # read webamc metadata (instances, random, tags...)
     mdata = parse_amc_mdata(input_tex, content)
@@ -550,7 +601,7 @@ def _compile_question(
             main_item["instances"].append({
                 "iti_num": instance_id,
                 "iti_seed": seed_val,
-                "png": png_file
+                "png": str(png_file)
             })
 
             info_qst = f"(instance {instance_id})" if is_dynamic else None
@@ -577,7 +628,7 @@ def _compile_question(
                 cho_item["instances"].append({
                     "iti_num": instance_id,
                     "iti_seed": seed_val,
-                    "png": png_cho
+                    "png": str(png_cho)
                 })
 
                 if is_dynamic:
@@ -610,9 +661,9 @@ def _compile_question(
 
 
 def _compile_dir_traversal(
-        input_dir: str,
-        output_dir: str,
-        mcq_dir: None | str
+        input_dir: Path,
+        output_dir: Path,
+        mcq_dir: None | Path
 ) -> list[item_t]:
 
     result: list[item_t] = list()
@@ -630,15 +681,15 @@ def _compile_dir_traversal(
     files = {
         f: path
         for f, path in
-        {sf: os.path.join(input_dir, cfg[sf])  # type: ignore
+        {sf: input_dir / cfg[sf]  # type: ignore
          for sf in special_files}.items()
-        if os.path.isfile(path)
+        if path.is_file()
     }
 
     # header file
     if "tex_file_header" in files:
         path = files["tex_file_header"]
-        _ctx_push_header((path, io.read_file_content(path)))
+        _ctx_push_header((path, path.read_text()))
 
     # meta-data file
     if "tex_file_webamc" in files:
@@ -666,7 +717,7 @@ def _compile_dir_traversal(
             item["instances"] = [{
                 "iti_num": 1,
                 "iti_seed": 0,
-                "png": png_file
+                "png": str(png_file)
             }]
 
             TASKS.append({
@@ -687,20 +738,19 @@ def _compile_dir_traversal(
             _ctx_push_item(item)
             result.append(item)
             if f == "tex_file_mcq":
-                mcq_dir = os.path.abspath(input_dir)
+                mcq_dir = input_dir.absolute()
             break
 
     # traverse the directory recursively
-    for entry in sorted(os.listdir(input_dir)):
-        input_path = os.path.join(input_dir, entry)
-        if os.path.isdir(input_path):
-            result += _compile_dir_traversal(input_path, output_dir, mcq_dir)
-        elif os.path.isfile(input_path):
+    for entry in input_dir.iterdir():
+        if entry.is_dir():
+            result += _compile_dir_traversal(entry, output_dir, mcq_dir)
+        elif entry.is_file():
             if (
-                    io.get_file_extension(entry) == ".tex"
-                    and entry.startswith(cfg["tex_file_question_prefix"])
+                    io.get_file_extension(entry.name) == ".tex"
+                    and entry.name.startswith(cfg["tex_file_question_prefix"])
             ):
-                result += _compile_question(input_path, output_dir, mcq_dir)
+                result += _compile_question(entry, output_dir, mcq_dir)
 
     # post treatment
     if "tex_file_header" in files:
@@ -713,91 +763,25 @@ def _compile_dir_traversal(
     return result
 
 
-def clean_logs() -> None:
-    base_log_file = config.CONFIG["log_file"]
-    if base_log_file:
-        filename, ext = os.path.splitext(base_log_file)
-        for old_log in glob.glob(f"{filename}-*{ext}"):
-            try:
-                os.remove(old_log)
-            except OSError:
-                pass
-
-
-def exec_and_log(args: list[str], cwd: str | None = None) -> bool:
-    cmd = " ".join(args)
-
-    # running the process
-    proc_result = subprocess.run(
-        args,
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=cwd
-    )
-
-    success = proc_result.returncode == 0
-
-    if not success:
-        output.error(f"there was an error with command {cmd}")
-
-    # log file
-    base_log_file = config.CONFIG.get("log_file")
-
-    if not base_log_file:
-
-        # if log_file is none, it will write in the console
-        if proc_result.stdout:
-            sys.stdout.write(proc_result.stdout)
-        if proc_result.stderr:
-            sys.stderr.write(proc_result.stderr)
-
-    else:
-
-        # getting process number
-        p_name = multiprocessing.current_process().name
-
-        # extracting process number from str (process-1 => 1)
-        worker_id = "".join(filter(str.isdigit, p_name))
-        if not worker_id:
-            worker_id = str(os.getpid())
-
-        filename, ext = os.path.splitext(base_log_file)
-        worker_log_file = f"{filename}-{worker_id}{ext}"
-
-        with open(worker_log_file, "a", encoding="UTF-8") as f:
-            cmt = (62 + len(cmd)) * "*" + "\n"
-            f.write(cmt)
-            f.write(30 * "*" + " " + cmd + " " + 30 * "*" + "\n")
-            f.write(cmt)
-
-            if proc_result.stdout:
-                f.write(proc_result.stdout)
-            if proc_result.stderr:
-                f.write("\n" + proc_result.stderr)
-            f.write("\n")
-
-    return success
-
-
 def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     global TASKS
     TASKS = list()
     output.info(f"Compilation starts with {max_threads} threads")
 
     # everything will be written in a temporary directory
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            tempfile.TemporaryDirectory() as log_dir
+    ):
+        CTX["log_dir"] = Path(log_dir)
 
         # traverse input_dir to generate json
-        clean_logs()
-        items = _compile_dir_traversal(input_dir, tmp_dir, None)
+        items = _compile_dir_traversal(Path(input_dir), Path(tmp_dir), None)
 
         # generate png with items and TASKS
-        with concurrent.futures.ProcessPoolExecutor(
-                max_workers=max_threads
-        ) as executor:
-            futures = [executor.submit(_tex_to_png, **task) for task in TASKS]
-            for future in concurrent.futures.as_completed(futures):
+        with futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
+            results = [executor.submit(_tex_to_png, **task) for task in TASKS]
+            for future in futures.as_completed(results):
                 try:
                     future.result()
                 except Exception as ex:
@@ -805,9 +789,13 @@ def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
                     traceback.print_exc()
                     raise SystemExit(1) from ex
 
-        json_path = os.path.join(tmp_dir, JSON_SPEC)
+        json_path = Path(tmp_dir) / JSON_SPEC
         with open(json_path, "w", encoding="utf-8") as fd:
             fd.write(json.dumps(items, indent=2))
 
         # zip the the temporary directory and remove it
         shutil.make_archive(prefix, "zip", root_dir=tmp_dir)
+
+        # merge logs
+        if config.CONFIG["log_file"] is not None:
+            _merge_logs()

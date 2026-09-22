@@ -485,6 +485,12 @@ def help_page(help_id: types.help_t) -> fa.Response:
     return result
 
 
-def mkhelp(e: he.Element, title: types.txt_t, help_id: types.help_t) -> None:
+def mkhelp(
+        e: he.Element,
+        title: types.txt_t,
+        help_id: types.help_t
+) -> he.Element:
+    result = e
     e["class"] += " help-tooltip"
     e["onclick"] = f"javascript: base_help_open('{title}', '{help_id}')"
+    return result

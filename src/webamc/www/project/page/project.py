@@ -231,10 +231,11 @@ def page(
         js="project_submit_data()",
         style="position: absolute; top: 5px; right: 5px;"
     )
-    span_parameters = he.Span(
-        he.Txt("name_parameters")
+    span_parameters = base.mkhelp(
+        he.Span(he.Txt("name_parameters")),
+        "name_parameters",
+        "project_parameters"
     )
-    base.mkhelp(span_parameters, "name_parameters", "project_parameters")
     div_data = he.Div(
         he.H2(span_parameters),
         table_data,

@@ -1,17 +1,16 @@
 import zipfile
 import tempfile
-import os
 import json
 import typing as tp
+from pathlib import Path
 from sqlalchemy.orm import Session as ORMSession
 
 from webamc.all import *
 from webamc.db import tables, op
-from webamc.util import io
 from . import output, compile as comp
 
 
-def _load_dir(dir_path: str, usr_id: int) -> None:
+def _load_dir(dir_path: Path, usr_id: int) -> None:
     def load_item(dbs: ORMSession, item: comp.item_t) -> None | int:
         def sub_dict(prefix: str) -> dict[str, tp.Any]:
             return {
@@ -56,20 +55,17 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
                 return None
 
         # new item
-        info = f"{tex_file}: new item {itm_code}"
         db_item = tables.Item(**sub_dict("itm_"))
         dbs.add(db_item)
         dbs.flush()
         dbs.refresh(db_item)
-        output.info(info)
         result = int(db_item.itm_id)
 
         # if it is an mcq we insert an mcq and records
-        if item.get("is_mcq", False):
-            info = f"{tex_file}: new mcq {itm_code}"
+        is_mcq = item.get("is_mcq", False)
+        if is_mcq:
             mcq = tables.Mcq(mcq_id=result)
             dbs.add(mcq)
-            output.info(info)
 
         # if it is not a choice we insert item_tag records
         if item["itm_type"] != types.ITEM_TYPE_CHOICE:
@@ -99,6 +95,8 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
             prefix + "id": result,
             **sub_dict(prefix)
         }
+        if is_mcq:
+            desc = "mcq"
         if itm_code is not None:
             desc += " " + itm_code
         info = f"{tex_file}: new {desc}"
@@ -107,17 +105,17 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
 
         # inserting instance from JSON in database
         for inst in item.get("instances", list()):
-            img_path = os.path.join(dir_path, inst["png"])
+            img_path = dir_path / inst["png"]
 
             # png image checking
-            if not os.path.isfile(img_path):
+            if not img_path.is_file():
                 output.warning(
                     f"{tex_file} (Instance {inst['iti_num']}): "
-                    + "no image file found at {img_path}"
+                    + f"no image file found at {img_path}"
                 )
                 img_bin = None
             else:
-                img_bin = io.read_bin_file_content(img_path)
+                img_bin = Path(img_path).read_bytes()
 
             # ItemInstance object creation and added to db
             db_instance = tables.ItemInstance(
@@ -128,15 +126,15 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
             )
             dbs.add(db_instance)
             output.info(
-                f"{tex_file}: added instance {inst['iti_num']} " +
-                f"for item {result}"
+                f"{tex_file}: new instance {inst['iti_num']} "
+                f"of {desc}"
             )
 
         return result
 
     num_map: dict[int, int] = dict()
-    json_file = os.path.join(dir_path, comp.JSON_SPEC)
-    if os.path.isfile(json_file):
+    json_file = dir_path / comp.JSON_SPEC
+    if json_file.is_file():
         with (
                 open(json_file, encoding="utf-8") as fd,
                 op.Session() as dbs,
@@ -152,16 +150,17 @@ def _load_dir(dir_path: str, usr_id: int) -> None:
 
 
 def action(archive: str, usr_id: int) -> None:
-    if not os.path.isfile(archive):
+    if not Path(archive).is_file():
         output.error(f"invalid argument: {archive}")
     else:
         with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir)
             try:
                 with zipfile.ZipFile(archive) as zf:
-                    zf.extractall(path=tmp_dir)
-                if not os.path.isdir(tmp_dir):
+                    zf.extractall(path=path)
+                if not path.is_dir():
                     output.error("invalid archive file !")
                 else:
-                    _load_dir(tmp_dir, usr_id)
+                    _load_dir(path, usr_id)
             except zipfile.BadZipFile:
                 output.error("not a zip file !")

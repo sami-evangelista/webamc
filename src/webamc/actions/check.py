@@ -1,33 +1,33 @@
-import os
+from pathlib import Path
 
 from webamc.all import *
 from . import compile as comp, output
 
 
-def _check_dir_traversal(dir_path: str) -> bool:
+def _check_dir_traversal(dir_path: Path) -> bool:
     result = True
     cfg = config.CONFIG
-    for entry in os.listdir(dir_path):
-        entry_path = os.path.join(dir_path, entry)
-        if entry in {cfg["tex_file_exercise"], cfg["tex_file_mcq"]}:
-            mdata = comp.parse_amc_mdata(entry_path)
+    for entry in dir_path.iterdir():
+        if entry.name in {cfg["tex_file_exercise"], cfg["tex_file_mcq"]}:
+            mdata = comp.parse_amc_mdata(entry)
             for (key, attr) in [
                     ("itm_code", "CODE"),
                     ("itm_title", "TITLE")
             ]:
                 if key not in mdata:
-                    output.error(f"{entry_path}: missing {attr} attribute")
+                    output.error(f"{entry}: missing {attr} attribute")
                     result = False
-        if os.path.isdir(entry_path):
-            result = _check_dir_traversal(entry_path) and result
+        if entry.is_dir():
+            result = _check_dir_traversal(entry) and result
     return result
 
 
 def action(dir_path: str) -> bool:
-    if not os.path.isdir(dir_path):
+    path = Path(dir_path)
+    if not path.is_dir():
         output.error(f"directory not found: {dir_path}")
         return False
-    result = _check_dir_traversal(dir_path)
+    result = _check_dir_traversal(path)
     if result:
         output.info(f"{dir_path}: no error found")
     return result
