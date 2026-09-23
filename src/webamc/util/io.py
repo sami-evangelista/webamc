@@ -1,8 +1,6 @@
 import shutil
-from pathlib import Path
 
 from webamc.all import *
-from . import termout
 
 
 def get_file_extension(file_path: str) -> str:

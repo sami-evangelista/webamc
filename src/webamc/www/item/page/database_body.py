@@ -214,7 +214,6 @@ def _content_pack(
         js=f"item_update_pack({item.itm_id}, $('#{textarea_id}').val())"
     )
     return he.ElementList(textarea, he.Br(), a_edit)
-        
 
 
 def _content_question(
