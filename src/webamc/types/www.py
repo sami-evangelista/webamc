@@ -17,6 +17,7 @@ json_response_t = tp_ext.TypedDict(
 
 static_img_t = tp.Literal[
     "add",
+    "arrow-clockwise",
     "arrow-left",
     "arrow-right",
     "broom",

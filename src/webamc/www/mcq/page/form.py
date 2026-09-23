@@ -94,7 +94,7 @@ def page(
         if not fst:
             empty_td = he.Td(he.Div(class_="status-box"))
             status_cells += [empty_td, empty_td]
-        fst = fst and len(exe_qsts) > 0
+        fst = fst and len(exe_qsts) == 0
         status_cells += [
             he.Td(
                 he.Div(
@@ -169,9 +169,14 @@ def page(
          "mcq_switch_mode()")
     ]
     if exam is None:
-        btns.append(("checkmark", "verb_send", None, "mcq_validate()"))
+        btns += [
+            ("arrow-clockwise", "verb_restart", None, "mcq_reset_all()"),
+            ("checkmark", "verb_send", None, "mcq_validate()")
+        ]
     else:
-        btns.append(("checkmark", "verb_send", None, "mcq_save_answers()"))
+        btns += [
+            ("checkmark", "verb_send", None, "mcq_save_answers()")
+        ]
 
     side_buttons = [
         base.static_img(img, title, title_args=title_args, js=js)
@@ -214,7 +219,7 @@ def _gen_mcq_content(
             packs[item] = list()
             return {"itm_id": item.itm_id, "itm_children": packs[item]}
 
-        # mcq or exercice type
+        # mcq or exercise type
         children = [
             loop(child) for child in queries.get_children(
                 ctx.dbs, item.itm_id

@@ -20,23 +20,23 @@
     border-radius: 5px;
     padding: 6px;
     & td {
-	padding: 1px;
+	padding: 2px;
     }
 }
 .status-box {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 .status-box-question {
-    border: 3px solid;
-    border-radius: 4px;
+    border: 2px solid;
+    border-radius: 3px;
     cursor: pointer;
 }
 .status-box-choice {
 }
 .status-box-choice-set {
-    border: 3px solid;
-    border-radius: 4px;
+    border: 2px solid;
+    border-radius: 3px;
 }
 .status-wrong {
     background-color: var(--color-status-wrong);

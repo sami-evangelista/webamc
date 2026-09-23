@@ -30,7 +30,6 @@ amc_mdata_t = tp.TypedDict(
     },
     total=False
 )
-
 instance_t = tp.TypedDict(
     "instance_t",
     {
@@ -41,7 +40,6 @@ instance_t = tp.TypedDict(
     },
     total=False
 )
-
 item_t = tp.TypedDict(
     "item_t",
     {
@@ -68,8 +66,6 @@ item_t = tp.TypedDict(
     },
     total=False
 )
-
-
 qst_template_t = tp.TypedDict(
     "qst_template_t",
     {
@@ -78,7 +74,6 @@ qst_template_t = tp.TypedDict(
         "choices": list[tuple[item_t, str, int]]
     }
 )
-
 ctx_t = tp.TypedDict(
     "ctx_t",
     {
@@ -86,6 +81,7 @@ ctx_t = tp.TypedDict(
         "headers": list[tuple[str, str]],
         "stack": list[tuple[str, int, int]],
         "mdata": list[amc_mdata_t],
+        "tex2pdf_exe": Path | None,
         "log_dir": Path | None
     }
 )
@@ -94,6 +90,7 @@ CTX: ctx_t = {
     "headers": list(),
     "stack": list(),
     "mdata": list(),
+    "tex2pdf_exe": None,
     "log_dir": None
 }
 WEBAMC_COMMENT = "%webamc "
@@ -189,14 +186,11 @@ def _ctx_new_item(input_tex: Path, read_mdata: bool = True) -> item_t:
 
 
 def check_pack(json_file: Path) -> str:
-    exn_msg = f"{json_file}: invalid pack specification"
     try:
         result = json_file.read_text()
-        typeguard.check_type(json.loads(result), types.pack_spec_t)
-    except typeguard.TypeCheckError as ex:
-        raise ValueError(exn_msg) from ex
-    except json.decoder.JSONDecodeError as ex:
-        raise ValueError(exn_msg) from ex
+        types.check_pack_spec(result)
+    except ValueError as ex:
+        raise ValueError(f"{json_file}: invalid pack specification") from ex
     return result
 
 
@@ -353,6 +347,8 @@ def _tex_to_png(
         dyn_code: str | None,
 ) -> None:
 
+    assert CTX["tex2pdf_exe"] is not None
+
     # use png_file from task directly instead of looking for item["png"]
     output_png = output_dir / png_file
 
@@ -361,12 +357,6 @@ def _tex_to_png(
         msg = f"{msg} {info}"
     msg = f"{msg} to {output_png}"
     output.info(msg)
-
-    # check that pdflatex executable can be found
-    tex2pdf_exe = Path(config.CONFIG["tex2pdf_exe"])
-    tex2pdf_exe_args = config.CONFIG["tex2pdf_exe_args"]
-    if not tex2pdf_exe.is_absolute():
-        tex2pdf_exe = io.get_executable_path(tex2pdf_exe)
 
     dir_path = input_tex.parent
 
@@ -426,26 +416,22 @@ def _tex_to_png(
 
     # create a temporary dir to create pngs, it will delete himself at the end
     with tempfile.TemporaryDirectory() as tmp_dir:
-
         tmp_path = Path(tmp_dir)
         tex_file_path = tmp_path / "main.tex"
-        with open(tex_file_path, "w", encoding="utf-8") as tmp_file:
-            tmp_file.write(tex_content)
-
+        pdf_file_path = tmp_path / "main.pdf"
+        png_file_path = tmp_path / "main.png"
+        tex_file_path.write_text(tex_content)
         args = [
-            str(tex2pdf_exe),
+            str(CTX["tex2pdf_exe"]),
             *[arg.format(
                 out_dir=str(tmp_dir),
                 tex_file=str(tex_file_path)
-            ) for arg in tex2pdf_exe_args]
+            ) for arg in config.CONFIG["tex2pdf_exe_args"]]
         ]
 
         # the pdflatex commands will run on the "execution_dir"
         # directory
         exec_result = _exec_and_log(args, cwd=execution_dir)
-
-        pdf_file_name = tmp_path / "main.pdf"
-        png_file_name = tmp_path / "main.png"
 
         # create the output_png directory, if exists, the subprocess
         # will not crash.
@@ -453,12 +439,12 @@ def _tex_to_png(
 
         if (
             exec_result
-            and pdf_file_name.exists()
-            and pdf_file_name.stat().st_size > 0
-            and _pdf_to_png(pdf_file_name, png_file_name)
-            and _crop_png(png_file_name)
+            and pdf_file_path.exists()
+            and pdf_file_path.stat().st_size > 0
+            and _pdf_to_png(pdf_file_path, png_file_path)
+            and _crop_png(png_file_path)
         ):
-            png_file_name.rename(output_png)
+            png_file_path.rename(output_png)
 
 
 def _generate_png_path() -> Path:
@@ -765,6 +751,19 @@ def _compile_dir_traversal(
 
 def action(input_dir: str, prefix: str, max_threads: int = 4) -> None:
     global TASKS
+
+    # check that pdflatex executable can be found
+    tex2pdf_exe = config.CONFIG["tex2pdf_exe"]
+    path = Path(tex2pdf_exe)
+    if path.is_absolute():
+        CTX["tex2pdf_exe"] = path
+    else:
+        which = shutil.which(tex2pdf_exe)
+        if which is None:
+            output.error(f"could not locate {tex2pdf_exe} in your path")
+            sys.exit(1)
+        CTX["tex2pdf_exe"] = Path(which)
+
     TASKS = list()
     output.info(f"Compilation starts with {max_threads} threads")
 

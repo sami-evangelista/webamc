@@ -43,9 +43,9 @@ def page(
         # deletion link (disabled if submission have been made for the
         # exam)
         if has_registrations:
-            a_delete: he.Element = he.Img(
-                src=base.static_img_src("trash"),
-                title=lang.txt("warning_exam_deletion_forbidden"),
+            a_delete = base.static_img(
+                "trash",
+                "warning_exam_deletion_forbidden",
                 class_="warning"
             )
         else:

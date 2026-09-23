@@ -1,11 +1,12 @@
 #!/bin/bash
 
 SIZES="24 32 48 64"
-for png in *[a-z].png
+for png in templates/*.png
 do
     for size in $SIZES
     do
         out=${png%.png}-$size.png
+        out=${out#templates/}
         [ -e $out ] && continue
         cmd="convert -resize x$size -background transparent $png $out"
         echo $cmd

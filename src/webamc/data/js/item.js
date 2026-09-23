@@ -17,7 +17,7 @@ const item_delete = function (itm_id) {{
 }};
 
 
-const item_filter = function (itm_id = null) {  
+const item_filter = function (itm_id = null) {
     const success = function (result) {
         item_admin_items_loaded = new Set();
 	$('#div-item-list').html(result);
@@ -52,14 +52,11 @@ const item_load_grp = function (db_grp_id) {
 
 const item_admin_code_click = function (db_itm_id, iti_num = null) {
     const div_body = $('#div-item-body-' + db_itm_id);
-    
-    // Si on a cliqué sur le titre, iti_num est null, donc on cible la 1
     const target_instance = iti_num || 1;
     const is_dropdown_change = (iti_num !== null);
-
-    // On charge SI ce n'est pas encore chargé OU SI on a utilisé le menu déroulant
-    if (!item_admin_items_loaded.has(db_itm_id) || is_dropdown_change) {
-        
+    if(item_admin_items_loaded.has(db_itm_id) && !is_dropdown_change) {
+        div_body.fadeToggle();
+    } else {
         const success = function (result) {
             div_body.html(result);
             if (!div_body.is(':visible')) {
@@ -67,23 +64,16 @@ const item_admin_code_click = function (db_itm_id, iti_num = null) {
             }
             item_admin_items_loaded.add(db_itm_id);
         };
-        
         const path = Constants.path_item_page_database_body
               + '?itm_id=' + db_itm_id 
               + '&iti_num=' + target_instance;
-              
         xhr_get(path, success);
-        
-    } else {
-        // Si c'est déjà chargé et qu'on clique juste sur le titre, on plie/déplie !
-        div_body.fadeToggle();
     }
-    
     return false;
 };
 
 
-const item_new_item_admin = function (db_itm_id, tags, grps, init_grps) {
+const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
 
     /* initialise the tag table */
     const table_tags_id = 'table-item-tags-' + db_itm_id;
@@ -121,18 +111,15 @@ const item_new_item_admin = function (db_itm_id, tags, grps, init_grps) {
     }
 }
 
-const item_instance_delete = function (itm_id, iti_num) {
-    const success = function (result) {
-        item_admin_code_click(itm_id, 1);
-        item_filter();
-    };
 
-    const url = "/webamc/item/oper/delete-instance"; // fixing later
-    
-    const data = {
-        'itm_id': itm_id,
-        'iti_num': iti_num
+const item_update_pack = function (pak_id, pak_spec) {
+    const db_where = {
+        'op': '=',
+        'col': 'pak_id',
+        'val': pak_id
     };
-    
-    xhr_post(url, success, data, 'json');
-};
+    const db_values = {
+        'pak_spec': pak_spec
+    };
+    xhr_db_update('pack', [db_where], db_values);
+}

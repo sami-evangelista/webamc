@@ -327,7 +327,7 @@ def gen_pack_questions(
                 & (tables.Item.itm_id == tables.Question.qst_id)
                 & (tables.Item.itm_usr == usr_id)
                 & (tables.Item.itm_standalone
-                   | (tables.Item.itm_parent._is(None)))
+                   | (tables.Item.itm_parent == None))  # pylint: disable=C0121
                 & (tables.Item.itm_id.not_in(not_in))
             )
         all_op: types.pack_spec_t = {"op": "all"}

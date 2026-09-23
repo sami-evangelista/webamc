@@ -41,6 +41,7 @@ col_desc_loc_login;login
 col_desc_loc_password;mot de passe
 col_desc_loc_usr;utilisateur
 col_desc_mcq_mode;mode
+col_desc_pak_spec;pack
 col_desc_tag_color;couleur
 col_desc_tag_desc;description
 col_desc_tag_id;#
@@ -243,7 +244,9 @@ verb_create;créer
 verb_delete;supprimer
 verb_filter;filtrer
 verb_send;envoyer
+verb_restart;recommencer
 verb_start;démarrer
+verb_update;modifier
 verb_validate;valider
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
 error_exam_not_found;Examen introuvable.
@@ -270,7 +273,4 @@ name_mod_date;Date de modification
 msg_file_list_exam;Liste des fichiers associés à l'examen.
 action_refresh;Rafraîchir
 name_type;Type
-action_delete_instance;Supprimer cette instance
-msg_confirm_delete_instance;Supprimer cette instance ?
-name_variants;var.
-name_instance;Instance
+param_seq_instance_num;Instance %s

@@ -212,7 +212,7 @@ class Mcq(Base):
 class Pack(Base):
     __tablename__ = "pack"
     pak_id: int = CO(RefItem, primary_key=True)
-    pak_spec: str = CO(ct.String, nullable=False)
+    pak_spec: str = CO(ct.PackSpec, nullable=False)
     __table_args__ = (
         FK(["pak_id"], ["item.itm_id"], ondelete="CASCADE"),
     )

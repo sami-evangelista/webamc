@@ -26,7 +26,7 @@ def _type_desc(t: type) -> str:
         return "bool"
     if t == int:
         return "int"
-    if t is None:
+    if t == type(None):
         return "null"
     if tp.get_origin(t) == list:
         return f"list of ({_type_desc(tp.get_args(t)[0])})"
@@ -40,7 +40,6 @@ def _type_desc(t: type) -> str:
         return " | ".join(json.dumps(u) for u in tp.get_args(t))
     if isinstance(t, _types.UnionType):
         return " | ".join(_type_desc(u) for u in tp.get_args(t))
-    print(t)
     assert 0
 
 

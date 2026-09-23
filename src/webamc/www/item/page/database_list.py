@@ -68,13 +68,6 @@ def div_item(ctx: context.Context, item: tables.Item) -> he.Element:
     mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
     div_body_id = f"div-item-body-{item.itm_id}"
 
-    nb_instances = len(
-        queries.get_instances(ctx.dbs, item.itm_id)
-    )
-    badge = ""
-    if nb_instances > 1:
-        badge = f" ({nb_instances} {lang.txt('name_variants')})"
-
     # <p> containing item code
     if mcq is not None:
         label = he.Txt("name_mcq")
@@ -88,7 +81,7 @@ def div_item(ctx: context.Context, item: tables.Item) -> he.Element:
 
     p_code = he.P(
         label,
-        he.Str(f" [{item.itm_code}]{badge}"),
+        he.Str(f" [{item.itm_code}]"),
         class_=p_code_class,
         onclick=f"item_admin_code_click({item.itm_id})"
     )

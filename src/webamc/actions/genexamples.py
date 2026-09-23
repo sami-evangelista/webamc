@@ -10,7 +10,7 @@ NO_STUDENTS_PER_GROUP = 20
 NO_TEACHERS_PER_GROUP = 20
 NO_TAGS = 1_000
 EADDR_DOMAIN = "example.com"
-ROOT_PASSWORD = "00000000"
+PASSWORD = "00000000"
 
 
 def action(out_dir: str) -> None:
@@ -78,7 +78,7 @@ def action(out_dir: str) -> None:
                 " ", "_"
             )
             fd_usr.write(f"{usr_code};{usr_eaddr};{usr_fst_name};{usr_name}\n")
-            password = ROOT_PASSWORD if usr_code == "root" else ""
+            password = PASSWORD
             fd_loc.write(f"1;{usr_code};{usr_code};{password}\n")
             fd_cas.write(f"1;{usr_code};{usr_code}\n")
             fd_uat.write(f"UID;{usr_code};{str(uid).zfill(8)}\n")

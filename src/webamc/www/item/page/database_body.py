@@ -7,7 +7,7 @@ from . import database_list
 def page(
         ctx: context.Context,
         itm_id: int,
-        iti_num: int = 1
+        iti_num: int
 ) -> fa.Response:
 
     owner = queries.get_item_owner(ctx.dbs, itm_id)
@@ -16,8 +16,6 @@ def page(
 
     item = queries.get_item(ctx.dbs, itm_id)
     mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
-
-    # all instances of a question
     all_instances = queries.get_instances(ctx.dbs, item.itm_id)
 
     table_tags_id = f"table-item-tags-{item.itm_id}"
@@ -25,80 +23,24 @@ def page(
 
     # <tr> containing attributes
     trs: list[he.Tr] = list()
+
+    # deletion link
     if session.has_admin_right(ctx, item):
         a_delete = base.static_img(
             "trash",
             "verb_delete",
             js=f"item_delete({item.itm_id});"
         )
-        if item.itm_type == types.ITEM_TYPE_QUESTION:
-            a_delete_instance = he.Button(
-                he.Txt("action_delete_instance"),
-                onclick=(
-                    f"if(confirm('{lang.txt('msg_confirm_delete_instance')}'))"
-                    f"{{ item_instance_delete({item.itm_id}, {iti_num}); }}"
-                ),
-                class_="btn-small btn-danger"
-            )
-            tr = he.Tr(
-                he.Td(),
-                he.Td(
-                    a_delete,
-                    he.Str(" "),
-                    a_delete_instance
-                ),
-            )
-        else:
-            tr = he.Tr(
-                he.Td(),
-                he.Td(a_delete)
-            )
-
+        tr = he.Tr(
+            he.Td(),
+            he.Td(a_delete)
+        )
         trs.append(tr)
-
-    if all_instances:
-        options = []
-        for inst in all_instances:
-            inst_text = f"{lang.txt('name_instance')} {inst.iti_num}"
-
-            if int(inst.iti_num) == int(iti_num):
-                options.append(
-                    he.Option(
-                        he.Str(inst_text),
-                        value=inst.iti_num,
-                        selected="selected"
-                    )
-                )
-            else:
-                options.append(
-                    he.Option(
-                        he.Str(inst_text),
-                        value=inst.iti_num
-                    )
-                )
-
-        selector = he.Select(
-            *options,
-            onchange=(
-                f"item_admin_code_click({item.itm_id}, this.value);"
-                " return false;"
-            ),
-            class_="select-instance"
-        )
-        trs.append(
-            he.Tr(
-                he.Td(
-                    he.Txt("name_instance")
-                ),
-                he.Td(selector)
-            )
-        )
 
     # select item columns to show
     cols = ["itm_title", "itm_date"]
     cols += {
-        types.ITEM_TYPE_PACK: [
-        ],
+        types.ITEM_TYPE_PACK: list(),
         types.ITEM_TYPE_EXERCISE: [
             "itm_rnd"
         ],
@@ -119,26 +61,7 @@ def page(
         assert found
         tr = he.Tr(
             he.Td(he.Txt(desc.col_desc(col))),
-            he.Td(
-                www_db_util.get_attribute(ctx, col, val, item.itm_id)
-            )
-        )
-        trs.append(tr)
-
-    if all_instances:
-        img = he.Img(
-            src=base.img_src(
-                ctx,
-                item.itm_id,
-                iti_num,
-            ),
-            alt=f"{item.itm_code}-inst-{iti_num}"
-        )
-        tr = he.Tr(
-            he.Td(
-                he.Txt("name_statement")
-            ),
-            he.Td(img)
+            he.Td(www_db_util.get_attribute(ctx, col, val, item.itm_id))
         )
         trs.append(tr)
 
@@ -177,7 +100,39 @@ def page(
     )
     trs.append(tr)
 
-    # <tr> containing item image
+    img_instance = he.Img(
+        src=base.img_src(ctx, item.itm_id, iti_num),
+        alt=f"{item.itm_code}-inst-{iti_num}"
+    )
+    if len(all_instances) == 1:
+        if all_instances[0].iti_img is not None:
+            tr = he.Tr(
+                he.Td(he.Txt("name_statement")),
+                he.Td(img_instance)
+            )
+            trs.append(tr)
+    else:
+        options = [
+            he.Option(
+                he.Str(lang.txt("param_seq_instance_num") % str(i.iti_num)),
+                value=i.iti_num
+            ).add_flag("selected", i.iti_num == iti_num)
+            for i in all_instances
+        ]
+        onchange = (
+            f"item_admin_code_click({item.itm_id}, this.value);"
+            " return false;"
+        )
+        select_instance = he.Select(
+            *options,
+            onchange=onchange,
+            class_="select-instance"
+        )
+        tr = he.Tr(
+            he.Td(select_instance),
+            he.Td(img_instance)
+        )
+        trs.append(tr)
 
     # <tr> for item content
     content = _content(ctx, item, iti_num)
@@ -203,7 +158,7 @@ def page(
     # script initialising the item
     d = json.dumps
     js = (
-        f"item_new_item_admin("
+        f"item_init_admin("
         f"{d(item.itm_id)}, {d(tags)}, {d(grps)}, {d(init_grps)})"
     )
     script = he.Script(js)
@@ -219,15 +174,14 @@ def page(
 def _content(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int = 1
+        iti_num: int
 ) -> None | he.Element:
-    try:
-        if item.itm_type == types.ITEM_TYPE_EXERCISE:
-            return _content_exercise(ctx, item)
-        if item.itm_type == types.ITEM_TYPE_QUESTION:
-            return _content_question(ctx, item, iti_num)
-    except KeyError:
-        return None
+    if item.itm_type == types.ITEM_TYPE_EXERCISE:
+        return _content_exercise(ctx, item)
+    if item.itm_type == types.ITEM_TYPE_QUESTION:
+        return _content_question(ctx, item, iti_num)
+    if item.itm_type == types.ITEM_TYPE_PACK:
+        return _content_pack(ctx, item)
     return he.Div()
 
 
@@ -241,10 +195,32 @@ def _content_exercise(
     ])
 
 
+def _content_pack(
+        ctx: context.Context,
+        item: tables.Item
+) -> he.Element:
+    textarea_id = f"textarea-pack-{item.itm_id}"
+    pack = queries.get_pack(ctx.dbs, item.itm_id)
+    spec = json.loads(pack.pak_spec)
+    textarea = he.Textarea(
+        he.Str(json.dumps(spec, indent=2)),
+        id_=textarea_id,
+        cols=80,
+        rows=20
+    )
+    a_edit = base.static_img(
+        "edit",
+        "verb_update",
+        js=f"item_update_pack({item.itm_id}, $('#{textarea_id}').val())"
+    )
+    return he.ElementList(textarea, he.Br(), a_edit)
+        
+
+
 def _content_question(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int = 1
+        iti_num: int
 ) -> he.Element:
     img: str | he.Element
     trs = list()

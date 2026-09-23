@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import smtplib
 import ssl
 from importlib import resources
@@ -27,14 +25,21 @@ def find_mail(mail_file: types.mail_file_t) -> None | str:
 
 
 def send_mail(eaddr_from: str, eaddr_to: str, msg: str | bytes) -> bool:
-    conn = None
+    conn: None | smtplib.SMTP | smtplib.SMTP_SSL = None
     try:
-        ctx = ssl.create_default_context()
-        conn = smtplib.SMTP_SSL(
-            config.CONFIG["smtp_host"],
-            config.CONFIG["smtp_port"],
-            context=ctx
-        )
+        if config.CONFIG["smtp_ssl"]:
+            ctx = ssl.create_default_context()
+            conn = smtplib.SMTP_SSL(
+                config.CONFIG["smtp_host"],
+                config.CONFIG["smtp_port"],
+                context=ctx
+            )
+        else:
+            conn = smtplib.SMTP(
+                config.CONFIG["smtp_host"],
+                config.CONFIG["smtp_port"]
+            )
+
         if config.CONFIG["smtp_auth"]:
             conn.login(
                 config.CONFIG["smtp_user"],

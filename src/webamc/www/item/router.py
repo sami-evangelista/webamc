@@ -12,10 +12,6 @@ args_page_item_t = tp_ext.TypedDict("args_page_item_t", {
     "itm_id": int
 })
 
-args_oper_delete_instance_t = tp_ext.TypedDict("args_oper_delete_instance_t", {
-    "itm_id": int,
-    "iti_num": int
-})
 
 @router.get("/item/oper/get-pack")
 def route_oper_get_tags(req: fa.Request) -> fa.Response:
@@ -24,6 +20,7 @@ def route_oper_get_tags(req: fa.Request) -> fa.Response:
         from .oper import get_tags
         res = get_tags.get_all_tags(ctx)
         return fa.responses.JSONResponse(res)
+
 
 @router.post("/item/oper/save-pack")
 def route_oper(
@@ -65,49 +62,6 @@ def route_page_database_body(
     with context.Context(req) as ctx:
         return database_body.page(ctx, itm_id, iti_num)
 
-
-@router.post("/item/oper/delete-instance")
-def route_oper_delete_instance(
-        req: fa.Request,
-        args: dict[str, tp.Any]
-) -> fa.Response:
-    with context.Context(req) as ctx:
-        itm_id = args["itm_id"]
-        iti_num = args["iti_num"]
-
-        print(f"Deleting item {itm_id} | instance {iti_num}")
-
-        from webamc.db import queries, tables
-
-        # check the owner of the item
-        owner = queries.get_item_owner(ctx.dbs, itm_id)
-        if owner is None or owner.usr_id != session.usr_id(ctx):
-            raise fa.HTTPException(status_code=403)
-
-        # getting ids of all choices related to the question
-        choices = queries.get_question_choices(ctx.dbs, itm_id)
-        choice_ids = [c.cho_id for c in choices]
-
-        # deleting all instances of these choices.
-        if choice_ids:
-            query_choices = sa.delete(tables.ItemInstance).where(
-                sa.and_(
-                    tables.ItemInstance.iti_item.in_(choice_ids),
-                    tables.ItemInstance.iti_num == iti_num
-                )
-            )
-            ctx.dbs.execute(query_choices)
-
-        # deleting the instance of the question
-        query_inst = sa.delete(tables.ItemInstance).where(
-            sa.and_(
-                tables.ItemInstance.iti_item == itm_id,
-                tables.ItemInstance.iti_num == iti_num
-            )
-        )
-        ctx.dbs.execute(query_inst)
-        ctx.dbs.commit()
-        return fa.responses.JSONResponse({"status": "ok"})
 
 @router.get("/item/page/group")
 def route_page_group(

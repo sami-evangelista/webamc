@@ -4,6 +4,7 @@ import json
 import typing as tp
 from pathlib import Path
 from sqlalchemy.orm import Session as ORMSession
+import typeguard
 
 from webamc.all import *
 from webamc.db import tables, op
@@ -109,10 +110,7 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
 
             # png image checking
             if not img_path.is_file():
-                output.warning(
-                    f"{tex_file} (Instance {inst['iti_num']}): "
-                    + f"no image file found at {img_path}"
-                )
+                output.warning(f"{tex_file} no image found")
                 img_bin = None
             else:
                 img_bin = Path(img_path).read_bytes()
@@ -135,14 +133,10 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
     num_map: dict[int, int] = dict()
     json_file = dir_path / comp.JSON_SPEC
     if json_file.is_file():
-        with (
-                open(json_file, encoding="utf-8") as fd,
-                op.Session() as dbs,
-                dbs.begin()
-        ):
-            items: list[comp.item_t] = tp.cast(
-                list[comp.item_t], json.loads(fd.read())
-            )
+        items: list[comp.item_t] = typeguard.check_type(
+            json.loads(json_file.read_text()), list[comp.item_t]
+        )
+        with op.Session() as dbs, dbs.begin():
             for item in items:
                 itm_id = load_item(dbs, item)
                 if itm_id is not None:

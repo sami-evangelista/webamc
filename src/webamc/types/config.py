@@ -46,6 +46,7 @@ conf_t = tp_ext.TypedDict(
         "smtp_host": str,
         "smtp_password": str,
         "smtp_port": int,
+        "smtp_ssl": bool,
         "smtp_user": str,
         "tex2pdf_exe": str,
         "tex2pdf_exe_args": list[str],

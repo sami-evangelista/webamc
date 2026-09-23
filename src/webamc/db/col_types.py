@@ -1,3 +1,5 @@
+import json
+import typeguard
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
 
@@ -144,6 +146,13 @@ class Password(ConstrainedString):
         if val is None:
             return None
         return security.hash_password(str(val))
+
+
+class PackSpec(LargeString):
+    @classmethod
+    def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
+        types.check_pack_spec(str(val))
+        return str(val)
 
 
 class IntEnum(Integer):

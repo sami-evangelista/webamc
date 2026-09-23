@@ -14,6 +14,7 @@ class Element:
             for x, y in attrs.items()
         }
         self.data: dict[str, str] = dict()
+        self.flags: set[str] = set()
 
     def __str__(self) -> str:
         result = ""
@@ -21,6 +22,8 @@ class Element:
         result += f"<{tag}" + "".join(
             f" {k}=\"{v}\"" for k, v in self.attrs.items()
         )
+        if self.flags != set():
+            result += " ".join(self.flags)
         if self.data != dict():
             result += " " + " ".join(
                 f"data-{k}=\"{v}\"" for k, v in self.data.items()
@@ -46,6 +49,11 @@ class Element:
 
     def set_data(self, data: str, value: str) -> "Element":
         self.data[data] = value
+        return self
+
+    def add_flag(self, flag: str, check: bool = True) -> "Element":
+        if check:
+            self.flags.add(flag)
         return self
 
 

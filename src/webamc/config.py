@@ -1,44 +1,38 @@
 import json
-import os
 import sys
-import pathlib
-import typing as tp
+from pathlib import Path
+import typeguard
 
-from webamc.util import termout, io
+from webamc.util import termout
 from webamc.types import all as types
 
 
-HOME_DIR = pathlib.Path.home()
+HOME_DIR = Path.home()
 if sys.platform == "win32":
-    ROOT_DIR = os.path.join(HOME_DIR, "AppData", "Roaming", "webamc")
+    ROOT_DIR = HOME_DIR / "AppData" / "Roaming" / "webamc"
 else:
-    ROOT_DIR = os.path.join(HOME_DIR, ".local", "share", "webamc")
-DEFAULT_CONFIG_FILE = os.path.join(ROOT_DIR, "config.json")
-
-
-class Config(dict[str, tp.Any]):
-    def __getitem__(self, key: str) -> tp.Any:
-        if key not in self:
-            return CONFIG_DEFAULT[key]  # type: ignore
-        return super().__getitem__(key)
+    ROOT_DIR = HOME_DIR / ".local" / "share" / "webamc"
+DEFAULT_CONFIG_FILE = ROOT_DIR / "config.json"
 
 
 def load(cfg_file: str | None = None) -> None:
+    global CONFIG
     if cfg_file is None:
-        cfg_file = DEFAULT_CONFIG_FILE
-    if os.path.exists(cfg_file):
-        with open(cfg_file, encoding="utf-8") as fd:
-            try:
-                data = json.loads(fd.read())
-                if isinstance(data, dict):
-                    for key, val in data.items():
-                        CONFIG[key] = val  # type: ignore
-            except json.decoder.JSONDecodeError:
-                termout.warning(f"malformed configuration file {cfg_file}")
-    elif cfg_file == DEFAULT_CONFIG_FILE:
-        if io.mkdir_of_file(cfg_file):
-            with open(cfg_file, "w", encoding="utf-8") as fd:
-                fd.write(json.dumps(CONFIG_DEFAULT, indent=2) + "\n")
+        path = DEFAULT_CONFIG_FILE
+    else:
+        path = Path(cfg_file)
+    if path.is_file():
+        try:
+            CONFIG = typeguard.check_type(
+                json.loads(path.read_text()),
+                types.conf_t
+            )
+        except json.decoder.JSONDecodeError:
+            termout.warning(f"malformed configuration file {path}")
+    elif path == DEFAULT_CONFIG_FILE:
+        if not path.is_file():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(CONFIG_DEFAULT, indent=2) + "\n")
             load()
 
 
@@ -79,6 +73,7 @@ CONFIG_DEFAULT: types.conf_t = {
     "smtp_host": "mail.example.com",
     "smtp_password": "smtp_password",
     "smtp_port": 465,
+    "smtp_ssl": True,
     "smtp_user": "smtp_user",
     "tex2pdf_exe": "pdflatex",
     "tex2pdf_exe_args": [
@@ -119,7 +114,7 @@ CONFIG_DEFAULT: types.conf_t = {
     ],
     "ticket_length": 64
 }
-CONFIG: types.conf_t = tp.cast(types.conf_t, Config(CONFIG_DEFAULT))
+CONFIG = CONFIG_DEFAULT
 
 
 CONFIG_DESC_MD = {
@@ -266,6 +261,10 @@ CONFIG_DESC_MD = {
     "smtp_port":
     (False, True,
      "port the SMTP server listens to"),
+    ###
+    "smtp_ssl":
+    (False, True,
+     "true if SSL is used to connect to the SMTP server"),
     ###
     "smtp_user":
     (False, True,
