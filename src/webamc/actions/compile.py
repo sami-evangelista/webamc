@@ -10,7 +10,6 @@ import pymupdf
 from PIL import Image
 
 from webamc.all import *
-from webamc.util import io
 from . import tex, output
 
 
@@ -733,7 +732,7 @@ def _compile_dir_traversal(
             result += _compile_dir_traversal(entry, output_dir, mcq_dir)
         elif entry.is_file():
             if (
-                    io.get_file_extension(entry.name) == ".tex"
+                    entry.suffix == ".tex"
                     and entry.name.startswith(cfg["tex_file_question_prefix"])
             ):
                 result += _compile_question(entry, output_dir, mcq_dir)

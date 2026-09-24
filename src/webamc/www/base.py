@@ -1,9 +1,10 @@
 from importlib import resources
+from pathlib import Path
 import urllib
 import fastapi as fa
 
 from webamc.all import *
-from webamc.util import io, fmt
+from webamc.util import fmt
 from webamc.actions import load, loadcsv, output
 from . import html_elements as he, session, context, mtype
 
@@ -45,6 +46,11 @@ js_urls = [
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"
 ]
 menu_items: list[menu_item_t] = [
+    (lambda ctx: True,
+     False,
+     "signout",
+     "page_title_signout",
+     "/auth/oper/logout"),
     (session.ne_inbox,
      True,
      "inbox",
@@ -84,12 +90,7 @@ menu_items: list[menu_item_t] = [
      False,
      "home",
      "page_title_index",
-     "/"),
-    (lambda ctx: True,
-     False,
-     "signout",
-     "page_title_signout",
-     "/auth/oper/logout")
+     "/")
 ]
 
 
@@ -146,7 +147,7 @@ def page(
         x.name for x in (resources.files("webamc") / "data" / "js").iterdir()
     ]
     for fname in js_files:
-        if io.get_file_extension(fname) != ".js":
+        if Path(fname).suffix != ".js":
             continue
         src = mkuri("/static", file_name=fname)
         script = he.Script(src=src)
@@ -162,8 +163,7 @@ def page(
             type_="text/css",
             href=mkuri("/static", file_name=fname)
         )
-        for fname in css_files
-        if io.get_file_extension(fname) == ".css"
+        for fname in css_files if Path(fname).suffix == ".css"
     ]
 
     # head information
@@ -175,7 +175,8 @@ def page(
         "content": "text/html; charset=utf-8"
     })
 
-    # if side buttons are given, divide the page with a sidebar and a mainpanel
+    # if side buttons are given, divide the page with a sidebar and a
+    # mainpanel
     if side_buttons is None:
         body = he.Str(body) if isinstance(body, str) else body
     else:
@@ -279,7 +280,7 @@ def file_img(file_name: str) -> types.static_img_t:
             ".ods": "doc-table",
             ".zip": "doc-archive"
         }
-        result = doc_types[io.get_file_extension(file_name)]
+        result = doc_types[Path(file_name).suffix]
     except KeyError:
         result = "doc-text"
     return result
@@ -454,11 +455,11 @@ def static_file(file_name: str) -> fa.Response:
         result = fa.responses.PlainTextResponse(gen_css_dyn())
     else:
 
-        ext = io.get_file_extension(file_name)
+        ext = Path(file_name).suffix
         with resources.as_file(
                 resources.files("webamc") / "data" / ext[1:] / file_name
         ) as path:
-            if not os.path.exists(path):
+            if not path.is_file():
                 raise fa.HTTPException(status_code=404)
             result = fa.responses.FileResponse(path)
 

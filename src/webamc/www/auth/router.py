@@ -15,25 +15,9 @@ def route_auth_page(
         req: fa.Request,
         sub_page: str = ""
 ) -> fa.Response:
-    from .page import password_change, login_local, creation, login_cas
-    sub_pages: dict[str, base.sub_page_spec_t] = dict()
-    default = "login-local"
-    if config.CONFIG["auth_cas_enabled"]:
-        sub_pages["login-cas"] = (False, "server", login_cas.page)
-        default = "login-cas"
-    if config.CONFIG["auth_local_enabled"]:
-        sub_pages["login-local"] = (False, "password", login_local.page)
-        sub_pages["password-change"] = (False, "mail", password_change.page)
-    if config.CONFIG["auth_account_creation_enabled"]:
-        sub_pages["creation"] = (False, "person-add", creation.page)
-    layout: base.page_layout_t = {
-        "title": "page_title_authentication",
-        "path": "/auth/page/main",
-        "default": default,
-        "sub_pages": sub_pages
-    }
+    from .page import main
     with context.Context(req) as ctx:
-        return base.gen_composite_page(ctx, layout, sub_page)
+        return main.page(ctx)
 
 
 @router.get("/auth/oper/login-cas")

@@ -1,7 +1,6 @@
 import pathlib
 import TexSoup  # type: ignore
 
-from webamc.util import io
 from webamc.config import CONFIG as cfg
 from . import output
 
@@ -30,7 +29,7 @@ def _extract(tex: pathlib.Path, odir: pathlib.Path) -> None:
 
 def _traverse(idir: pathlib.Path, odir: pathlib.Path) -> None:
     for entry in sorted(idir.iterdir()):
-        ext = io.get_file_extension(entry.name)
+        ext = entry.suffix
         if entry.is_file() and ext == ".tex":
             _extract(entry, odir)
     for entry in sorted(idir.iterdir()):

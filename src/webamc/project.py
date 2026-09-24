@@ -9,7 +9,6 @@ from pathlib import Path
 from sqlalchemy.orm.session import Session as ORMSession
 
 from webamc.all import *
-from webamc.util import io as io_util
 from webamc.db import tables, queries
 
 
@@ -849,12 +848,12 @@ class Project:
                     path = self.path("data", file_name(f))
                 else:
                     path = self.fpath(f)
-                io_util.remove(path)
+                os.remove(path)
         def clean_dir(dir_path: str) -> None:
             for entry in os.listdir(dir_path):
                 path = os.path.join(dir_path, entry)
                 if os.path.isfile(path):
-                    io_util.remove(path)
+                    os.remove(path)
         def pre_analyse() -> None:
             clean_dir(self.path("scans"))
             clean_dir(self.path("cr"))
@@ -895,7 +894,7 @@ class Project:
                 Path(mdir).mkdir(parents=True, exist_ok=True)
                 pdf_file = os.path.join(mdir, MAIL_PDF_FILE)
                 data_file = os.path.join(mdir, MAIL_DATA_FILE)
-                io_util.remove(pdf_file)
+                os.remove(pdf_file)
                 os.link(os.path.join(self.path("outbox"), f), pdf_file)
                 with open(data_file, "w", encoding="utf-8") as fd:
                     mail_data: mail_data_t = {
@@ -985,7 +984,7 @@ class Project:
         return result
 
     def upload_source(self, fname: str, fcontent: bytes) -> types.oper_code_t:
-        ext = io_util.get_file_extension(fname)
+        ext = Path(fname).suffix
         if ext == ".tex":
             src = self.path("tex", file_name("tex_main"))
             with open(src, "w", encoding="utf-8") as fds:
@@ -1015,6 +1014,6 @@ class Project:
             self.source_type = "tex"
         else:
             return "err_project_invalid_source"
-        io_util.remove(self.fpath("source"))
+        shutil.rmtree(self.fpath("source"))
         os.link(src, self.fpath("source"))
         return "succ"

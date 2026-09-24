@@ -1,8 +1,8 @@
 import csv
 import typing as tp
 from importlib import resources
+from pathlib import Path
 
-from webamc.util import io
 from webamc.types import all as types
 
 
@@ -22,13 +22,12 @@ def load_texts() -> None:
     if not texts_loaded:
         texts_loaded = True
         texts = dict()
-        dir_path = (
-            resources.files("webamc") / "data" / "lang" / config.CONFIG["lang"]
+        path = (
+            Path(str(resources.files("webamc")))
+            / "data" / "lang" / config.CONFIG["lang"]
         )
         csv_files = [
-            x
-            for x in dir_path.iterdir()
-            if x.is_file() and io.get_file_extension(x.name) == ".csv"
+            x for x in path.iterdir() if x.is_file() and x.suffix == ".csv"
         ]
         for entry in csv_files:
             with (

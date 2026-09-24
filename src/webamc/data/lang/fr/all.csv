@@ -86,6 +86,10 @@ err_project_not_a_zip_file;Le fichier fourni n'est pas une archive ZIP.
 err_project_already_exists;Un projet avec le même code existe déjà.
 err_unknown_eaddr;Adresse électronique inconnue.
 err_wrong_credentials;Mot de passe incorrect.
+header_authentication_account_creation;Création d'un compte
+header_authentication_cas;Authentification par un serveur
+header_authentication_local;Authentification locale
+header_authentication_password_change;Changement de mot de passe
 info_exam_finished;Examen terminé.
 info_no_exam_available;Aucun examen n'est disponible.
 info_no_mcq_available;Aucun QCM n'est disponible.
@@ -131,9 +135,6 @@ page_title_administration_database;base de données
 page_title_administration_submit_form;soumission
 page_title_authentication_account_creation;création d'un compte
 page_title_authentication;authentification
-page_title_authentication_login_cas;serveur CAS
-page_title_authentication_login_local;locale
-page_title_authentication_password_change;modification de mot de passe
 page_title_eaddr_change;changement d'adresse électronique
 page_title_exam_creation;création
 page_title_exam_dashboard;tableau de bord
@@ -178,7 +179,6 @@ seq_associate_automatic;associer étudiantes et copies (mode automatique)
 seq_associate_manual;associer étudiantes et copies (mode manuel)
 seq_association_attr;attribut utilisé pour l'association automatique
 seq_association_source;groupe(s) des étudiantes
-seq_authentify_with_server;S'authentifier via
 seq_clean_associations;supprimer les associations étudiante/copie
 seq_compile_latex;générer le sujet
 seq_confirmation_request;demande de confirmation
