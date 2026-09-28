@@ -1,7 +1,7 @@
 % global listings configuration
 \lstset{
   basicstyle=\tt\small,
-  commentstyle={\tt\it\color{red}},
+  commentstyle={\tt\color{red}},
   keywordstyle={\tt\color{blue}},
   frame=single,
   frameround=tttt,
@@ -17,13 +17,16 @@
 
 % bash environment
 \lstnewenvironment{bash}{\lstset{language=bash}}{}
-\newcommand\inlinebash[2][]{\lstinline[language=bash,\inline,#2]{#1}}
 
 % sql environment
 \lstnewenvironment{sql}{\lstset{language=sql}}{}
 
 % tex environment
 \lstnewenvironment{tex}{\lstset{language=TeX}}{}
+\newcommand\lstinlinetex[1]{%
+  \lstinline[language=tex,basicstyle=\tt,%
+    backgroundcolor=\color{gray}]{#1}%
+}
 
 % python environment
 \lstnewenvironment{python}{\lstset{language=python}}{}

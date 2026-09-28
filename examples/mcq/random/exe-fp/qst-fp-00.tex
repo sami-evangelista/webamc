@@ -1,20 +1,19 @@
 %webamc INSTANCES=5
 %webamc RND=1
-
 \begin{question}{mcq-random/fp/00}
   %webamc BEGIN
-  \FPeval\VQa{trunc(1+random*8,0)}
-  \FPeval\VQb{trunc(4+random*5,0)}
-  \FPeval\VQsomme{clip(VQa+VQb)}
-  \FPeval\VQnonA{clip(VQa+VQb-1)}
-  \FPeval\VQnonB{clip(VQa+VQb+1)}
-  \FPeval\VQnonC{clip(VQa-VQb)}
+  \FPeval\VARa{trunc(1+random*8,0)}
+  \FPeval\VARb{trunc(4+random*5,0)}
+  \FPeval\VARcorrect{clip(VARa+VARb)}
+  \FPeval\VARwronga{clip(VARa+VARb-1)}
+  \FPeval\VARwrongb{clip(VARa+VARb+1)}
+  \FPeval\VARwrongc{clip(VARa-VARb)}
   %webamc END
-  Quelle est la somme de \VQa{} et \VQb{} ?
-  \begin{reponses}
-    \bonne{\VQsomme}
-    \mauvaise{\VQnonA}
-    \mauvaise{\VQnonB}
-    \mauvaise{\VQnonC}
-  \end{reponses}
+  What is the sum of \VARa{} and \VARb{}~?
+  \begin{choices}
+    \correctchoice{\VARcorrect}
+    \wrongchoice{\VARwronga}
+    \wrongchoice{\VARwrongb}
+    \wrongchoice{\VARwrongc}
+  \end{choices}
 \end{question}
