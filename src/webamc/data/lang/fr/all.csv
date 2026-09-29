@@ -90,7 +90,7 @@ header_authentication_account_creation;Création d'un compte
 header_authentication_cas;Authentification par un serveur
 header_authentication_local;Authentification locale
 header_authentication_password_change;Changement de mot de passe
-info_exam_finished;Examen terminé.
+info_exam_finished;Examen terminé !
 info_no_exam_available;Aucun examen n'est disponible.
 info_no_mcq_available;Aucun QCM n'est disponible.
 info_please_wait;Opération en cours. Veuillez patienter.

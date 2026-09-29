@@ -1,13 +1,18 @@
 id;text
+action_download_archive;Download the archive
+action_refresh;refresh
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;user
+col_desc_atr_code;code
+col_desc_atr_desc;description
+col_desc_atr_id;#
 col_desc_cas_enabled;enabled
 col_desc_cas_id;#
 col_desc_cas_login;cas identifier
 col_desc_cas_usr;user
 col_desc_exm_duration;duration
-col_desc_exm_mcq;mcq
+col_desc_exm_mcq;MCQ
 col_desc_exm_start;start
 col_desc_grp_id;#
 col_desc_grp_name;name
@@ -27,12 +32,16 @@ col_desc_loc_login;login
 col_desc_loc_password;password
 col_desc_loc_usr;user
 col_desc_mcq_mode;mode
+col_desc_pak_spec;pack
 col_desc_tag_color;color
 col_desc_tag_desc;description
 col_desc_tag_id;#
 col_desc_tag_name;name
 col_desc_tbl_id;#
 col_desc_tbl_name;name
+col_desc_uat_attr;attribute
+col_desc_uat_usr;user
+col_desc_uat_value;value
 col_desc_ugp_grp;group
 col_desc_ugp_id;#
 col_desc_ugp_right;right
@@ -46,51 +55,74 @@ err_action_required;An action must be performed prior to this one.
 err_admin_empty_csv_file;The CSV file is empty.
 err_admin_no_right_to_update_table;You are not allowed to update this table.
 err_admin_table_undeterminable;Impossible to determine destination table.
-err_amc_not_installed;AMC executable does not seem to be installed.
-err_check_log_file;An error occurred. Please check log file.
+err_data_required;A parameter is required to perform this action.
 err_db_invalid_values;Invalid values.
 err;Error.
+err_file_required;A file is required to perform this action.
 err_http_403;Unauthorized access !!!
 err_http_404;File not found !!!
 err_http_422;Invalid request !!!
 err_http_500;Server error !!!
-err_invalid_csv_file;Invalid CSV file.
 err_invalid_eaddr;Invalid email address.
 err_invalid_password_confirm;Passwords are different.
-err_invalid_project_code;Invalid project code.
-err_invalid_tex_archive;Invalid tex archive.
-err_invalid_ticket;This ticket is not valid.
+err_invalid_ticket;This ticket is not valid anymore.
 err_io;IO error.
 err_item_admin_empty_archive;The archive is empty.
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
-err_missing_or_invalid_parameter;Missing or invalid parameter.
-err_not_a_zip_file;This does not look like a zip file.
+error_exam_access_denied;You are not allowed to access this exam.
+error_exam_not_found;Exam could not be found.
 err_project_already_exists;A project with the same code already exists.
+err_project_amc_not_installed;AMC does not seem to be installed on the system.
+err_project_check_log_file;An error occured. Please check the log file.
+err_project_invalid_code;The project code is invalid.
+err_project_invalid_source;Source file has unrecognized format.
+err_project_invalid_tex_archive;The latex archive is invalid.
+err_project_missing_or_invalid_parameter;Parameter missing or invalid.
+err_project_not_a_zip_file;This does not look like a zip file.
 err_unknown_eaddr;Unknown email address.
 err_wrong_credentials;Wrong credentials.
+header_authentication_account_creation;Account creation
+header_authentication_cas;Authentication by a server
+header_authentication_local;Local authentication
+header_authentication_password_change;Password update
 info_exam_finished;Exam finished !
+info_exam_status;Exam status : %s
 info_no_exam_available;No exam available.
 info_no_mcq_available;No MCQ available.
 info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
+msg_file_list_exam;List of files associated with the exam.
+msg_no_data_exam;No data available for the exam..
+name_action;Action
 name_actions;actions
+name_archive;Archive
 name_confirmation;confirmation
-name_copies;copies
+name_copies;sheets
 name_dashboard;dashboard
+name_date;date
 name_details;details
 name_exam;exam
 name_exercise;exercise
+name_file;File
+name_file_name;File name
 name_groups;groups
+name_login;Login
 name_mcq;MCQ
 name_minutes;minutes
+name_mod_date;Modification date
 name_no;no
 name_page;page
 name_parameters;parameters
+name_progress;progress
 name_question;question
 name_review;review
 name_rights;rights
+name_sender;sender
+name_size;taille
 name_statement;statement
+name_status;status
+name_student;student
 name_submission;submission
 name_table;table
 name_tags;tags
@@ -112,9 +144,6 @@ page_title_administration_database;database
 page_title_administration_submit_form;submission
 page_title_authentication_account_creation;account creation
 page_title_authentication;authentication
-page_title_authentication_login_cas;server
-page_title_authentication_login_local;local
-page_title_authentication_password_change;password change
 page_title_eaddr_change;Email address change
 page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
@@ -123,28 +152,32 @@ page_title_exam;exam
 page_title_index;index
 page_title_item_database;database
 page_title_item_groups;groups
-page_title_item;MCQ
+page_title_item;Online MCQ
 page_title_item_pack;creation
 page_title_item_submit_form;submission
 page_title_password_change;password change
 page_title_profile_group;group membership
-page_title_profile_personal_data;Personal data
+page_title_profile_personal_data;personal data
 page_title_profile;profile
 page_title_project;AMC projects
 page_title_project_inbox;MCQ corrections
 page_title_project_main;AMC projects
 page_title_signout;signout
+page_title_stats;statistics
 page_title_ticket_error;ticket error
 param_err_invalid_duplicate_value;%s: duplicate value
 param_err_invalid_null_value;%s: value expected
 param_err_invalid_value;%s: invalid value
+param_seq_instance_num;instance %s
 param_seq_next_question;next question (%s)
 param_seq_previous_question;previous question (%s)
 param_seq_registrations_done;%s registration(s) done
 param_seq_switch_mode;switch mode (%s)
 param_seq_users_registered;%s user(s) registered for this exam
-qst_clean_project_associations_confirmation;Do you confirm the deletion of student/sheet associations ?
-qst_delete_project_confirmation;Do you confirm the deletion of this project ?
+qst_confirmation_project_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
+qst_confirmation_project_clean_associations;Do you confirm the deletion of the association sheet/student ?
+qst_confirmation_project_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
+qst_confirmation_project_delete;Do you confirm the deletion of this project ?
 qst_exam_deletion_confirmation;Do you confirm the deletion of this exam ?
 qst_item_deletion_confirmation;Do you confirm the deletion of this item ?
 qst_item_row_confirmation;Do you confirm the deletion of this row ?
@@ -154,30 +187,32 @@ seq_administrate_this_mcq;administrate this MCQ
 seq_analyse_answer_sheets;analyse answer sheets
 seq_associate_automatic;associate students and sheets (automatic)
 seq_associate_manual;associate students and sheets (manual)
-seq_authentify_with_server;Authentify with server
+seq_association_attr;attribut used for automatic association
+seq_association_source;student group(s)
 seq_clean_associations;clean student/sheet associations
 seq_compile_latex;compile latex
-seq_compute_scores;compute scores
 seq_confirmation_request;confirmation request
-seq_csv_column_eaddr;column with student email address in student list
-seq_csv_column_id;column with student ID in student list
 seq_csv_file;CSV file
 seq_delete_project;delete this project
 seq_enter_new_eaddr;type your new email address
 seq_error_messages;error message(s)
-seq_export_scores;export scores
-seq_extract_answer_sheets;extract individual sheets
-seq_extract_layout_data;extract layout data
-seq_extract_scoring_data;extract scoring data
-seq_generate_annotated_sheets;generate annotated sheets
-seq_generate_sheets;generate sheets
+seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;information message(s)
 seq_items_found;item(s) found
 seq_latex_id;student ID in latex file
 seq_manual_association;manual association
 seq_new_project;new project
 seq_new_row;new row
-seq_no_name;no name image
+seq_no_name;no image file
+seq_no_name;pas de fichier d'image
+seq_project_file_log_webamc;log file
+seq_project_file_ods_scores;grade file
+seq_project_file_pdf_answer_sheets;scanned sheets
+seq_project_file_pdf_correction;correction
+seq_project_file_pdf_subject;subject sheets (one file containing all sheets)
+seq_project_file_source;source
+seq_project_file_zip_annotated_sheets;annotated scanned sheets
+seq_project_file_zip_sheets;subject sheets (one file per student)
 seq_records_found;record(s) found
 seq_select_an_exam;select an exam
 seq_select_a_project;select a project
@@ -187,21 +222,42 @@ seq_upload_latex_archive;upload latex archive
 seq_upload_student_list;upload student list
 seq_warning_messages;warning message(s)
 seq_zip_file;ZIP file
+stats_answer_prefix;answer
+stats_answers_detail;answers detail:
+stats_choose_exam;1. choose an exam:
+stats_choose_qst;2. choose a question:
+stats_evo_title;???
+stats_mcq_prefix;2. choose an MCQ:
+stats_qst_prefix;question
+stats_select_exam;select an exam ...
+stats_select_mcq;select an MCQ ...
+stats_select_qst;select a question ...
+stats_select_student;select a student ...
+stats_student_prefix;1. student:
+stats_title;statistics dashboard
+status_finished;finished
+status_inactive;inactive (> 5 min.)
+status_in_progress;in progress
+status_not_started;not started
+status_online;online
+status_upcoming;upcoming
 succ_account_created;Account successfuly created.
 succ_eaddr_changed;Email address successfuly changed.
 succ_login;Login successful.
-succ_password_changed;Password successfuly changed.
+succ_password_changed;Password successfuly updated.
 succ_project_created;Project created successfuly.
 succ;Success.
-succ_ticket_account_creation_sent;Account creation link sent.
-succ_ticket_eaddr_change_sent;Email address change link sent.
-succ_ticket_password_change_sent;Password change link sent.
+succ_ticket_account_creation_sent;A message with a creation link has been sent.
+succ_ticket_eaddr_change_sent;A message with a modification link has been sent.
+succ_ticket_password_change_sent;A message with a modification link has been sent.
 tbl_desc_admin;admin
+tbl_desc_attr;attr
 tbl_desc_cas_auth;cas_auth
 tbl_desc_grp;grp
 tbl_desc_local_auth;local_auth
 tbl_desc_tag;tag
 tbl_desc_tbl;tbl
+tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
 verb_add;add
@@ -212,8 +268,9 @@ verb_close;close
 verb_create;create
 verb_delete;delete
 verb_filter;filter
+verb_restart;restart
 verb_send;send
 verb_start;start
+verb_update;update
 verb_validate;validate
 warning_exam_deletion_forbidden;Warning: this exam cannot be deleted as users have been registered for it.
-warning_page_wip;Warning: the development of this page is work in progress.
