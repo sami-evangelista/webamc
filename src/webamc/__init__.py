@@ -1,9 +1,9 @@
 """Webamc top package."""
 
 VERSION = "1.0.0"
-DATE = "2024-02-29"
-URL_GIT = "https://depot.lipn.univ-paris13.fr/evangelista/webamc.git"
+DATE = "2026-09-29"
+URL_GIT = "https://github.com/sami-evangelista/webamc/"
 URL_RELEASE = (
-    "https://lipn.univ-paris13.fr/~evangelista/webamc/"
-    "dl.php?release=latest"
+    "https://github.com/sami-evangelista/webamc/"
+    f"releases/download/v{VERSION}/webamc-{VERSION}.tar.gz"
 )
