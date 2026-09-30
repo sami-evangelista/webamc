@@ -4,11 +4,11 @@
   utilise l'IP publique de fw (1.2.3.2). Quelle commande faut-il
   rajouter pour cela au script ?
   \begin{reponses}
-    \bonne{{\small\tt    iptables -t nat -A POSTROUTING -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
-    \mauvaise{{\small\tt iptables -t nat -A PREROUTING  -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
-    \mauvaise{{\small\tt iptables -t nat -A FORWARD     -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
-    \mauvaise{{\small\tt iptables -t nat -A POSTROUTING -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
-    \mauvaise{{\small\tt iptables -t nat -A PREROUTING  -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
-    \mauvaise{{\small\tt iptables -t nat -A FORWARD     -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+    \bonne{{\tt    iptables -t nat -A POSTROUTING -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\tt iptables -t nat -A PREROUTING  -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\tt iptables -t nat -A FORWARD     -o eth1 -j SNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\tt iptables -t nat -A POSTROUTING -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\tt iptables -t nat -A PREROUTING  -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
+    \mauvaise{{\tt iptables -t nat -A FORWARD     -o eth1 -j DNAT -{}-{}to 1.2.3.2}}
   \end{reponses}
 \end{question}

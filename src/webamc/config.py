@@ -18,7 +18,7 @@ DEFAULT_CONFIG_FILE = ROOT_DIR / "config.json"
 def load(cfg_file: str | None = None) -> None:
     global CONFIG
     if cfg_file is None:
-        path = DEFAULT_CONFIG_FILE
+        path = Path(DEFAULT_CONFIG_FILE)
     else:
         path = Path(cfg_file)
     if path.is_file():
