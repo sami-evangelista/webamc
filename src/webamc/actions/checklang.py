@@ -1,3 +1,5 @@
+from importlib import resources
+
 from webamc.all import *
 from webamc.util import termout
 
@@ -15,5 +17,15 @@ def action() -> None:
             if txt not in types.literal_type_values(types.txt_t):
                 termout.error(f"[{lg}] unused text {txt}")
                 err = True
+        for h in types.literal_type_values(types.help_t):
+            p = (
+                resources.files("webamc")
+                / "data" / "help" / lg / (h + ".html")
+            )
+            if not p.exists():
+                termout.error(f"[{lg}] missing help file {h}")
+                err = True
         if not err:
             termout.info(f"[{lg}] no error found")
+                
+            

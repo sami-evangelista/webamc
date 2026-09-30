@@ -73,7 +73,7 @@ menu_items: list[menu_item_t] = [
      "/exam/page/main"),
     (session.has_submission_right,
      True,
-     "doc-table",
+     "stats",
      "page_title_stats",
      "/stats/page/dashboard"),
     (session.is_admin,

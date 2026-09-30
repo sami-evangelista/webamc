@@ -46,6 +46,7 @@ static_img_t = tp.Literal[
     "projects",
     "settings",
     "signout",
+    "stats",
     "switch-mode",
     "tag",
     "trash",

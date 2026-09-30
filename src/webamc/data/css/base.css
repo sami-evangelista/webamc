@@ -337,6 +337,6 @@ input,select {
 }
 
 .help-tooltip {
-    border-bottom: 1px dotted black;
+    border-bottom: 3px dotted black;
     cursor: help;
 }

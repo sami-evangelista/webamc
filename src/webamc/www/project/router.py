@@ -25,10 +25,10 @@ args_project_code_t = tp_ext.TypedDict(
 
 
 @router.get("/project/page/main")
-def route_project_page_main(req: fa.Request) -> fa.Response:
+def route_project_page_main(req: fa.Request, pcode: str="") -> fa.Response:
     from .page import main
     ctx = context.Context(req)
-    return main.page(ctx)
+    return main.page(ctx, pcode)
 
 
 @router.get("/project/page/inbox")

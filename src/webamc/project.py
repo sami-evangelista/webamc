@@ -125,26 +125,6 @@ mail_data_t = tp.TypedDict(
     }
 )
 doable_t = dict[action_t, tuple[bool, list[tuple[str, str]]]]
-"""
-FILE_NAME: dict[file_t, str] = {
-    "csv_list": "list.csv",
-    "json_status": "status.json",
-    "log_webamc": "webamc.log",
-    "ods_scores": "scores.ods",
-    "pdf_answer_sheets",
-    "pdf_correction",
-    "pdf_subject",
-    "sqlite_association",
-    "sqlite_capture",
-    "source",
-    "tex_main",
-    "txt_main",
-    "xy_calage",
-    "zip_annotated_sheets",
-    "zip_sheets",
-    "zip_tex"
-}
-"""
 ACTION_FILES: dict[action_t, list[file_t]] = {
     "compile": [
         "pdf_subject",
@@ -274,7 +254,11 @@ AMC_COMMANDS: dict[cmd_t, list[str]] = {
         "--n-copies", "{var_copies}",
         "--filter", "{var_filter}",
         "--latex-stdout",
-        "{file_source}"
+        "--builddir", "{dir_tex}",
+        "--out-sujet", "{file_pdf_subject}",
+        "--out-corrige", "{file_pdf_correction}",
+        "--out-calage", "{file_xy_calage}",
+        "--source", "{file_source}"
     ],
     "note": [
         "note",
@@ -671,6 +655,7 @@ class Project:
                 dir_outbox=self.path("outbox"),
                 dir_project=self.path(),
                 dir_scans=self.path("scans"),
+                dir_tex=self.path("tex"),
                 file_csv_students=self.fpath("csv_list"),
                 file_ods_scores=self.fpath("ods_scores"),
                 file_pdf_answer_sheets=self.fpath("pdf_answer_sheets"),
@@ -848,7 +833,8 @@ class Project:
                     path = self.path("data", file_name(f))
                 else:
                     path = self.fpath(f)
-                os.remove(path)
+                if os.path.isfile(path):
+                    os.remove(path)
         def clean_dir(dir_path: str) -> None:
             for entry in os.listdir(dir_path):
                 path = os.path.join(dir_path, entry)
@@ -1014,6 +1000,7 @@ class Project:
             self.source_type = "tex"
         else:
             return "err_project_invalid_source"
-        shutil.rmtree(self.fpath("source"))
+        if Path(self.fpath("source")).is_file():
+            shutil.rmtree(self.fpath("source"))
         os.link(src, self.fpath("source"))
         return "succ"

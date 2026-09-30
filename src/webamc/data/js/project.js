@@ -67,13 +67,14 @@ const project_check_doable = function (action) {
 
 
 const project_new = function () {
+    const pcode = $('#new_project_code').val();
     const data = {
         'action': 'new',
         'action_params': {},
         'project_code': $('#new_project_code').val()
     };
     const success = function(_) {
-        const url = Constants.path_project_page_main;
+        const url = Constants.path_project_page_main + '?pcode=' + pcode;
         base_relocate(url);
     };
     xhr_post_oper(Constants.path_project_oper_action, data, success);
