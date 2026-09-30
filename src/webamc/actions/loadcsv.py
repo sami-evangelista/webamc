@@ -36,6 +36,13 @@ def action(file_path: str, delimiter: str) -> None:
 
     def load_row(num: int, row: dict[str, tp.Any]) -> load_result_t:
 
+        def convert_value(col_code: sa.Column[tp.Any]) -> str | int:
+            if isinstance(col_code.type, sa.String):
+                return str(row[util.get_col_name(col_code)])
+            if isinstance(col_code.type, sa.Integer):
+                return int(row[util.get_col_name(col_code)])
+            raise ValueError
+
         # replace foreign keys
         ref_col: sa.Column[tp.Any]
         assert tbl is not None
@@ -64,7 +71,7 @@ def action(file_path: str, delimiter: str) -> None:
         op_descr: str
         col_codes = util.get_tbl_code(tbl)
         cond = [
-            col_code == row[util.get_col_name(col_code)]
+            col_code == convert_value(col_code)
             for col_code in col_codes
         ]
         if cond == list():

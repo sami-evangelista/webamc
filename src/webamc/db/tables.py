@@ -385,8 +385,7 @@ TBL_CODES: dict[str, list[str]] = {
     "tbl": ["tbl_name"],
     "usr": ["usr_code"],
     "usr_attr": ["uat_usr", "uat_attr"],
-    "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"],
-    "review_submission": ["rvs_usr", "rvs_mcq"]
+    "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"]
 }
 
 
@@ -411,6 +410,5 @@ RefExam.col = Exam.exm_id
 RefExam.fmt = lambda exam: str(exam.exm_id)
 RefRegistration.col = Registration.reg_id
 RefRegistration.fmt = lambda reg: str(reg.reg_id)
-
 RefItemInstance.col = ItemInstance.iti_id
 RefItemInstance.fmt = lambda iti: str(iti.iti_id)

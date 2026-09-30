@@ -27,5 +27,3 @@ def action() -> None:
                 err = True
         if not err:
             termout.info(f"[{lg}] no error found")
-                
-            

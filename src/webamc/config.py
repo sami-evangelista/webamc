@@ -21,19 +21,24 @@ def load(cfg_file: str | None = None) -> None:
         path = Path(DEFAULT_CONFIG_FILE)
     else:
         path = Path(cfg_file)
-    if path.is_file():
+    if not path.is_file():
+        if path == DEFAULT_CONFIG_FILE:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(CONFIG_DEFAULT, indent=2) + "\n",
+                encoding="utf-8"
+            )
+            load()
+        else:
+            termout.error(f"config file {path} does not exist")
+    else:
         try:
             CONFIG = typeguard.check_type(
-                json.loads(path.read_text()),
+                json.loads(path.read_text(encoding="utf-8")),
                 types.conf_t
             )
         except json.decoder.JSONDecodeError:
             termout.warning(f"malformed configuration file {path}")
-    elif path == DEFAULT_CONFIG_FILE:
-        if not path.is_file():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(CONFIG_DEFAULT, indent=2) + "\n")
-            load()
 
 
 CONFIG_DEFAULT: types.conf_t = {
