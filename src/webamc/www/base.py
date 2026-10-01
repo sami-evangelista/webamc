@@ -34,65 +34,6 @@ menu_item_t = tuple[
     types.path_t
 ]
 
-css_urls = [
-    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
-    + "/build/css/alertify.min.css",
-    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
-    + "/build/css/themes/default.min.css",
-    "https://cdn.jsdelivr.net/npm/chart.js"
-]
-js_urls = [
-    "https://code.jquery.com/jquery-3.7.1.min.js",
-    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"
-]
-menu_items: list[menu_item_t] = [
-    (lambda ctx: True,
-     False,
-     "signout",
-     "page_title_signout",
-     "/auth/oper/logout"),
-    (session.ne_inbox,
-     True,
-     "inbox",
-     "page_title_project_inbox",
-     "/project/page/inbox"),
-    (session.has_submission_right,
-     True,
-     "projects",
-     "page_title_project",
-     "/project/page/main"),
-    (session.has_submission_right,
-     False,
-     "mcq",
-     "page_title_item",
-     "/item/page/main"),
-    (session.has_submission_right,
-     True,
-     "exam",
-     "page_title_exam",
-     "/exam/page/main"),
-    (session.has_submission_right,
-     True,
-     "stats",
-     "page_title_stats",
-     "/stats/page/dashboard"),
-    (session.is_admin,
-     False,
-     "settings",
-     "page_title_administration",
-     "/admin/page/main"),
-    (lambda ctx: True,
-     True,
-     "person",
-     "page_title_profile",
-     "/profile/page/main"),
-    (lambda ctx: True,
-     False,
-     "home",
-     "page_title_index",
-     "/")
-]
-
 
 def page(
         ctx: context.Context,
@@ -119,61 +60,10 @@ def page(
             he.Div(div_name, *imgs, id_="menu-content", class_="menu")
         )
 
-    # scripts and css files
-    scripts: list[he.Element] = list()
-    links: list[he.Element] = list()
-
-    # third-party css files
-    links += [
-        he.Link(
-            rel="stylesheet",
-            type_="text/css",
-            href=css_url
-        )
-        for css_url in css_urls
-    ]
-
-    # third-party javascripts
-    scripts += [
-        he.Script(src=src)
-        for src in js_urls
-    ]
-
-    # webamc javascripts and css
-    js_files = [
-        "constants.js",
-        "lang.js"
-    ] + [
-        x.name for x in (resources.files("webamc") / "data" / "js").iterdir()
-    ]
-    for fname in js_files:
-        if Path(fname).suffix != ".js":
-            continue
-        src = mkuri("/static", file_name=fname)
-        script = he.Script(src=src)
-        scripts.append(script)
-    css_files = [
-        "dyn.css"
-    ] + [
-        x.name for x in (resources.files("webamc") / "data" / "css").iterdir()
-    ]
-    links += [
-        he.Link(
-            rel="stylesheet",
-            type_="text/css",
-            href=mkuri("/static", file_name=fname)
-        )
-        for fname in css_files if Path(fname).suffix == ".css"
-    ]
-
     # head information
     if title in types.literal_type_values(types.txt_t):
         title = fmt.fmt_title(lang.txt(tp.cast(types.txt_t, title)))
     etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title}"))
-    meta = he.Meta(**{
-        "http-equiv": "Content-Type",
-        "content": "text/html; charset=utf-8"
-    })
 
     # if side buttons are given, divide the page with a sidebar and a
     # mainpanel
@@ -226,12 +116,13 @@ def page_error_body(code: int) -> he.Element:
     return he.Txt(tp.cast(types.txt_t, f"err_http_{code}"))
 
 
-def page_error(
-        ctx: context.Context,
-        code: int
-) -> fa.Response:
-    title = tp.cast(types.txt_t, f"err_http_{code}")
-    result = page(ctx, title, page_error_body(code))
+def page_error(code: int) -> fa.Response:
+    txt_title = he.Txt(tp.cast(types.txt_t, f"err_http_{code}"))
+    title = he.Title(he.Str(f"{config.CONFIG['service_name']} - "), txt_title)
+    head = he.Head(title, meta, *links, *scripts)
+    body = he.Body(he.H1(txt_title), page_error_body(code))
+    h = he.Html(head, body, lang="en")
+    result = fa.responses.HTMLResponse(f"<!doctype html>\n{h}")
     result.status_code = code
     return result
 
@@ -463,7 +354,7 @@ def static_file(file_name: str) -> fa.Response:
                 raise fa.HTTPException(status_code=404)
             result = fa.responses.FileResponse(path)
 
-    result.headers["Content-Type"] = mtype.get_media_type(file_name)
+    result.headers["Content-Type"] = mtype.get_mtype(Path(file_name))
     return result
 
 
@@ -495,3 +386,93 @@ def mkhelp(
     e["class"] += " help-tooltip"
     e["onclick"] = f"javascript: base_help_open('{title}', '{help_id}')"
     return result
+
+
+css_urls = [
+    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
+    + "/build/css/alertify.min.css",
+    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
+    + "/build/css/themes/default.min.css"
+]
+js_urls = [
+    "https://code.jquery.com/jquery-3.7.1.min.js",
+    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js",
+    "https://cdn.jsdelivr.net/npm/chart.js"
+]
+menu_items: list[menu_item_t] = [
+    (lambda ctx: True,
+     False,
+     "signout",
+     "page_title_signout",
+     "/auth/oper/logout"),
+    (session.ne_inbox,
+     True,
+     "inbox",
+     "page_title_inbox",
+     "/inbox/page/list"),
+    (session.has_submission_right,
+     True,
+     "projects",
+     "page_title_project",
+     "/project/page/main"),
+    (session.has_submission_right,
+     False,
+     "mcq",
+     "page_title_item",
+     "/item/page/main"),
+    (session.has_submission_right,
+     True,
+     "exam",
+     "page_title_exam",
+     "/exam/page/main"),
+    (session.has_submission_right,
+     True,
+     "stats",
+     "page_title_stats",
+     "/stats/page/dashboard"),
+    (session.is_admin,
+     False,
+     "settings",
+     "page_title_administration",
+     "/admin/page/main"),
+    (lambda ctx: True,
+     True,
+     "person",
+     "page_title_profile",
+     "/profile/page/main"),
+    (lambda ctx: True,
+     False,
+     "home",
+     "page_title_index",
+     "/")
+]
+meta = he.Meta(**{
+    "http-equiv": "Content-Type",
+    "content": "text/html; charset=utf-8"
+})
+links = [
+    he.Link(rel="stylesheet", type_="text/css", href=css_url)
+    for css_url in css_urls
+] + [
+    he.Link(
+        rel="stylesheet",
+        type_="text/css",
+        href=mkuri("/static", file_name=css)
+    )
+    for css in ["dyn.css"] + [
+            x.name
+            for x in (resources.files("webamc") / "data" / "css").iterdir()
+    ]
+    if Path(css).suffix == ".css"
+]
+scripts = [
+    he.Script(src=src)
+    for src in js_urls
+] + [
+    he.Script(src=mkuri("/static", file_name=js))
+    for js in ["constants.js", "lang.js"] + [
+            x.name
+            for x in (resources.files("webamc") / "data" / "js").iterdir()
+    ]
+    if Path(js).suffix == ".js"
+]

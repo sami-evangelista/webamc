@@ -1,28 +1,24 @@
 from webamc.www.all import *
 from webamc.util import fmt
-from webamc import project
+from webamc.db import queries
 
 
 def page(ctx: context.Context) -> fa.Response:
     trs: list[he.Element] = list()
-    for data in project.list_inbox(session.usr_code(ctx)):
-        href = base.mkuri(
-            "/project/page/get-mail-pdf",
-            usr_code=data["sender"],
-            usr_name=data["sender_name"],
-            project_code=data["project"]
-        )
+    for msg, usr in queries.list_messages(ctx.dbs, session.usr_id(ctx)):
+        title = fmt.fmt_title(msg.msg_title)
+        href = base.mkuri("/inbox/page/msg", msg_id=msg.msg_id)
         img = he.Img(
             src=base.static_img_src("doc-pdf"),
             class_="btn",
             onclick=f"base_relocate('{href}')",
-            title=data["title"],
-            alt=data["title"]
+            title=title,
+            alt=title
         )
         tr = he.Tr(
-            he.Td(he.Str(data["title"])),
-            he.Td(he.Str(data["sender_name"])),
-            he.Td(he.Str(fmt.fmt_datetime(data["date"]))),
+            he.Td(he.Str(title)),
+            he.Td(he.Str(fmt.fmt_name(usr.usr_fst_name, usr.usr_name))),
+            he.Td(he.Str(fmt.fmt_datetime(msg.msg_date))),
             he.Td(img)
         )
         trs.append(tr)
@@ -32,4 +28,4 @@ def page(ctx: context.Context) -> fa.Response:
         cols: list[types.txt_t] = ["name_title", "name_sender", "name_date"]
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
         elem = he.Table(*trs, class_="solid-table")
-    return base.page(ctx, "page_title_project_inbox", elem)
+    return base.page(ctx, "page_title_inbox", elem)

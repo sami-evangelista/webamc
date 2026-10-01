@@ -4,12 +4,12 @@ import shutil
 import subprocess
 import sqlite3
 import zipfile
-import hashlib
 from pathlib import Path
 from sqlalchemy.orm.session import Session as ORMSession
 
 from webamc.all import *
 from webamc.db import tables, queries
+from webamc.util import fmt
 
 
 action_t = tp.Literal[
@@ -44,8 +44,7 @@ cmd_t = tp.Literal[
     "prepare_bk",
     "getimages",
     "imprime",
-    "read-pdfform",
-    "send_annotated_sheets"
+    "read-pdfform"
 ]
 data_t = tp_ext.TypedDict(
     "data_t", {
@@ -69,7 +68,7 @@ action_params_t = tp_ext.TypedDict(
 )
 association_t = dict[
     tuple[int, int],  # (student, copy)
-    tuple[None | str, None | str, None | str]  # (auto, manual, name-file)
+    tuple[None | str, None | str, None | Path]  # (auto, manual, name-file)
 ]
 dir_t = tp.Literal[
     "copies",
@@ -113,15 +112,6 @@ status_t = tp_ext.TypedDict(
         "data": data_t,
         "files": dict[file_t, file_status_t],
         "warning": dict[action_t, bool]
-    }
-)
-mail_data_t = tp.TypedDict(
-    "mail_data_t", {
-        "title": str,
-        "date": datetime.datetime,
-        "sender": str,
-        "sender_name": str,
-        "project": str
     }
 )
 doable_t = dict[action_t, tuple[bool, list[tuple[str, str]]]]
@@ -214,9 +204,6 @@ ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
     "export_scores": [
         "export",
         "annotate"
-    ],
-    "send_annotated_sheets": [
-        "send_annotated_sheets"
     ]
 }
 AMC_COMMANDS: dict[cmd_t, list[str]] = {
@@ -362,7 +349,6 @@ CLEAN: dict[action_t, list[file_t]] = {
         "sqlite_association"
     ]
 }
-MAIL_DATA_FILE = "data.json"
 MAIL_PDF_FILE = "sheet.pdf"
 DEFAULT_THRESHOLD = 0.5
 DEFAULT_COPIES = 10
@@ -383,24 +369,8 @@ def file_txt(f: file_t) -> types.txt_t:
     return result
 
 
-def get_usr_inbox_dir(usr_code: str) -> str:
-    h = hashlib.sha1(usr_code.encode()).hexdigest()
-    d1 = h[0:2]
-    d2 = h[2:4]
-    return os.path.join(config.CONFIG["inbox_dir"], d1, d2, usr_code)
-
-
-def inbox_empty(usr_code: str) -> bool:
-    idir = get_usr_inbox_dir(usr_code)
-    return not os.path.isdir(idir) or os.listdir(idir) == list()
-
-
 def check_pcode(pcode: str) -> bool:
     return bool(re.fullmatch(PCODE_REGEXP, pcode, re.ASCII))
-
-
-def check_project_title(project_title: str) -> bool:
-    return any(x != " " for x in project_title)
 
 
 def json_serialise(obj: object) -> str:
@@ -411,34 +381,6 @@ def json_serialise(obj: object) -> str:
 
 def list_files(action: action_t) -> list[file_t]:
     return list(ACTION_FILES.get(action, list()))
-
-
-def list_inbox(usr_code: str) -> list[mail_data_t]:
-    if inbox_empty(usr_code):
-        return list()
-    idir = get_usr_inbox_dir(usr_code)
-    result = list()
-    for udir in os.listdir(idir):
-        udir_path = os.path.join(idir, udir)
-        if not os.path.isdir(udir_path):
-            continue
-        for pdir in os.listdir(udir_path):
-            pdir_path = os.path.join(udir_path, pdir)
-            if not os.path.isdir(pdir_path):
-                continue
-            data_file = os.path.join(pdir_path, MAIL_DATA_FILE)
-            pdf_file = os.path.join(pdir_path, MAIL_PDF_FILE)
-            if os.path.isfile(data_file) and os.path.isfile(pdf_file):
-                with open(data_file, encoding="utf-8") as fd:
-                    mapper = {
-                        "date": datetime.datetime.fromisoformat
-                    }
-                    data: mail_data_t = tp.cast(mail_data_t, {
-                        k: mapper[k](v) if k in mapper else v
-                        for k, v in json.loads(fd.read()).items()
-                    })
-                    result.append(data)
-    return result
 
 
 class Project:
@@ -470,26 +412,27 @@ class Project:
                 except KeyError:
                     pass
 
-    def path(self, *name: str) -> str:
-        return os.path.join(Project.user_dir(self.ucode), self.pcode, *name)
+    def path(self, *name: str) -> Path:
+        return Project.user_dir(self.ucode).joinpath(self.pcode, *name)
 
-    def fpath(self, f: file_t) -> str:
-        return os.path.join(self.path(), file_name(f))
+    def fpath(self, f: file_t) -> Path:
+        return self.path() / file_name(f)
 
     @staticmethod
-    def user_dir(ucode: str) -> str:
-        return os.path.join(config.CONFIG["projects_dir"], ucode)
+    def user_dir(ucode: str) -> Path:
+        return Path(config.CONFIG["projects_dir"]) / ucode
 
     def files(self) -> dict[file_t, file_status_t]:
         result: dict[file_t, file_status_t] = dict()
         for f in types.literal_type_values(file_t):
             fpath = self.fpath(f)
-            exists = os.path.isfile(fpath)
+            exists = fpath.is_file()
             date: datetime.datetime | None = None
             size: int | None = None
             if exists:
-                date = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
-                size = os.path.getsize(fpath)
+                stat = fpath.stat()
+                date = datetime.datetime.fromtimestamp(stat.st_mtime)
+                size = stat.st_size
             result[f] = {
                 "exists": exists,
                 "date": date,
@@ -581,8 +524,8 @@ class Project:
                 ("tex", )
             ]
             for d in dirs:
-                path = os.path.join(pdir, *d)
-                if os.path.exists(path):
+                path = pdir.joinpath(*d)
+                if path.exists():
                     return "err_project_already_exists"
                 Path(path).mkdir(parents=True)
             proj.done["new"] = True
@@ -592,26 +535,18 @@ class Project:
             return "err_io"
 
     @staticmethod
-    def list_projects(ucode: str) -> list[tuple[str, str]]:
+    def list_projects(ucode: str) -> list[tuple[str, Path]]:
         try:
             result = list()
             udir = Project.user_dir(ucode)
             for p in sorted(os.listdir(udir)):
-                pdir = os.path.join(udir, p)
-                status_file = os.path.join(pdir, file_name("json_status"))
-                if os.path.isfile(status_file):
-                    result.append((p, pdir))
+                pdir = udir.joinpath(p)
+                status_file = pdir / file_name("json_status")
+                if status_file.is_file():
+                    result.append((str(p), pdir))
             return result
         except (FileNotFoundError, NotADirectoryError, PermissionError):
             return list()
-
-    def mail_pdf(self, usr_code: str) -> None | tuple[str, str]:
-        path = os.path.join(
-            get_usr_inbox_dir(usr_code), self.ucode, self.pcode, MAIL_PDF_FILE
-        )
-        if not os.path.isfile(path):
-            return None
-        return path, self.pcode
 
     def has_groups(self) -> bool:
         return self.data.get("groups") not in (None, list())
@@ -619,7 +554,7 @@ class Project:
     def exec(
             self,
             cmd: cmd_t,
-            exec_dir: str,
+            exec_dir: Path,
             params: action_params_t,
             additional_args: list[str]
     ) -> types.oper_code_t:
@@ -719,27 +654,23 @@ class Project:
         self.generate_csv()
         return "succ", list()
 
-    def zip_pdfs(self, zip_file: file_t, pdf_dir: str) -> None:
+    def zip_pdfs(self, zip_file: file_t, pdf_dir: Path) -> None:
         path = self.fpath(zip_file)
         with zipfile.ZipFile(path, "w") as zf:
-            for entry in os.listdir(pdf_dir):
-                entry_abs = os.path.join(pdf_dir, entry)
-                if os.path.isfile(entry_abs) and entry_abs.endswith(".pdf"):
-                    zf.write(
-                        entry_abs,
-                        arcname=os.path.join(self.pcode, entry)
-                    )
+            for entry in pdf_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".pdf":
+                    zf.write(entry, arcname=self.pcode / entry)
 
-    def get_file(self, f: str) -> None | tuple[str, str]:
+    def get_file(self, f: str) -> None | tuple[Path, str]:
         path = self.path(f)
-        if not os.path.isfile(path):
+        if not path.is_file():
             return None
         return path, f"{self.pcode}_{f}"
 
     def list_associations(self) -> association_t:
         assoc_file = self.path("data", file_name("sqlite_association"))
         result = dict()
-        if os.path.isfile(assoc_file):
+        if assoc_file.is_file():
             conn = sqlite3.Connection(assoc_file)
             cur = conn.cursor()
             q = "select student,copy,manual,auto from association_association"
@@ -749,18 +680,19 @@ class Project:
                     co = int(copy)
                 except ValueError:
                     continue
-                name = os.path.join("cr", f"name-{st}-{co}.jpg")
-                name_file = self.path(name)
-                exists = os.path.isfile(name_file)
-                result[st, co] = (manual, auto, name if exists else None)
+                #name = os.path.join("cr", f"name-{st}-{co}.jpg")
+                #name_file = self.path(name)
+                name_file = self.path("cr", f"name-{st}-{co}.jpg")
+                exists = name_file.is_file()
+                result[st, co] = (manual, auto, name_file if exists else None)
             conn.close()
-        for x in os.listdir(self.path("cr")):
-            m = re.match(r"name-(\d+)-(\d+).jpg", x)
+        for x in self.path("cr").iterdir():
+            m = re.match(r"name-(\d+)-(\d+).jpg", x.name)
             if m:
                 student = int(m.group(1))
                 copy = int(m.group(2))
                 if (student, copy) not in result:
-                    path = os.path.join("cr", x)
+                    path = self.path("cr", x.name)
                     result[student, copy] = (None, None, path)
         return result
 
@@ -833,20 +765,20 @@ class Project:
                     path = self.path("data", file_name(f))
                 else:
                     path = self.fpath(f)
-                if os.path.isfile(path):
-                    os.remove(path)
-        def clean_dir(dir_path: str) -> None:
-            for entry in os.listdir(dir_path):
-                path = os.path.join(dir_path, entry)
-                if os.path.isfile(path):
-                    os.remove(path)
+                if path.is_file():
+                    path.unlink()
+        def clean_dir(dir_path: Path) -> None:
+            for entry in dir_path.iterdir():
+                if entry.is_file():
+                    entry.unlink()
         def pre_analyse() -> None:
             clean_dir(self.path("scans"))
             clean_dir(self.path("cr"))
         def pre_export_scores() -> None:
+            clean_dir(self.path("outbox"))
             clean_dir(self.path("cr", "corrections", "pdf"))
             db_assoc = self.path("data", file_name("sqlite_association"))
-            if os.path.isfile(db_assoc):
+            if db_assoc.is_file():
                 conn = sqlite3.Connection(db_assoc)
                 cur = conn.cursor()
                 q = (
@@ -866,52 +798,60 @@ class Project:
         def post_export_scores() -> None:
             pdf_dir = self.path("cr", "corrections", "pdf")
             self.zip_pdfs("zip_annotated_sheets", pdf_dir)
-        def pre_send_annotated_sheets() -> None:
-            clean_dir(self.path("outbox"))
-        def post_send_annotated_sheets() -> None:
-            for f in os.listdir(self.path("outbox")):
-                m = re.match(r".\d+_\d+-(.+).pdf", f)
+        def send_annotated_sheets() -> types.oper_code_t:
+            assert self.dbs is not None
+            usr = self.dbs.query(
+                tables.Usr
+            ).where(
+                tables.Usr.usr_code == self.ucode
+            ).first()
+            assert usr is not None
+            msg_from = usr.usr_id
+            for f in self.path("outbox").iterdir():
+                m = re.match(r".\d+_\d+-(.+).pdf", f.name)
                 if m is None:
                     continue
                 usr_code = m.groups()[0]
-                mdir = os.path.join(
-                    get_usr_inbox_dir(usr_code), self.ucode, self.pcode
+                usr = self.dbs.query(
+                    tables.Usr
+                ).where(
+                    tables.Usr.usr_code == usr_code
+                ).first()
+                if usr is None:
+                    continue
+                name = fmt.fmt_name(usr.usr_fst_name, usr.usr_name)
+                filename = f"{self.pcode}_{name.replace(' ', '')}.pdf"
+                msg = tables.Message(
+                    msg_title=self.get_title(),
+                    msg_code=self.pcode,
+                    msg_from=msg_from,
+                    msg_to=usr.usr_id,
+                    msg_file=f.read_bytes(),
+                    msg_filename=filename
                 )
-                Path(mdir).mkdir(parents=True, exist_ok=True)
-                pdf_file = os.path.join(mdir, MAIL_PDF_FILE)
-                data_file = os.path.join(mdir, MAIL_DATA_FILE)
-                os.remove(pdf_file)
-                os.link(os.path.join(self.path("outbox"), f), pdf_file)
-                with open(data_file, "w", encoding="utf-8") as fd:
-                    mail_data: mail_data_t = {
-                        "title": self.get_title(),
-                        "date": datetime.datetime.now(),
-                        "sender": self.ucode,
-                        "sender_name": self.uname,
-                        "project": self.pcode
-                    }
-                    to_write = json.dumps(
-                        mail_data,
-                        indent=3,
-                        default=json_serialise
-                    )
-                    fd.write(to_write)
+                self.dbs.add(msg)
+            return "succ"
 
         if action == "delete":
             shutil.rmtree(self.path())
             return "succ"
+
+        pre = {
+            "analyse": pre_analyse,
+            "export_scores": pre_export_scores
+        }
+        post = {
+            "compile": post_compile,
+            "export_scores": post_export_scores
+        }
 
         # pre-treatment
         for act in CANCELLED.get(action, list()):
             self.done[act] = False
         if action in CLEAN:
             clean_files(CLEAN[action])
-        if action == "analyse":
-            pre_analyse()
-        elif action == "export_scores":
-            pre_export_scores()
-        elif action == "send_annotated_sheets":
-            pre_send_annotated_sheets()
+        if action in pre:
+            pre[action]()
 
         # execute all commands of the action
         result: types.oper_code_t = "succ"
@@ -920,11 +860,11 @@ class Project:
             args = list()
             if sub == "analyse":
                 scan_dir = self.path("scans")
-                args = [
-                    os.path.join(scan_dir, x)
-                    for x in sorted(os.listdir(scan_dir))
-                    if x.endswith(".jpg")
-                ]
+                args = sorted(
+                    str(x)
+                    for x in scan_dir.iterdir()
+                    if x.suffix == ".jpg" and x.is_file()
+                )
             elif sub == "association":
                 id_ = params.get("id")
                 if id_ != "" and id_ is not None:
@@ -951,16 +891,13 @@ class Project:
         elif action == "upload_source":
             assert fname is not None and fcontent is not None
             result = self.upload_source(fname, fcontent)
+        elif action == "send_annotated_sheets":
+            send_annotated_sheets()
 
         # post-treatment
         success = result.startswith("succ")
-        if success:
-            if action == "compile":
-                post_compile()
-            elif action == "export_scores":
-                post_export_scores()
-            elif action == "send_annotated_sheets":
-                post_send_annotated_sheets()
+        if success and action in post:
+            post[action]()
 
         # update the status
         self.done[action] = success
@@ -985,8 +922,8 @@ class Project:
             try:
                 src = self.fpath("zip_tex")
                 with zipfile.ZipFile(io.BytesIO(fcontent)) as zf:
-                    path = os.path.join("tex", file_name("tex_main"))
-                    if path not in zf.namelist():
+                    path = Path("tex") / file_name("tex_main")
+                    if str(path) not in zf.namelist():
                         return "err_project_invalid_tex_archive"
                     for x in sorted(
                             x for x in zf.namelist()

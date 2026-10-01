@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 
 ALL = {
@@ -14,10 +14,5 @@ ALL = {
 }
 
 
-def get_media_type(file_name: str) -> str:
-    name, ext = os.path.splitext(file_name)
-    if ext == "" and name.startswith("."):
-        ext = name
-    if ext in ALL:
-        return ALL[ext]
-    return "application/octet-stream"
+def get_mtype(path: Path) -> str:
+    return ALL.get(path.suffix, "application/octet-stream")

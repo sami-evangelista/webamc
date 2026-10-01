@@ -28,7 +28,6 @@ conf_t = tp_ext.TypedDict(
         "debug": bool,
         "dev": bool,
         "icon_size": int,
-        "inbox_dir": str,
         "json_file_pack": str,
         "key_qst_next": str,
         "key_qst_prev": str,

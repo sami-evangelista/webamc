@@ -11,6 +11,7 @@ from webamc.www.db import router as router_db
 from webamc.www.exam import router as router_exam
 from webamc.www.project import router as router_project
 from webamc.www.item import router as router_item
+from webamc.www.inbox import router as router_inbox
 from webamc.www.mcq import router as router_mcq
 from webamc.www.profile import router as router_profile
 from webamc.www.ticket import router as router_ticket
@@ -25,13 +26,13 @@ class Settings(BaseSettings):
 settings = Settings()
 config.load(settings.config_file)
 
-# This function don't handle correctly status_code error 500.
+
+# This function doesn't handle correctly status_code error 500.
 async def exception_handler(
         req: fa.Request,
         exc: fa.HTTPException
 ) -> fa.Response:
-    ctx = context.Context(req)
-    return base.page_error(ctx, exc.status_code)
+    return base.page_error(exc.status_code)
 
 
 exceptions = {
@@ -62,6 +63,7 @@ for router in [
         router_db,
         router_exam,
         router_project,
+        router_inbox,
         router_item,
         router_mcq,
         router_profile,

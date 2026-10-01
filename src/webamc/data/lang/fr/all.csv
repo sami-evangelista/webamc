@@ -68,10 +68,10 @@ err_project_check_log_file;Une erreur est survenue. Veuillez vérifier le fichie
 err_project_invalid_source;Fichier source non reconnu.
 err_db_invalid_values;Valeurs invalides.
 err;Erreur.
-err_http_403;Accès interdit !!!
-err_http_404;Ressource non trouvée !!!
-err_http_422;Requête invalide !!!
-err_http_500;Erreur du serveur !!!
+err_http_403;Erreur 403 - Accès interdit !!!
+err_http_404;Erreur 404 - Ressource non trouvée !!!
+err_http_422;Erreur 422 - Requête invalide !!!
+err_http_500;Erreur 500 - Erreur du serveur !!!
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
 err_project_invalid_code;Le code du projet est invalide.
@@ -141,6 +141,7 @@ page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
 page_title_exam;examen
 page_title_index;index
+page_title_inbox;boîte de réception
 page_title_item_database;base de données
 page_title_item_groups;groupes
 page_title_item_pack;création
@@ -150,7 +151,6 @@ page_title_password_change;changement de mot de passe
 page_title_profile_group;groupes
 page_title_profile_personal_data;informations personnelles
 page_title_profile;profil
-page_title_project_inbox;boîte de réception
 page_title_project_main;QCM papier
 page_title_project;QCM papier
 page_title_signout;déconnexion

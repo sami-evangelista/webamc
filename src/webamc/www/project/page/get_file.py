@@ -15,10 +15,10 @@ def page(
         file_name
     )
     if file_data is None:
-        return base.page_error(ctx, 404)
+        return base.page_error(404)
     path, name = file_data
     return fa.responses.FileResponse(
         path,
-        media_type=mtype.get_media_type(path),
+        media_type=mtype.get_mtype(path),
         filename=name
     )

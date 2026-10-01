@@ -665,3 +665,27 @@ def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
         tables.Item.itm_parent.in_(parent_ids)
     ).all()
     return result
+
+
+def list_messages(
+        dbs: Session,
+        usr_id: int
+) -> list[tuple[tables.Message, tables.Usr]]:
+    query = dbs.query(
+        tables.Message,
+        tables.Usr
+    ).where(
+        (tables.Message.msg_to == usr_id)
+        & (tables.Message.msg_from == tables.Usr.usr_id)
+    ).order_by(
+        tables.Message.msg_date.desc()
+    )
+    return [row.tuple() for row in query.all()]
+
+
+def has_messages(dbs: Session, usr_id: int) -> bool:
+    return dbs.query(
+        tables.Message
+    ).where(
+        tables.Message.msg_to == usr_id
+    ).first() is not None

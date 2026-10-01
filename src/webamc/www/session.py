@@ -1,6 +1,5 @@
 import fastapi as fa
 
-from webamc import project
 from webamc.db import tables, queries
 from webamc.util import fmt
 from webamc.www import context
@@ -186,4 +185,4 @@ def check_can_view_mcq(ctx: context.Context, mcq_id: int) -> None:
 
 
 def ne_inbox(ctx: context.Context) -> bool:
-    return not project.inbox_empty(usr_code(ctx))
+    return queries.has_messages(ctx.dbs, usr_id(ctx))

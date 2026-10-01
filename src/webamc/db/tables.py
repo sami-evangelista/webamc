@@ -375,6 +375,25 @@ class McqGrp(Base):
     )
 
 
+class Message(Base):
+    __tablename__ = "message"
+    msg_id: int = CO(ct.Integer, primary_key=True)
+    msg_title: str = CO(ct.String, nullable=False)
+    msg_code: str = CO(ct.String, nullable=False)
+    msg_date: datetime.datetime = CO(
+        ct.DateTime, nullable=False, server_default=now
+    )
+    msg_from: int = CO(RefUsr, nullable=False)
+    msg_to: int = CO(RefUsr, nullable=False)
+    msg_file: bytes = CO(sa.LargeBinary, nullable=False)
+    msg_filename: str = CO(ct.String, nullable=False)
+    __table_args__ = (
+        UC("msg_from", "msg_to", "msg_code"),
+        FK(["msg_from"], ["usr.usr_id"], ondelete="CASCADE"),
+        FK(["msg_to"], ["usr.usr_id"], ondelete="CASCADE"),
+    )
+
+
 TBL_CODES: dict[str, list[str]] = {
     "admin": ["adm_usr", "adm_tbl"],
     "attr": ["atr_code"],

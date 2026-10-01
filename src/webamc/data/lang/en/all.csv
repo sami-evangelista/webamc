@@ -59,10 +59,10 @@ err_data_required;A parameter is required to perform this action.
 err_db_invalid_values;Invalid values.
 err;Error.
 err_file_required;A file is required to perform this action.
-err_http_403;Unauthorized access !!!
-err_http_404;File not found !!!
-err_http_422;Invalid request !!!
-err_http_500;Server error !!!
+err_http_403;403 Error - Unauthorized access !!!
+err_http_404;404 Error - File not found !!!
+err_http_422;422 Error - Invalid request !!!
+err_http_500;500 Error - Server error !!!
 err_invalid_eaddr;Invalid email address.
 err_invalid_password_confirm;Passwords are different.
 err_invalid_ticket;This ticket is not valid anymore.
@@ -149,6 +149,7 @@ page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
 page_title_exam_database;database
 page_title_exam;exam
+page_title_inbox;inbox
 page_title_index;index
 page_title_item_database;database
 page_title_item_groups;groups
@@ -160,7 +161,6 @@ page_title_profile_group;group membership
 page_title_profile_personal_data;personal data
 page_title_profile;profile
 page_title_project;AMC projects
-page_title_project_inbox;MCQ corrections
 page_title_project_main;AMC projects
 page_title_signout;signout
 page_title_stats;statistics

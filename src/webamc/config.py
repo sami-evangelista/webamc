@@ -59,7 +59,6 @@ CONFIG_DEFAULT: types.conf_t = {
     "db_user": "webamc_user",
     "debug": True,
     "dev": True,
-    "inbox_dir": "/path/to/inbox/dir",
     "icon_size": 24,
     "json_file_pack": "_pack.json",
     "key_qst_next": "d",
@@ -194,10 +193,6 @@ CONFIG_DESC_MD = {
     "icon_size":
     (False, True,
      "size of icons in the web interface (24, 32, 48, or 64)"),
-    ###
-    "inbox_dir":
-    (False, True,
-     "directory in which user PDF annotated sheets will be stored"),
     ###
     "json_file_pack":
     (True, False,

@@ -31,13 +31,6 @@ def route_project_page_main(req: fa.Request, pcode: str="") -> fa.Response:
     return main.page(ctx, pcode)
 
 
-@router.get("/project/page/inbox")
-def route_project_page_inbox(req: fa.Request) -> fa.Response:
-    from .page import inbox
-    ctx = context.Context(req)
-    return inbox.page(ctx)
-
-
 @router.post("/project/page/project")
 def route_project_page_project(
         req: fa.Request,
@@ -57,18 +50,6 @@ def route_project_page_get_file(
     from .page import get_file
     ctx = context.Context(req)
     return get_file.page(ctx, project_code, file_name)
-
-
-@router.get("/project/page/get-mail-pdf")
-def route_project_page_get_mail_pdf(
-        req: fa.Request,
-        usr_code: str,
-        usr_name: str,
-        project_code: str
-) -> fa.Response:
-    from .page import get_mail_pdf
-    ctx = context.Context(req)
-    return get_mail_pdf.page(ctx, usr_code, usr_name, project_code)
 
 
 @router.post("/project/page/manual-association")
