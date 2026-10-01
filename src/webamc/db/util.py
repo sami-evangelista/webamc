@@ -57,7 +57,7 @@ def get_tbl_code(tbl: str | Table) -> list[Column[tp.Any]]:
     if isinstance(tbl, Table):
         tbl = get_tbl_name(tbl)
     try:
-        return list(get_col(col_name) for col_name in codes[tbl])
+        return list(get_col(col_name) for col_name in codes.get(tbl, list()))
     except ValueError:
         return list()
 
@@ -130,5 +130,16 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
         done.add(tbl_cls)
         todo += tbl_cls.__subclasses__()
 
+    # perform some checks
+
+    # a foreign key can only be an integer
+    for tbl, tbl_def in struct["tbls"].items():
+        for fkey in tbl_def["fkeys"]:
+            assert isinstance(fkey.type, sa.Integer)
+
+    # a code column can only be an integer or a string
+    for tbl, tbl_def in struct["tbls"].items():
+        for col in get_tbl_code(tbl):
+            assert isinstance(col.type, (sa.String, sa.Integer))
 
 _init(tables.Base, tables.TBL_CODES)

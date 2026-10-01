@@ -447,7 +447,7 @@ def _form_exercise(
     # whole is enclosed in another div.
     title = f"Exercice {form_ctx['exe_num']}"
     if item.itm_title is not None:
-        title = title + " - " + html.escape(item.itm_title)
+        title = title + " - " + item.itm_title
     span_title = he.Span(
         he.Str(title),
         id_=f"exe_{item.itm_id}_label",

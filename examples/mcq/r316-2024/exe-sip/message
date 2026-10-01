@@ -1,0 +1,21 @@
+INVITE sip:411@ideasip.com SIP/2.0
+CSeq: 1 INVITE
+Via: SIP/2.0/UDP 10.11.12.13
+Via: SIP/2.0/UDP 10.11.12.100;received=2.56.84.13;rport=9988
+Via: SIP/2.0/UDP 54.21.4.7
+Via: SIP/2.0/UDP 22.34.54.23
+From: <sip:truc@10.11.12.13>
+Call-ID: 54d5b754-cdbe-e611-885f
+Content-Length: 458
+Max-Forwards: 63
+
+v=0
+o=- 1481542778 1 IN IP4 2.56.84.12
+s=Ekiga/4.0.1
+c=IN IP4 2.56.84.12
+t=0 0
+m=audio 54678 RTP/AVP 116 0 8 101
+a=sendrecv
+a=rtpmap:116 Speex/16000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000
