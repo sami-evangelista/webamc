@@ -201,7 +201,7 @@ const project_action = function (action, params = null) {
                 const url = Constants.path_project_page_main;
                 base_relocate(url);
             }
-            if(action != 'associate_manual') {
+            else if(action != 'associate_manual') {
                 project_init();
             }
         };
