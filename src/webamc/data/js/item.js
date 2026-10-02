@@ -83,8 +83,8 @@ const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
     };
     const del_tag_fun = function (db_tag_id, callback) {
         const where = [
-            { 'col': 'itg_tag',  'op': '=', 'val': db_tag_id },
-            { 'col': 'itg_item', 'op': '=', 'val': db_itm_id }
+            { 'col': 'itg_tag',  'op': '=', 'val': Number(db_tag_id) },
+            { 'col': 'itg_item', 'op': '=', 'val': Number(db_itm_id) }
         ];
         xhr_db_delete('item_tag', where, callback);
     };
@@ -99,8 +99,8 @@ const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
         };
         const del_grp_fun = function (db_grp_id, callback) {
             const where = [
-                { 'col': 'mgp_grp', 'op': '=', 'val': db_grp_id },
-                { 'col': 'mgp_mcq', 'op': '=', 'val': db_itm_id }
+                { 'col': 'mgp_grp', 'op': '=', 'val': Number(db_grp_id) },
+                { 'col': 'mgp_mcq', 'op': '=', 'val': Number(db_itm_id) }
             ];
             xhr_db_delete('mcq_grp', where, callback);
         };
