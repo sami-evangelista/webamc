@@ -667,6 +667,20 @@ def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
     return result
 
 
+def list_recipients(
+        dbs: Session,
+        usr_id: int,
+        msg_code: str
+) -> list[tables.Usr]:
+    query = dbs.query(
+        tables.Usr
+    ).where(
+        (tables.Message.msg_from == usr_id)
+        & (tables.Message.msg_to == tables.Usr.usr_id)
+    )
+    return query.all()
+
+
 def list_messages(
         dbs: Session,
         usr_id: int

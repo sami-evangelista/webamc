@@ -142,4 +142,5 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
         for col in get_tbl_code(tbl):
             assert isinstance(col.type, (sa.String, sa.Integer))
 
+
 _init(tables.Base, tables.TBL_CODES)

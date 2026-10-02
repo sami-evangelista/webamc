@@ -106,7 +106,7 @@ def page(
         "upload_source",
         "source",
         "seq_upload_latex_archive",
-        help_id="project_upload_source"
+        help_id="project_action_upload_source"
     )
     new_action(
         "compile",
@@ -144,6 +144,10 @@ def page(
     new_action(
         "send_annotated_sheets",
         "seq_send_annotated_sheets"
+    )
+    new_action(
+        "send_notification_mail",
+        "seq_send_notification_mail"
     )
     tr = he.Tr(
         he.Td(he.Hr(), colspan=3),

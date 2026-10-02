@@ -1,5 +1,3 @@
-from email.parser import Parser
-
 from webamc.www.all import *
 from webamc import mailing
 from webamc.db import tables, col_types as ct
@@ -78,32 +76,17 @@ def data(
     }
     file_path = mailing.find_mail(mails[args["tkt_type"]])
     if file_path is None:
-        subjects: dict[types.ticket_type_t, str] = {
-            types.TICKET_ACCOUNT_CREATION: "Account Creation",
-            types.TICKET_EADDR_CHANGE: "Email address change",
-            types.TICKET_PASSWORD_CHANGE: "Password change"
-        }
-        msg_txt = f"Subject: {subjects[args['tkt_type']]}\n\n{url}"
-    else:
-        with open(file_path, encoding="utf-8") as fd:
-            msg_txt = fd.read()
+        return base.wrap_code("err_mail_file_not_found")
 
-    # replace variables that may appear in the mail
-    msg_txt = msg_txt.format(
-        service=config.CONFIG["service_name"],
-        url=url,
-        usr_id=usr.usr_code if usr is not None else "",
-        eaddr=args["usr_eaddr"]
-    )
-
-    # create the mail and send it
-    msg = Parser().parsestr(msg_txt)
-    eaddr_from = config.CONFIG["smtp_eaddr_from"]
-    eaddr_to = args["usr_eaddr"]
-    msg["From"] = eaddr_from
-    msg["To"] = eaddr_to
+    # send the mail
     if not mailing.send_mail(
-            eaddr_from, eaddr_to, msg.as_string().encode("utf8")
+            [args["usr_eaddr"]],
+            file_path,
+            fields={
+                "url": url,
+                "usr_id": usr.usr_code if usr is not None else "",
+                "eaddr": args["usr_eaddr"]
+            }
     ):
         return base.wrap_code("err_mail_server")
 

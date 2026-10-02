@@ -68,6 +68,7 @@ err_invalid_password_confirm;Passwords are different.
 err_invalid_ticket;This ticket is not valid anymore.
 err_io;IO error.
 err_item_admin_empty_archive;The archive is empty.
+err_mail_file_not_found;Mail file not found.
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
 error_exam_access_denied;You are not allowed to access this exam.
@@ -216,7 +217,8 @@ seq_project_file_zip_sheets;subject sheets (one file per student)
 seq_records_found;record(s) found
 seq_select_an_exam;select an exam
 seq_select_a_project;select a project
-seq_send_annotated_sheets;send annotated sheets
+seq_send_annotated_sheets;drop off annotated sheets in student inboxes
+seq_send_notification_mail;send a notification mail to students
 seq_upload_answer_sheets;upload answer sheets
 seq_upload_latex_archive;upload latex archive
 seq_upload_student_list;upload student list

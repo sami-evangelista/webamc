@@ -1,0 +1,13 @@
+Subject: {service} - Réception d'une copie corrigée
+Content-Type: text/plain; charset=utf-8
+
+Bonjour,
+
+Vous avez reçu une copie corrigée de la part de
+{sender}
+pour l'épreuve suivante :
+{exam}
+Vous pouvez la visualiser en suivant ce lien :
+{url}
+
+À bientôt !

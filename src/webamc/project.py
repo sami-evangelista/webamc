@@ -8,8 +8,10 @@ from pathlib import Path
 from sqlalchemy.orm.session import Session as ORMSession
 
 from webamc.all import *
+from webamc import mailing
 from webamc.db import tables, queries
 from webamc.util import fmt
+from webamc.www import base
 
 
 action_t = tp.Literal[
@@ -24,7 +26,8 @@ action_t = tp.Literal[
     "new",
     "upload_answer_sheets",
     "upload_source",
-    "send_annotated_sheets"
+    "send_annotated_sheets",
+    "send_notification_mail"
 ]
 source_type_t = tp.Literal[
     "tex",
@@ -179,6 +182,9 @@ ACTION_DEP: dict[
     ],
     "send_annotated_sheets": [
         ("action", "export_scores")
+    ],
+    "send_notification_mail": [
+        ("action", "send_annotated_sheets")
     ]
 }
 ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
@@ -421,6 +427,16 @@ class Project:
     @staticmethod
     def user_dir(ucode: str) -> Path:
         return Path(config.CONFIG["projects_dir"]) / ucode
+
+    def usr(self) -> tables.Usr:
+        assert self.dbs is not None
+        result = self.dbs.query(
+            tables.Usr
+        ).where(
+            tables.Usr.usr_code == self.ucode
+        ).first()
+        assert result is not None
+        return result
 
     def files(self) -> dict[file_t, file_status_t]:
         result: dict[file_t, file_status_t] = dict()
@@ -680,8 +696,6 @@ class Project:
                     co = int(copy)
                 except ValueError:
                     continue
-                #name = os.path.join("cr", f"name-{st}-{co}.jpg")
-                #name_file = self.path(name)
                 name_file = self.path("cr", f"name-{st}-{co}.jpg")
                 exists = name_file.is_file()
                 result[st, co] = (manual, auto, name_file if exists else None)
@@ -800,36 +814,57 @@ class Project:
             self.zip_pdfs("zip_annotated_sheets", pdf_dir)
         def send_annotated_sheets() -> types.oper_code_t:
             assert self.dbs is not None
-            usr = self.dbs.query(
-                tables.Usr
+            from_usr = self.usr()
+
+            # delete old messages
+            self.dbs.query(
+                tables.Message
             ).where(
-                tables.Usr.usr_code == self.ucode
-            ).first()
-            assert usr is not None
-            msg_from = usr.usr_id
+                (tables.Message.msg_from == from_usr.usr_id)
+                & (tables.Message.msg_code == self.pcode)
+            ).delete()
+
+            # add new messages
             for f in self.path("outbox").iterdir():
                 m = re.match(r".\d+_\d+-(.+).pdf", f.name)
                 if m is None:
                     continue
                 usr_code = m.groups()[0]
-                usr = self.dbs.query(
+                dest_usr = self.dbs.query(
                     tables.Usr
                 ).where(
                     tables.Usr.usr_code == usr_code
                 ).first()
-                if usr is None:
+                if dest_usr is None:
                     continue
-                name = fmt.fmt_name(usr.usr_fst_name, usr.usr_name)
+                name = fmt.fmt_name(dest_usr.usr_fst_name, dest_usr.usr_name)
                 filename = f"{self.pcode}_{name.replace(' ', '')}.pdf"
                 msg = tables.Message(
                     msg_title=self.get_title(),
                     msg_code=self.pcode,
-                    msg_from=msg_from,
-                    msg_to=usr.usr_id,
+                    msg_from=from_usr.usr_id,
+                    msg_to=dest_usr.usr_id,
                     msg_file=f.read_bytes(),
                     msg_filename=filename
                 )
                 self.dbs.add(msg)
+            return "succ"
+        def send_notification_mail() -> types.oper_code_t:
+            assert self.dbs is not None
+            usr = self.usr()
+            rec = queries.list_recipients(self.dbs, usr.usr_id, self.pcode)
+            bcc = [usr.usr_eaddr for usr in rec]
+            mail = mailing.find_mail("project-notification-mail")
+            cc = [usr.usr_eaddr]
+            if mail is None:
+                return "err_mail_file_not_found"
+            fields = {
+                "sender": fmt.fmt_name(usr.usr_fst_name, usr.usr_name),
+                "exam": self.get_title(),
+                "url": config.CONFIG["base_url"] + base.mkuri("/")
+            }
+            if not mailing.send_mail(list(), mail, fields, bcc=bcc, cc=cc):
+                return "err_mail_file_not_found"
             return "succ"
 
         if action == "delete":
@@ -892,7 +927,9 @@ class Project:
             assert fname is not None and fcontent is not None
             result = self.upload_source(fname, fcontent)
         elif action == "send_annotated_sheets":
-            send_annotated_sheets()
+            result = send_annotated_sheets()
+        elif action == "send_notification_mail":
+            result = send_notification_mail()
 
         # post-treatment
         success = result.startswith("succ")

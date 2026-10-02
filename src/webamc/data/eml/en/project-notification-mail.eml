@@ -1,0 +1,13 @@
+Subject: {service} - Reception of an annotated sheet
+Content-Type: text/plain; charset=utf-8
+
+Hello,
+
+You have received an annotated sheet from
+{sender}
+for the following exam:
+{exam}
+You can view it by following this link:
+{url}
+
+See you soon !

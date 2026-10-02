@@ -2,7 +2,7 @@ from webamc.www.all import *
 from webamc import project
 
 
-def page(ctx: context.Context, pcode: str="") -> fa.Response:
+def page(ctx: context.Context, pcode: str = "") -> fa.Response:
     span_new = base.mkhelp(
         he.Span(he.Txt("seq_new_project")),
         "seq_new_project",

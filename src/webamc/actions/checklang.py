@@ -17,6 +17,14 @@ def action() -> None:
             if txt not in types.literal_type_values(types.txt_t):
                 termout.error(f"[{lg}] unused text {txt}")
                 err = True
+        for mail in types.literal_type_values(types.mail_file_t):
+            p = (
+                resources.files("webamc")
+                / "data" / "eml" / lg / (mail + ".eml")
+            )
+            if not p.exists():
+                termout.error(f"[{lg}] missing mail file {mail}")
+                err = True
         for h in types.literal_type_values(types.help_t):
             p = (
                 resources.files("webamc")

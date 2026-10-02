@@ -79,6 +79,7 @@ err_project_invalid_tex_archive;L'archive latex est invalide.
 err_invalid_ticket;Ce ticket n'est plus vaide.
 err_io;Erreur d'entrée/sortie.
 err_item_admin_empty_archive;L'archive est vide.
+err_mail_file_not_found;Fichier de mail non trouvé.
 err_mail_server;Impossible de se connecter au serveur de messagerie.
 err_missing_file;Un fichier est nécessaire pour pouvoir réaliser cette action.
 err_project_missing_or_invalid_parameter;Paramètre manquant ou invalide.
@@ -174,7 +175,7 @@ qst_item_row_confirmation;Confirmez-vous la suppression de cette ligne ?
 qst_mcq_form_confirmation;Confirmez-vous l'envoi de vos réponses ?
 qst_restart_mcq_confirmation;Voulez vous recommencer ce QCM ?
 seq_administrate_this_mcq;administrer ce QCM
-seq_analyse_answer_sheets;analyser les réponses
+seq_analyse_answer_sheets;analyser les copies scannées
 seq_associate_automatic;associer étudiantes et copies (mode automatique)
 seq_associate_manual;associer étudiantes et copies (mode manuel)
 seq_association_attr;attribut utilisé pour l'association automatique
@@ -197,7 +198,8 @@ seq_no_name;pas de fichier d'image
 seq_records_found;enregistrement(s) trouvé(s)
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
-seq_send_annotated_sheets;envoyer les copies annotées
+seq_send_annotated_sheets;déposer les copies annotées dans les boîtes étudiantes
+seq_send_notification_mail;envoyer un mail de notification aux étudiantes
 seq_upload_answer_sheets;envoyer le fichier PDF des copies scannées
 seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes

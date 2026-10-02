@@ -108,7 +108,8 @@ path_t = tp.Literal[
 mail_file_t = tp.Literal[
     "account-creation",
     "eaddr-change",
-    "password-change"
+    "password-change",
+    "project-notification-mail"
 ]
 
 oper_code_t = tp.Literal[
@@ -125,6 +126,7 @@ oper_code_t = tp.Literal[
     "err_invalid_ticket",
     "err_io",
     "err_item_admin_empty_archive",
+    "err_mail_file_not_found",
     "err_mail_server",
     "err_missing_file",
     "err_project_already_exists",
@@ -168,9 +170,9 @@ exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
 
 help_t = tp.Literal[
     "item_submit",
+    "project_action_upload_source",
     "project_new",
-    "project_parameters",
-    "project_upload_source"
+    "project_parameters"
 ]
 
 
