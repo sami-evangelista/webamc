@@ -229,19 +229,26 @@ def get_filter_wheres(
         op_name = col_name + "-cmp"
         if col_name in args:
             value = args[col_name]
+            typed_value: tp.Any
+            if isinstance(col.type, sa.Integer):
+                typed_value = int(value)
+            elif isinstance(col.type, sa.Boolean):
+                typed_value = bool(value)
+            else:
+                typed_value = str(value)
             oper = args.get(op_name)
             if oper == "=":
-                result.append(col == value)
+                result.append(col == typed_value)
             elif oper == "!=":
-                result.append(col != value)
+                result.append(col != typed_value)
             elif oper == "<":
-                result.append(col < value)
+                result.append(col < typed_value)
             elif oper == ">":
-                result.append(col > value)
+                result.append(col > typed_value)
             elif oper == "like":
-                result.append(col.like(f"%{value}%"))
+                result.append(col.like(f"%{typed_value}%"))
             elif oper == "notlike":
-                result.append(col.notlike(f"%{value}%"))
+                result.append(col.notlike(f"%{typed_value}%"))
     return result
 
 
