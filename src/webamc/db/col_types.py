@@ -9,6 +9,7 @@ from . import ui
 class ColType:
     input_type: tp.Type[ui.Input]
     doc_color = "black"
+    js_type = "string"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         raise ValueError
@@ -24,12 +25,13 @@ class ColType:
         return val
     @classmethod
     def get_input(cls, col: sa.Column[tp.Any], **kwargs: tp.Any) -> ui.Input:
-        return cls.input_type(col)
+        return cls.input_type(col, cls.js_type)
 
 
 class Date(sa.Date, ColType):
     input_type = ui.Date
     doc_color = "violet"
+    js_type = "date"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return datetime.date.fromisoformat(val)
@@ -45,6 +47,7 @@ class Date(sa.Date, ColType):
 class DateTime(sa.DateTime, ColType):
     input_type = ui.DateTime
     doc_color = "purple"
+    js_type = "datetime"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return datetime.datetime.fromisoformat(val)
@@ -60,6 +63,7 @@ class DateTime(sa.DateTime, ColType):
 class String(sa.String, ColType):
     input_type: tp.Type[ui.Input] = ui.Text
     doc_color = "blue"
+    js_type = "string"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return str(val)
@@ -68,6 +72,7 @@ class String(sa.String, ColType):
 class Boolean(sa.Boolean, ColType):
     input_type = ui.Checkbox
     doc_color = "yellow"
+    js_type = "boolean"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return bool(val)
@@ -76,14 +81,13 @@ class Boolean(sa.Boolean, ColType):
 class Integer(sa.Integer, ColType):
     input_type = ui.Number
     doc_color = "red"
+    js_type = "integer"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return int(val)
 
 
-class PositiveInteger(sa.Integer, ColType):
-    input_type = ui.Number
-    doc_color = "red"
+class PositiveInteger(Integer):
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         result = int(val)
@@ -147,6 +151,7 @@ class Password(ConstrainedString):
 
 
 class PackSpec(LargeString):
+    input_type = ui.Textarea
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         types.check_pack_spec(str(val))
@@ -175,7 +180,8 @@ class IntEnum(Integer):
         return cls.values
     @classmethod
     def get_input(cls, col: sa.Column[tp.Any], **kwargs: tp.Any) -> ui.Input:
-        return ui.Select(col, cls.get_values(**kwargs))
+        result = ui.Select(col, "integer", cls.get_values(**kwargs))
+        return result
 
 
 class ForeignKey(IntEnum):

@@ -49,7 +49,7 @@ def page(
     img_add = base.static_img(
         "checkmark",
         "verb_create",
-        js="admin_add_row(tbl_name, tbl_cols)"
+        js=f"admin_add_row('{tbl_name}')"
     )
     tds.append(he.Td(img_add))
     tr_add = he.Tr(
@@ -84,12 +84,9 @@ def page(
     ]
     options_pages = he.ElementList(*opts)
 
-    # create some JS variables and initialise page_num select now we
-    # know the number of records in the table
-    col_names = {col: inp[0]["name"] for col, inp in inputs.items()}
+    # initialise page_num select now we know the number of records in
+    # the table
     js = "\n".join([
-        f"var tbl_name = {json.dumps(tbl_name)};",
-        f"var tbl_cols = {json.dumps(col_names)};",
         f"$('#page_num').html({json.dumps(str(options_pages))});",
         f"$('#page_num').val({json.dumps(args['page_num'])});"
     ])
@@ -107,7 +104,10 @@ def page(
         )
         tds = [he.Td(attr) for _, attr in attrs]
         pkey_val = getattr(row, pkey.name)
-        js = f"admin_delete_row('{tbl_name}', '{pkey.name}', {pkey_val})"
+        js = (
+            f"admin_delete_row('{tbl_name}', "
+            f"'{pkey.name}', {pkey_val})"
+        )
         img = base.static_img("trash", "verb_delete", js=js)
         tds.append(he.Td(img))
         trs.append(he.Tr(*tds))

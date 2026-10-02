@@ -19,16 +19,13 @@ const admin_new_row_btn_click = function () {
 };
 
 
-const admin_add_row = function (db_tbl, db_cols) {
+const admin_add_row = function (db_tbl) {
     var values = {};
-    for(const [db_col_name, input_id] of Object.entries(db_cols)) {
-        var input = $("#" + input_id);
-        if(input.is(':checkbox')) {
-            value = input.prop('checked');
-        } else {
-            value = input.val();
+    // remove the new- prefix from input ids
+    for(const [k, v] of Object.entries(base_input_values('#tr_new_row'))) {
+        if(k.substring(0, 4) == 'new-') {
+            values[k.substring(4)] = v;
         }
-        values[db_col_name] = value;
     }
     const success = function(_) {
         window.location.reload();

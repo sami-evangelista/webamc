@@ -4,8 +4,9 @@ from webamc.www import html_elements as he
 
 class Input:
     js_init_fun = ""
-    def __init__(self, col: sa.Column[tp.Any]) -> None:
+    def __init__(self, col: sa.Column[tp.Any], js_type: str) -> None:
         self.col = col
+        self.js_type = js_type
     def direct_update(self) -> bool:
         return self.js_init_fun != ""
     def element(self) -> he.Element:
@@ -23,6 +24,7 @@ class Input:
     def _init_element(self, element: he.Element) -> he.Element:
         element["name"] = self.col.name
         element["id"] = self.col.name
+        element.set_data("type", self.js_type)
         return element
 
 
@@ -107,9 +109,10 @@ class Select(Input):
     def __init__(
             self,
             col: sa.Column[tp.Any],
+            js_type: str,
             options: dict[tp.Any, tp.Any]
     ) -> None:
-        super().__init__(col)
+        super().__init__(col, js_type)
         self.options = options
     def element(self) -> he.Element:
         options = [
@@ -118,6 +121,4 @@ class Select(Input):
         if self.col.nullable:
             options.insert(0, he.Option(value=""))
         result = self._init_element(he.Select(*options, type_="select"))
-        if all(isinstance(v, int) for v in self.options.values()):
-            result.set_data("type", "integer")
         return result
