@@ -5,7 +5,7 @@ from webamc.www.db import util as www_db_util
 
 def page(
         ctx: context.Context,
-        id_: str,
+        id_: int,
         col_name: str,
         col_id_name: str
 ) -> fa.Response:

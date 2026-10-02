@@ -24,7 +24,7 @@ def route_query(
 @router.get("/db/page/input")
 def route_input(
         req: fa.Request,
-        id_: str,
+        id_: int,
         col: str,
         col_id: str
 ) -> fa.Response:
@@ -35,7 +35,7 @@ def route_input(
         query: types.db_query_t = {
             "type": "select",
             "table": tbl,
-            "where": [{"col": col_id, "op": "=", "val": int(id_)}],
+            "where": [{"col": col_id, "op": "=", "val": id_}],
             "values": dict()
         }
         _check_right(ctx, query)
