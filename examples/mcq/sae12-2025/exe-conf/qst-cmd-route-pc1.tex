@@ -1,0 +1,11 @@
+\begin{question}{sae12/2025/conf/cmd-route-pc1}
+  Sur le PC1, après l'activation de l'interface, doit-on ajouter une
+  route vers le réseau du PC2~?
+  \begin{reponses}{2}{0}
+    \bonne{oui: {\tt ip route add 1.1.2.0/24 via 1.1.1.254}}
+    \mauvaise{oui: {\tt ip route add 1.1.2.1/24 via 1.1.1.254}}
+    \mauvaise{oui: {\tt ip route add 1.1.2.0/24 via 1.1.2.254}}
+    \mauvaise{oui: {\tt ip route add 1.1.2.0/24 via 1.1.2.1}}
+    \mauvaise{non: elle a déjà été reçu par le DHCP}
+  \end{reponses}
+\end{question}

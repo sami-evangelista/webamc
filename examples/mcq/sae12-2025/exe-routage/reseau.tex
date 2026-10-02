@@ -1,0 +1,19 @@
+\begin{tikzpicture}[node distance=2.3cm]
+  \small
+  \routeur{}{R1}{90}{R1}
+  \lan{left of=R1}{L2}{réseau $1.2.0.0/16$}
+  \lan{right of=R1}{L3}{réseau $1.3.0.0/16$}
+  \routeur{right of=L3}{R2}{90}{R2}
+  \lan{below of=R1,node distance=1.8cm}{L1}{réseau $1.1.0.0/16$}
+  \machine{left of=L1}{PC1}{90}{PC1}
+  \lan{below of=R2,node distance=1.8cm}{L4}{réseau $1.4.0.0/16$}
+  \internet{right of=R2}{I}
+  %
+  \draw[cable,-] (PC1) -- node[pos=0.2,above] {\scriptsize $[0]$} (L1);
+  \draw[cable,-] (R1) -- node[pos=0.2,left] {\scriptsize $[1]$} (L1);
+  \draw[cable,-] (R1) -- node[pos=0.2,above] {\scriptsize $[0]$} (L2);
+  \draw[cable,-] (R1) -- node[pos=0.2,above] {\scriptsize $[2]$} (L3);
+  \draw[cable,-] (R2) -- node[pos=0.2,above] {\scriptsize $[1]$} (L3);
+  \draw[cable,-] (R2) -- node[pos=0.2,left] {\scriptsize $[2]$} (L4);
+  \draw[cable,-] (R2) -- node[pos=0.2,above] {\scriptsize $[0]$} (I);
+\end{tikzpicture}

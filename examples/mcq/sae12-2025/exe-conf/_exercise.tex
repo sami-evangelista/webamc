@@ -1,0 +1,23 @@
+%webamc CODE=sae12/2025/configuration
+%webamc TITLE=Configuration
+
+On considère dans cet exercice le réseau ci-dessous avec la
+configuration du routeur donnée à droite.\\
+
+\begin{minipage}{0.51\textwidth}
+  \begin{center}
+    \input{exe-conf/reseau}
+  \end{center}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+  \lstinputlisting[frame=single,numbers=left,basicstyle=\small\tt]{exe-conf/conf}
+\end{minipage}
+
+On souhaite dans la suite configurer le réseau pour que les deux PC
+puissent communiquer. On fait les hypothèses suivantes:
+\begin{itemize}
+\item Après activation des interfaces eth0, PC1 reçoit l'IP 1.1.1.1/24 et
+  PC2 reçoit l'IP 1.1.2.1/24.
+\item Les deux interfaces du routeur ont la dernière IP disponible sur
+  leurs réseaux respectifs.
+\end{itemize}

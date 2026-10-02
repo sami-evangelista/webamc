@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=2.5cm]
+  \routeur{}{R}{90}{R}
+  \machine{left of=R}{PC1}{90}{PC1}
+  \machine{right of=R}{PC2}{90}{PC2}
+  %
+  \draw[cable,-] (R) --
+  node[pos=0.15,above] {\scriptsize $[0]$}
+  node[pos=0.85,above] {\scriptsize $[0]$} (PC1);
+  \draw[cable,-] (R) --
+  node[pos=0.15,above] {\scriptsize $[1]$}
+  node[pos=0.85,above] {\scriptsize $[0]$} (PC2);
+\end{tikzpicture}

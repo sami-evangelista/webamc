@@ -1,0 +1,10 @@
+ip dhcp ________ RESEAU-PC1
+  network ________ ________
+ip dhcp ________ RESEAU-PC2
+  network ________ ________
+interface GigabitEthernet0/0/0
+  ip address ________ ________
+  negotiation auto
+interface GigabitEthernet0/0/1
+  ip address ________ ________
+  negotiation auto
