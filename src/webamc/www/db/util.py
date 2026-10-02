@@ -230,25 +230,28 @@ def get_filter_wheres(
         if col_name in args:
             value = args[col_name]
             typed_value: tp.Any
-            if isinstance(col.type, sa.Integer):
-                typed_value = int(value)
-            elif isinstance(col.type, sa.Boolean):
-                typed_value = bool(value)
-            else:
-                typed_value = str(value)
             oper = args.get(op_name)
-            if oper == "=":
-                result.append(col == typed_value)
-            elif oper == "!=":
-                result.append(col != typed_value)
-            elif oper == "<":
-                result.append(col < typed_value)
-            elif oper == ">":
-                result.append(col > typed_value)
-            elif oper == "like":
-                result.append(col.like(f"%{typed_value}%"))
-            elif oper == "notlike":
-                result.append(col.notlike(f"%{typed_value}%"))
+            if oper is not None:
+                if value is None:
+                    typed_value = None
+                elif isinstance(col.type, sa.Integer):
+                    typed_value = int(value)
+                elif isinstance(col.type, sa.Boolean):
+                    typed_value = bool(value)
+                else:
+                    typed_value = str(value)
+                if oper == "=":
+                    result.append(col == typed_value)
+                elif oper == "!=":
+                    result.append(col != typed_value)
+                elif oper == "<":
+                    result.append(col < typed_value)
+                elif oper == ">":
+                    result.append(col > typed_value)
+                elif oper == "like":
+                    result.append(col.like(f"%{typed_value}%"))
+                elif oper == "notlike":
+                    result.append(col.notlike(f"%{typed_value}%"))
     return result
 
 
