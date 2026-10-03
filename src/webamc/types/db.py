@@ -3,7 +3,9 @@ import typing as tp
 import typing_extensions as tp_ext
 
 
-db_base_val_t = str | int | bool | datetime.date | datetime.datetime | None
+db_base_val_t = (
+    str | int | bool | float | datetime.date | datetime.datetime | None
+)
 
 db_map_t = dict[str, db_base_val_t]
 

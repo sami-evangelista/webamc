@@ -15,3 +15,6 @@ User=webamc
 Environment=CONFIG_FILE=/path/to/webamc/config.json
 ExecStart=/path/to/py3-venv/bin/uvicorn webamc.www.app:app --port 8008
 Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

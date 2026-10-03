@@ -232,6 +232,8 @@ def get_filter_wheres(
             typed_value: tp.Any
             oper = args.get(op_name)
             if oper is not None:
+                # this should not be necessary to type the value
+                # because values received should be correct
                 if value is None:
                     typed_value = None
                 elif isinstance(col.type, sa.Integer):
