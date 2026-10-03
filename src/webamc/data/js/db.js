@@ -10,30 +10,6 @@ const db_xhr = function (db_args, val) {
 }
 
 
-const db_checkbox = function (input_id, init_val, disabled, db_args) {
-    $('#' + input_id).prop('checked', init_val);
-    $('#' + input_id).attr('disabled', disabled);
-    if(db_args != null) {
-        const update_fun = function () {
-            db_xhr(db_args, $('#' + input_id).is(':checked'));
-        };
-        $('#' + input_id).change(update_fun);
-    }
-}
-
-
-const db_color = function (input_id, init_val, disabled, db_args) {
-    $('#' + input_id).attr('value', init_val);
-    $('#' + input_id).attr('disabled', disabled);
-    if(db_args != null) {
-        const update_fun = function () {
-            db_xhr(db_args, $('#' + input_id).val());
-        };
-        $('#' + input_id).change(update_fun);
-    }
-}
-
-
 const db_col_toggle = function (db_id, db_col, db_id_col) {
     const div_id = 'div-' + db_col + '-' + db_id;
     $('#' + div_id + '-link').toggle();
@@ -56,7 +32,8 @@ const db_col_show_input = function (db_id, db_col, db_id_col) {
 
 
 const db_col_send_update = function (db_tbl, db_id, db_col, db_id_col) {
-    const val = $('#update-' + db_id + '-' + db_col).val();
+    const id = 'update-' + db_id + '-' + db_col;
+    const val = base_input_values('#' + id)[id];
     const db_where = [{'col': db_id_col, 'op': '=', 'val': db_id}];
     const db_values = {};
     db_values[db_col] = val;

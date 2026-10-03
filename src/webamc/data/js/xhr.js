@@ -48,7 +48,7 @@ const xhr_post_oper = function (url, data, success = null) {
         if(!result.success) {
             base_report_errors(result.msgs);
         } else if(success == null) {
-            base_report_infos(result.msgs);
+                base_report_infos(result.msgs);
         } else {
             success(result);
         }

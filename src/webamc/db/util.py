@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Table
 from sqlalchemy.orm.decl_api import DeclarativeMeta
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from webamc.all import *
 from . import tables
@@ -39,8 +40,12 @@ def get_tbl_meta(tbl: str) -> DeclarativeMeta:
     return struct["tbls"][tbl]["meta"]
 
 
-def get_col(col: str) -> Column[tp.Any]:
-    return struct["cols"][col]["def"]
+def get_col(col: str | InstrumentedAttribute[tp.Any]) -> Column[tp.Any]:
+    if isinstance(col, InstrumentedAttribute):
+        col_name = col.name
+    else:
+        col_name = col
+    return struct["cols"][col_name]["def"]
 
 
 def get_col_name(col: Column[tp.Any]) -> str:

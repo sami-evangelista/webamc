@@ -67,7 +67,7 @@ def data(
                 ctx.dbs.query(tbl).where(wheres).update(values)  # type: ignore
                 rvalues.append([dict(values.items())])
                 rrvalues.append([{
-                    col_name: www_db_util.format_value(
+                    col_name: www_db_util.val_fmt(
                         ctx, db_util.get_col(col_name), val
                     )
                     for col_name, val in values.items()

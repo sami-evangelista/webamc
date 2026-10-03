@@ -9,10 +9,7 @@ class Element:
 
     def __init__(self, *children: "Element", **attrs: tp.Any):
         self.children = [c for c in children]
-        self.attrs = {
-            str(x[:-1]) if str(x[-1]) == "_" else str(x): str(y)
-            for x, y in attrs.items()
-        }
+        self.attrs = {self._fix_attr(x): str(y)for x, y in attrs.items()}
         self.data: dict[str, str] = dict()
         self.flags: set[str] = set()
 
@@ -34,27 +31,33 @@ class Element:
         return result
 
     def __setitem__(self, attr: str, value: str) -> None:
-        self.attrs[attr] = value
+        self.attrs[self._fix_attr(attr)] = value
 
     def __getitem__(self, attr: str) -> str:
-        return self.attrs.get(attr, "")
+        return self.attrs.get(self._fix_attr(attr), "")
 
     def append(self, *e: "Element") -> None:
         for child in e:
             self.children.append(child)
 
-    def set_attr(self, attr: str, value: str) -> "Element":
-        self.attrs[attr] = value
+    def set_attr(self, attr: str, value: str, check: bool = True) -> "Element":
+        if check:
+            self.attrs[self._fix_attr(attr)] = value
         return self
 
-    def set_data(self, data: str, value: str) -> "Element":
-        self.data[data] = value
+    def set_data(self, data: str, value: str, check: bool = True) -> "Element":
+        if check:
+            self.data[data] = value
         return self
 
     def add_flag(self, flag: str, check: bool = True) -> "Element":
         if check:
             self.flags.add(flag)
         return self
+
+    @staticmethod
+    def _fix_attr(attr: str) -> str:
+        return attr[:-1] if attr[-1] == "_" else attr
 
 
 class A(Element):

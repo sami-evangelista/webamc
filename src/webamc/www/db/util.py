@@ -121,7 +121,6 @@ def get_attribute(
     tbl_name = db_util.get_tbl_name(tbl)
     pkey = db_util.get_tbl_pkey(tbl)
     updatable = updatable and is_updatable(col)
-    input_type = get_col_input_type(ctx, col)
     if updatable:
         where: list[types.db_where_t] = list()
         if values is not None:
@@ -137,23 +136,12 @@ def get_attribute(
         }
         updatable = has_right_to_execute(ctx, query)
 
-    if input_type.direct_update():
-        elements = html_element(
-            ctx,
-            col,
-            prefix=f"col_{id_}-",
-            val=val,
-            id_=id_,
-            updatable=updatable
-        )
-        return he.ElementList(*elements)
-
-    val = format_value(ctx, col, val)
+    val = val_fmt(ctx, col, val)
     if not updatable:
         return he.Str(val)
 
     div_id = f"div-{col.name}-{id_}"
-    js = f"db_col_show_input('{id_}', '{col.name}', '{pkey.name}')"
+    js = f"db_col_show_input({id_}, '{col.name}', '{pkey.name}')"
     a_id = f"{div_id}-link"
     span_val_id = f"{div_id}-val"
     a = he.A(
@@ -175,47 +163,12 @@ def html_element(
         ctx: context.Context,
         col: sa.Column[tp.Any],
         prefix: str = "col-",
-        val: None | types.db_base_val_t = None,
-        id_: None | int = None,
-        updatable: bool = True
-) -> list[he.Element]:
-
-    # get DB table and column informations
+        val: None | types.db_base_val_t = None
+) -> he.Element:
     col_name = db_util.get_col_name(col)
-    tbl = db_util.get_col_tbl(col)
-    tbl_name = db_util.get_tbl_name(tbl)
-    pkey = db_util.get_tbl_pkey(tbl)
-
-    # get UI information
-    updatable = updatable and is_updatable(col)
     input_type = get_col_input_type(ctx, col)
-
     input_id = prefix + col_name
-    input_field = input_type.element()
-    input_field["name"] = input_id
-    input_field["id"] = input_id
-
-    # set db_args for the javascript initialisation function
-    if id_ is None:
-        db_args = None
-    else:
-        db_args = {
-            "tbl_name": tbl_name,
-            "pkey_name": pkey.name,
-            "id": id_,
-            "col_name": col.name
-        }
-
-    # call the javascript initialisation function or simply set the
-    # value of the input field if the type does not have one
-    d = json.dumps
-    if input_type.js_init_fun == "":
-        js = f"$('#{input_id}').val({d(val, default=str)});"
-    else:
-        js = f"{input_type.js_init_fun}({d(input_id)}, {d(val)}"
-        js += f", {d(not updatable)}, {d(db_args)});"
-
-    return [input_field, he.Script(js)]
+    return input_type.element(value=val, name=input_id, id=input_id)
 
 
 def get_filter_wheres(
@@ -299,7 +252,7 @@ def get_col_input_type(
     return tp.cast(ct.ColType, col.type).get_input(col, dbs=ctx.dbs)
 
 
-def format_value(
+def val_fmt(
         ctx: context.Context,
         col: sa.Column[tp.Any],
         val: types.db_base_val_t

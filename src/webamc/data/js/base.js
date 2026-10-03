@@ -113,6 +113,7 @@ const base_input_values = function (selector) {
 	result[name] = val;
     };
     $(selector).find('input,select,textarea').each(add_arg);
+    $(selector).each(add_arg);
     return result;
 }
 

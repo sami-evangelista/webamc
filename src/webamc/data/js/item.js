@@ -112,14 +112,16 @@ const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
 }
 
 
-const item_update_pack = function (pak_id, pak_spec) {
+const item_update_pack = function (pak_id) {
+    const id = "textarea-pack-" + pak_id;
     const db_where = {
         'op': '=',
         'col': 'pak_id',
         'val': pak_id
     };
+    const val = base_input_values('#' + id)[id];
     const db_values = {
-        'pak_spec': pak_spec
+        'pak_spec': val
     };
     xhr_db_update('pack', [db_where], db_values);
 }

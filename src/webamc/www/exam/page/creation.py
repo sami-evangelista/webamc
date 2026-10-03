@@ -1,6 +1,7 @@
 from webamc.www.all import *
-from webamc.db import tables
 from webamc.www.exam import router
+from webamc.www.db import util as www_db_util
+from webamc.db import tables, util as db_util
 
 
 def page(
@@ -32,16 +33,16 @@ def page(
         *mcq_options,
         id_="exm_mcq"
     ).set_data("type", "integer")
-    input_start = he.Input(
-        type_="datetime-local",
-        id_="exm_start"
+    print(tables.Exam.exm_duration.type)
+    input_start = www_db_util.html_element(
+        ctx, db_util.get_col(tables.Exam.exm_start), prefix=""
     )
-    input_duration = he.Input(
-        type_="number",
-        id_="exm_duration",
-        size="4",
-        value="60",
-        min_="1"
+    input_duration = www_db_util.html_element(
+        ctx, db_util.get_col(tables.Exam.exm_duration), prefix="", val=60
+    ).set_attr(
+        "size", "4"
+    ).set_attr(
+        "min", "1"
     )
 
     table = he.Table(

@@ -3,13 +3,14 @@ from webamc.www import html_elements as he
 
 
 class Input:
-    js_init_fun = ""
     def __init__(self, col: sa.Column[tp.Any], js_type: str) -> None:
         self.col = col
         self.js_type = js_type
-    def direct_update(self) -> bool:
-        return self.js_init_fun != ""
-    def element(self) -> he.Element:
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
         raise ValueError
     def element_cmp(self) -> he.Element:
         name = self.col.name + "-cmp"
@@ -21,16 +22,30 @@ class Input:
             id_=name
         )
         return result
-    def _init_element(self, element: he.Element) -> he.Element:
-        element["name"] = self.col.name
-        element["id"] = self.col.name
-        element.set_data("type", self.js_type)
-        return element
+    def _init_element(
+            self,
+            element: he.Element,
+            **kwargs: str
+    ) -> he.Element:
+        result = element
+        result["name"] = self.col.name
+        result["id"] = self.col.name
+        result.set_data("type", self.js_type)
+        for arg, val in kwargs.items():
+            result[arg] = val
+        return result
 
 
 class Text(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="text"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="text")
+        if value is not None:
+            result["value"] = str(value)
+        return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()
         result.append(
@@ -41,13 +56,27 @@ class Text(Input):
 
 
 class Password(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="password"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="password")
+        if value is not None:
+            result["value"] = str(value)
+        return self._init_element(result, **kwargs)
 
 
 class Textarea(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Textarea(rows="6", cols="40"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Textarea(rows="20", cols="80")
+        if value is not None:
+            result.append(he.Str(str(value)))
+        return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()
         result.append(
@@ -58,8 +87,16 @@ class Textarea(Input):
 
 
 class Number(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="number"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="number")
+        if value is not None:
+            assert isinstance(value, int)
+            result["value"] = str(int(value))
+        return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()
         result.append(
@@ -70,8 +107,15 @@ class Number(Input):
 
 
 class Date(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="date"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="date")
+        if value is not None:
+            result["value"] = str(value)
+        return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()
         result.append(
@@ -82,8 +126,15 @@ class Date(Input):
 
 
 class DateTime(Input):
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="datetime-local"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="datetime-local")
+        if value is not None:
+            result["value"] = str(value)
+        return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()
         result.append(
@@ -94,15 +145,26 @@ class DateTime(Input):
 
 
 class Color(Input):
-    js_init_fun = "db_color"
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="color"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="color")
+        if value is not None:
+            result["value"] = str(value)
+        return self._init_element(result, **kwargs)
 
 
 class Checkbox(Input):
-    js_init_fun = "db_checkbox"
-    def element(self) -> he.Element:
-        return self._init_element(he.Input(type_="checkbox"))
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
+        result = he.Input(type_="checkbox")
+        result.add_flag("checked", value is not None and bool(value))
+        return self._init_element(result, **kwargs)
 
 
 class Select(Input):
@@ -114,11 +176,19 @@ class Select(Input):
     ) -> None:
         super().__init__(col, js_type)
         self.options = options
-    def element(self) -> he.Element:
+    def element(
+            self,
+            value: None | types.db_base_val_t = None,
+            **kwargs: tp.Any
+    ) -> he.Element:
         options = [
-            he.Option(he.Str(v), value=k) for k, v in self.options.items()
+            he.Option(he.Str(v), value=k).add_flag("selected", value == k)
+            for k, v in self.options.items()
         ]
         if self.col.nullable:
             options.insert(0, he.Option(value=""))
-        result = self._init_element(he.Select(*options, type_="select"))
+        result = self._init_element(
+            he.Select(*options, type_="select"),
+            **kwargs
+        )
         return result

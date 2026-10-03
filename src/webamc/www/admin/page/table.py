@@ -40,10 +40,7 @@ def page(
         if www_db_util.is_updatable(col)
     }
     tds = [
-        he.Td(
-            he.ElementList(*inputs[col.name])
-            if col.name in inputs else he.Empty()
-        )
+        he.Td(inputs[col.name] if col.name in inputs else he.Empty())
         for col in cols
     ]
     img_add = base.static_img(
