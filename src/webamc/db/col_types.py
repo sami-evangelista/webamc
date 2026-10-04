@@ -84,6 +84,11 @@ class Boolean(sa.Boolean, ColType):
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return bool(val)
+    @classmethod
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+        if val:
+            return lang.txt("name_yes")
+        return lang.txt("name_no")
 
 
 class Integer(sa.Integer, ColType):

@@ -92,7 +92,8 @@ disable=
   use-implicit-booleaness-not-comparison-to-zero,
   use-list-literal,
   use-symbolic-message-instead,
-  wildcard-import
+  wildcard-import,
+  wrong-import-position
 
 [REPORTS]
 

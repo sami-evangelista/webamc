@@ -3,6 +3,20 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from pydantic_settings import BaseSettings
 
+#####
+# load configuration file before loading all other modules, because
+# the initialisation of these may be based on the configuration
+from webamc import config
+
+
+class Settings(BaseSettings):
+    config_file: None | str = None
+
+
+settings = Settings()
+config.load(settings.config_file)
+#####
+
 from webamc.www.all import *
 from webamc.db import op, queries
 from webamc.www.auth import router as router_auth
@@ -17,14 +31,6 @@ from webamc.www.profile import router as router_profile
 from webamc.www.ticket import router as router_ticket
 from webamc.www.stats import router as router_stats
 from . import index
-
-
-class Settings(BaseSettings):
-    config_file: None | str = None
-
-
-settings = Settings()
-config.load(settings.config_file)
 
 
 # This function doesn't handle correctly status_code error 500.
