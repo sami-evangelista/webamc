@@ -10,16 +10,24 @@ class ColType:
     input_type: tp.Type[ui.Input]
     doc_color = "black"
     js_type = "string"
+    fmt_escape_html = True
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         raise ValueError
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
         if isinstance(val, str) and str(val) == "":
             return "-"
         return str(val)
+    @classmethod
+    def val_fmt(
+            cls,
+            val: types.db_base_val_t,
+            **kwargs: tp.Any
+    ) -> tuple[bool, str]:
+        return cls.fmt_escape_html, cls._val_fmt(val, **kwargs)
     @classmethod
     def val_transform(cls, val: types.db_base_val_t) -> types.db_base_val_t:
         return val
@@ -36,7 +44,7 @@ class Date(sa.Date, ColType):
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return datetime.date.fromisoformat(val)
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
         if not isinstance(val, datetime.date):
@@ -52,7 +60,7 @@ class DateTime(sa.DateTime, ColType):
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         return datetime.datetime.fromisoformat(val)
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
         if not isinstance(val, datetime.datetime):
@@ -114,6 +122,13 @@ class ConstrainedString(String):
 class Color(ConstrainedString):
     input_type = ui.Color
     regexp = "#[0-9a-fA-F]{6}"
+    fmt_escape_html = False
+    @classmethod
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+        return (
+            f"<span class=\"tag-color-box\" style=\"background-color:{val};\">"
+            f"{val}</span>"
+        )
 
 
 class Eaddr(ConstrainedString):
@@ -126,7 +141,7 @@ class LargeString(String):
 
 class Name(String):
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "-"
         return str(val).upper()
@@ -134,7 +149,7 @@ class Name(String):
 
 class FstName(String):
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "-"
         return str(val).title()
@@ -171,7 +186,7 @@ class IntEnum(Integer):
             raise ValueError
         return result
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
         return str(cls.values[cls.val_chk(val, **kwargs)])
@@ -197,7 +212,7 @@ class ForeignKey(IntEnum):
             raise ValueError
         return result
     @classmethod
-    def val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+    def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
         dbs = tp.cast(Session, kwargs["dbs"])

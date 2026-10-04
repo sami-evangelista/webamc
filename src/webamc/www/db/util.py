@@ -136,16 +136,17 @@ def get_attribute(
         }
         updatable = has_right_to_execute(ctx, query)
 
-    val = val_fmt(ctx, col, val)
+    val_escape_html, val = val_fmt(ctx, col, val)
+    element_val = he.Str(val, escape=val_escape_html)
     if not updatable:
-        return he.Str(val)
+        return element_val
 
     div_id = f"div-{col.name}-{id_}"
     js = f"db_col_show_input({id_}, '{col.name}', '{pkey.name}')"
     a_id = f"{div_id}-link"
     span_val_id = f"{div_id}-val"
     a = he.A(
-        he.Span(he.Str(val), id_=span_val_id),
+        he.Div(element_val, id_=span_val_id),
         href=f"javascript:{js}",
         id_=a_id
     )
@@ -256,7 +257,7 @@ def val_fmt(
         ctx: context.Context,
         col: sa.Column[tp.Any],
         val: types.db_base_val_t
-) -> str:
+) -> tuple[bool, str]:
     return tp.cast(ct.ColType, col.type).val_fmt(val, dbs=ctx.dbs)
 
 

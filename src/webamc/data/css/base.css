@@ -340,3 +340,8 @@ input,select {
     border-bottom: 3px dotted black;
     cursor: help;
 }
+
+.tag-color-box {
+    border: 3px solid;
+    border-radius: 2px;
+}

@@ -69,7 +69,7 @@ def data(
                 rrvalues.append([{
                     col_name: www_db_util.val_fmt(
                         ctx, db_util.get_col(col_name), val
-                    )
+                    )[1]
                     for col_name, val in values.items()
                 }])
         except:
