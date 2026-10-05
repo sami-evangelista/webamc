@@ -74,7 +74,7 @@ You may also submit directories that do not contain any MCQ but only
 question files. This is useful if you, for example, wish to record
 some questions in the database before creating question packs (see
 \cref{subsec:submission/json-file-format}) that may contain
-these question.
+these questions.
 
 Note that all the file names listed above (\file{\_header.tex},
 \file{\_exercise.tex}, \ldots) are only default names and may be
@@ -85,7 +85,7 @@ redefined through configuration files (see
 An \file{\_header.tex} file may contain latex code that will be placed
 in the preamble of the latex document generated on-the-fly for each
 component of the directory. Typically, you will write in this file all
-\lstinlinetex{\\usepackage{...}} instructions required to compile
+\lstinlinetex{\\usepackage} instructions required to compile
 latex files in this directory. A directory inherits from any
 \file{\_header.tex} contained in any of its ancestor directory. For
 example, let's consider this directory structure:
@@ -178,8 +178,8 @@ file. For example, let's say your MCQ contains the following question:
 
 Then webamc will on-the-fly generate and compile 6 tex documents (one
 for the question statement and one for each choice) to produce 6 png
-files. As a consequence, question and answer statements must be fully
-context independent (e.g., with no \lstinlinetex{\\label{...}} in it),
+files. As a consequence, question and choice statements must be fully
+context independent (e.g., with no \lstinlinetex{\\label} in it),
 except if your question contains a computation block
 (see~\cref{subsec:submission/dynamic}).
 
@@ -211,7 +211,7 @@ file is then compiled from the directory it is located in.
 \label{subsec:submission/metadata}
 Several component attributes can be set directly in tex files with
 specific comments. Webamc will consider as an attribute definition any
-comment that starts at column one and that follows this pattern:
+comment that starts at the first column and that follows this pattern:
 \begin{tex}
 %webamc ATTRIBUTE_NAME=ATTRIBUTE_VALUE
 \end{tex}
@@ -225,7 +225,7 @@ This defines the code of the component. Codes must be unique and not
 null. Therefore this attribute is mandatory in exercise tex files
 (\file{\_exercise.tex}) and MCQ tex files (\file{\_mcq.tex}). For a
 question, the code is directly extracted from the tex code (i.e.,
-\lstinlinetex{id-qst} in \lstinlinetex{\\begin{question}{id-qst}}).
+\lstinlinetex{id-qst} in \lstinlinetex{\\begin\{question\}\{id-qst\}}).
 %%%%%
 \paragraph{Attribute \name{DIFFICULTY}}
 This defines the difficulty of the component. It is an integer ranging
@@ -237,13 +237,13 @@ on their difficulty (see this
 This defines the number of unique variations (instances) to generate
 for the component. It must be an integer. When set to a value greater
 than 1, webamc will compile the question multiple times, providing a
-unique seed and executing any associated Python script for each
-instance (see \cref{subsec:submission/dynamic}). Default value
-is \lstinlinetex{1}.
+unique seed and executing any associated python script for each
+instance. Please report to \cref{subsec:submission/dynamic} for
+further help on that feature. Default value is \lstinlinetex{1}.
 %%%%%
 \paragraph{Attribute \name{RND}}
 This defines whether or not the component content (e.g., questions of
-an exercise or answers of a question) is randomized. Accepted values
+an exercise or choices of a question) is randomized. Accepted values
 are \lstinlinetex{0} and \lstinlinetex{1}. Default value is
 \lstinlinetex{0}.
 %%%%%
@@ -394,20 +394,6 @@ You can then directly use \lstinlinetex{\\WEBAMCVARAval},
 your \file{qst-math.tex} statement without writing any complex latex
 math logic.
 %%%%%%%%%%%%%%%%%%%%
-\subsection{Component compilation and submission}
-The \command{webamc compile} command takes two arguments:
-\begin{itemize}
-\item a directory containing some component(s) to compile ;
-\item and the name of the zip archive (without the \file{.zip} suffix)
-  that you will get in output.
-\end{itemize}
-
-You will find several examples in the \file{examples} directory of the
-package. Note that this process may take a while (typically a few
-minutes for large MCQ) since, as said above, webamc will compile each
-component and each choice separately. The zip archive you get in output
-can be submitted through the web interface.
-%%%%%%%%%%%%%%%%%%%%
 \subsection{JSON file format for question packs}
 \label{subsec:submission/json-file-format}
 When present in an exercise or an MCQ directory, a \file{\_pack.json}
@@ -474,6 +460,20 @@ strictly less than 3 ordered randomly.
 
 Last, note that the web interface also provides a form to directly
 create question packs rather than specifying them with a JSON file.
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Component compilation and submission}
+The \command{webamc compile} command takes two arguments:
+\begin{itemize}
+\item a directory containing some component(s) to compile ;
+\item and the name of the zip archive (without the \file{.zip} suffix)
+  that you will get in output.
+\end{itemize}
+
+You will find several examples in the \file{examples} directory of the
+package. Note that this process may take a while (typically a few
+minutes for large MCQ) since, as said above, webamc will compile each
+component and each choice separately. The zip archive you get in output
+can be submitted through the web interface.
 %%%%%%%%%%%%%%%%%%%%
 \subsection{Compilation configuration}
 \label{subsec:submission/configuration}
