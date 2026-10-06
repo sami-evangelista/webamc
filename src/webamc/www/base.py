@@ -34,10 +34,8 @@ menu_item_t = tuple[
     types.path_t
 ]
 css_urls = [
-    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
-    + "/build/css/alertify.min.css",
-    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
-    + "/build/css/themes/default.min.css"
+    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css",
+    "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"
 ]
 js_urls = [
     "https://code.jquery.com/jquery-3.7.1.min.js",

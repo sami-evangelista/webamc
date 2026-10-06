@@ -57,7 +57,6 @@ def page(
         *buttons,
         class_="flex flex-wrap gap-2 mb-4"
     )
-
     div_filters_container = he.Div(
         id_="filtersContainer",
         draggable="true",
@@ -145,10 +144,6 @@ def page(
         class_="max-w-4xl p-6 rounded-lg shadow-lg box"
     )
 
-    srcs = [
-        "https://cdn.jsdelivr.net/npm/sweetalert2@11"
-    ]
-    scripts = [he.Script(src=src) for src in srcs]
-    scripts.append(he.Script("pack_init()"))
+    js = he.Script("pack_init()")
 
-    return he.ElementList(main_div, *scripts)
+    return he.ElementList(main_div, js)
