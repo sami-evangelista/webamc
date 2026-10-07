@@ -1,26 +1,15 @@
-/**
- * global variables
- */
-var filters = [];
-var idCounter = 0;
-var filters_save = [];
-var container;
-var download_button;
-var save_button;
-var jsonContainer;
-
-
 class Filter {
-    constructor(id, parentid, op, arg = null, rev = null, content = []) {
+    constructor(id, parentid, op, pack, arg, rev) {
         this.id = id;
         this.parentid = parentid;
         this.op = op;
+        this.pack = pack;
         this.arg = arg;
         this.rev = rev;
-        this.content = content;
         this.div = null;
+        this.content = [];
     }
-    createHTML() {
+    create_html() {
         let color = "";
         switch (this.op) {
         case "all":
@@ -32,13 +21,10 @@ class Filter {
         case "head":
             color = "bg-[#ffc300]";
             break;
-        case "with-difficulty":
+        case "difficulty":
             color = "bg-[#ff5733]";
             break;
-        case "with-code":
-            color = "bg-purple-500";
-            break;
-        case "with-tag":
+        case "tag":
             color = "bg-blue-700";
             break;
         case "sort":
@@ -84,7 +70,7 @@ class Filter {
           d="M6 18L18 6M6 6l12 12"/>
         </svg>`;
         allDeleteButton.onclick = () => {
-            this.removeOnlyMe();
+            this.remove_only_me();
         };
         const deleteButton = document.createElement("button");
         deleteButton.style.fontWeight = "bold";
@@ -107,7 +93,7 @@ class Filter {
               01-2 2H8a2 2 0 01-2-2V6h12z"/>
         </svg>`;
         deleteButton.onclick = () => {
-            this.removeFilter();
+            this.remove_filter();
         };
         const deleteDiv = document.createElement("div");
         deleteDiv.appendChild(allDeleteButton);
@@ -129,196 +115,172 @@ class Filter {
             e.stopPropagation();
             let target_id = e.dataTransfer.getData("id");
             let target_parentid = e.dataTransfer.getData("parentid");
-            if(target_id != this.id && !this.isMyAncestor(filters,target_id)) {
-                let target_filter = pack_remove_filter_by_id(
+            if(target_id != this.id
+               && !this.is_my_ancestor(this.pack.filters, target_id)) {
+                let target_filter = this.pack.remove_filter_by_id(
                     target_id, target_parentid
                 );
-                this.addFilter(target_filter);
-                pack_update_html();
+                this.add_filter(target_filter);
+                this.pack.update_html();
             }
         };
         this.content.forEach((childFilter) => {
-            this.div.appendChild(childFilter.createHTML());
+            this.div.appendChild(childFilter.create_html());
         });
         return this.div;
     }
-    removeFilter() {
-        pack_remove_filter_by_id(this.id, this.parentid);
-        pack_update_html();
+    remove_filter() {
+        this.pack.remove_filter_by_id(this.id, this.parentid);
+        this.pack.update_html();
     }
-    removeOnlyMe() {
-        pack_remove_only_filter(this.id, this.parentid);
-        pack_update_html();
+    remove_only_me() {
+        this.pack.remove_only_filter(this.id, this.parentid);
+        this.pack.update_html();
     }
-    addFilter(filter) {
+    add_filter(filter) {
         filter.parentid = this.id;
         this.content.push(filter);
     }
-    isInMyChildOfChild(filters=this.content, id) {
+    is_in_my_child_of_child(filters=this.content, id) {
         for (let f of filters) {
             if(f.id == id) {
                 return true;
             }
-            let found = f.isInMyChildOfChild(f.content, id);
+            let found = f.is_in_my_child_of_child(f.content, id);
             if(found) {
                 return true;
             }
         }
         return false;
     }
-    isMyAncestor(filters, id) {
-        let ancestor = pack_get_filter_by_id(filters, id);
+    is_my_ancestor(filters, id) {
+        let ancestor = this.pack.get_filter_by_id(filters, id);
         if(ancestor) {
-            if(ancestor.isInMyChildOfChild(ancestor.content, this.id)) {
+            if(ancestor.is_in_my_child_of_child(ancestor.content, this.id)) {
                 return true;
             }
         }
         return false;
     }
-    getJSON() {
+    get_json() {
         return {
             "op": this.op,
             ...(this.op != "all" && this.op != "shuff" && this.arg != null ?
-                {"arg": pack_format_array(this.arg)} : {}),
+                {"arg": this.pack.format_array(this.arg)} : {}),
             ...(((this.op.includes("with")) || this.op == "sort")
                 && this.rev != null ? {"rev": this.rev} : {}),
             ...(this.content.length > 0 ? 
                 {"content": this.content.length > 1 ? 
-                 this.content.filter(f => f !== null).map(f => f.getJSON()):
-                 this.content[0] != "null" ? this.content[0].getJSON() : {}}
+                 this.content.filter(f => f !== null).map(f => f.get_json()):
+                 this.content[0] != "null" ? this.content[0].get_json() : {}}
                 : {})
         };
     }
 }
 
 
-const pack_show_json_area = function () {
-    let jsonContainer = document.getElementById("jsonOutput");
-    if(jsonContainer.style.display == "none") {
-        jsonContainer.style.display = "block";
-        $("#showjson-button").html("Masquer le JSON");
-    } else {
-        jsonContainer.style.display = "none";
-        $("#showjson-button").html("Afficher le JSON");
+class Pack {
+    show_json_area() {
+        let json_container = document.getElementById("jsonOutput");
+        if(json_container.style.display == "none") {
+            json_container.style.display = "block";
+            $("#showjson-button").html("Masquer le JSON");
+        } else {
+            json_container.style.display = "none";
+            $("#showjson-button").html("Afficher le JSON");
+        }
     }
-}
-
-
-const pack_format_array = function (array) {
-    return array;
-}
-
-
-const pack_ask_args_for_difficulty = async function (textArg) {
-    return new Promise((resolve) => {
-        let html = '<div class="flex justify-center items-center gap-4 p-4">';
-        for(var i = 1; i <= 5; i ++) {
-            html += '<div class="circle w-12 h-12 flex items-center '
-                + 'justify-center rounded-full border-2 cursor-pointer '
-                + 'text-black border-gray-300" '
-                + 'data-value="' + i + '">' + i + '</div>';
-        }
-        html += '</div>';
-        html += '<label class="flex items-center justify-center gap-2 mt-2">';
-        html += '<input type="checkbox" class="form-checkbox ';
-        html += 'h-5 w-5 text-blue-600" id="swal-checkbox">';
-        html += 'Inverser la sélection ?</label>';
-
-        const onyes = function (evt) {
-            const selected = Array.from(
-                document.querySelectorAll(".circle.bg-blue-500"))
-                  .map(el => parseInt(el.getAttribute("data-value")));
-            const isChecked = document.getElementById("swal-checkbox").
-                  checked;
-            if(selected.length > 0) {
-                resolve({ value: selected, rev: isChecked });
-            } else {
-                evt.cancel = true;
-                return;
+    format_array(array) {
+        return array;
+    }
+    async ask_args_for_difficulty(text_arg) {
+        return new Promise((resolve) => {
+            let html = '<div class="flex justify-center items-center '
+                + 'gap-4 p-4">';
+            for(var i = 1; i <= 5; i ++) {
+                html += '<div class="circle w-12 h-12 flex items-center '
+                    + 'justify-center rounded-full border-2 cursor-pointer '
+                    + 'text-black border-gray-300" '
+                    + 'data-value="' + i + '">' + i + '</div>';
             }
-        };
-        const onno = function() {
-            resolve(null);
-        }
-        alertify.webamc_dialog(textArg, html, onyes, onno);
+            html += '</div>'
+                + '<label class="flex items-center justify-center gap-2 mt-2">'
+                + '<input type="checkbox" class="form-checkbox '
+                + 'h-5 w-5 text-blue-600" id="swal-checkbox">'
+                + 'Inverser la sélection ?</label>';
 
-        // attach events after display
-        let selectedValues = [];
-        const circles = document.querySelectorAll(".circle");
-        circles.forEach(circle => {
-            circle.addEventListener("click", function () {
-                const value = this.getAttribute("data-value");
-                this.classList.toggle("bg-blue-500");
-                this.classList.toggle("border-blue-500");
-                if(selectedValues.includes(value)) {
-                    selectedValues = selectedValues.filter(v => v !== value);
+            const onyes = function (evt) {
+                const selected = Array.from(
+                    document.querySelectorAll(".circle.bg-blue-500"))
+                      .map(el => parseInt(el.getAttribute("data-value")));
+                const isChecked = document.getElementById("swal-checkbox").
+                      checked;
+                if(selected.length > 0) {
+                    resolve({ value: selected, rev: isChecked });
                 } else {
-                    selectedValues.push(value);
+                    evt.cancel = true;
+                    return;
                 }
+            };
+            const onno = function() {
+                resolve(null);
+            }
+            alertify.webamc_dialog(text_arg, html, onyes, onno);
+
+            // attach events after display
+            let selectedValues = [];
+            const circles = document.querySelectorAll(".circle");
+            circles.forEach(circle => {
+                circle.addEventListener("click", function () {
+                    const value = this.getAttribute("data-value");
+                    this.classList.toggle("bg-blue-500");
+                    this.classList.toggle("border-blue-500");
+                    if(selectedValues.includes(value)) {
+                        selectedValues = selectedValues.filter(
+                            v => v !== value
+                        );
+                    } else {
+                        selectedValues.push(value);
+                    }
+                });
             });
         });
-    });
-}
-
-
-const pack_ask_args_for_code = async function (textArg) {
-    return new Promise((resolve) => {
-        const html = `
-            <input id="swal-input" type="text" style="width:100%; padding:8px;
-                margin-bottom:15px; border:1px solid #ccc; border-radius:4px;"
-              placeholder="Entrez une valeur">
-            <label style="display: flex; align-items: center;
-                justify-content:center; gap:10px;">
-            <input type="checkbox" id="swal-checkbox"> Inverser la sélection ?
-            </label>`;
-        const onyes = function(evt) {
-            const inputValue = $("#swal-input").val();
-            const isChecked = $("#swal-checkbox").prop('checked');
-            if(!inputValue) {
-                evt.cancel = true;
-                return;
-            }
-            resolve({ value: inputValue, rev: isChecked });
-        };
-        const onno = function(evt) {
-            resolve(null);
-        };
-        alertify.webamc_dialog(textArg, html, onyes, onno);
-    });
-}
-
-
-const pack_ask_args_for_tag = async function (textArg) {
-    return new Promise(async (resolve) => {
-        const html = `<div id="tags"></div>
+    }
+    async ask_args_for_tag(text_arg) {
+        return new Promise(async (resolve) => {
+            const html = `<div id="tags"></div>
               <label class="flex items-center justify-center
                 gap-2 mt-3">
             <input type="checkbox" id="swal-checkbox" class="rounded">
               Inverser la sélection ?
             </label>`;
-        const onyes = function(evt) {
-            if(Object.keys(tag_table.tags).length > 0) {
-                const data = {
-                    value: tag_table.tags,
-                    rev: $('#swal-checkbox').prop('checked')
-                };
-                console.log(data);
-                resolve(data);
-            }
-        };
-        const onno = function(evt) {
-            resolve(null);
-        };
-        alertify.webamc_dialog(textArg, html, onyes, onno);
-        const tag_table = new TagTable ('tags', {}, true, null, true, null);
-    });
-}
-
-
-const pack_ask_args_for_sort = async function (textArg) {
-    return new Promise((resolve) => {
-        let selectedValue = null;
-        let html = `<div class="flex gap-4 p-4 justify-center items-center">
+            const onyes = function(evt) {
+                const tags = [];
+                Object.entries(tag_table.tags).forEach(
+                    function ([tag_id, tag]) {
+                        tags.push(tag['tag_name']);
+                    }
+                );
+                if(tags.length > 0) {
+                    const data = {
+                        'value': tags,
+                        'rev': $('#swal-checkbox').prop('checked')
+                    };
+                    resolve(data);
+                }
+            };
+            const onno = function(evt) {
+                resolve(null);
+            };
+            alertify.webamc_dialog(text_arg, html, onyes, onno);
+            const tag_table = new TagTable('tags', {}, true, null, true, null);
+        });
+    }
+    async ask_args_for_sort(text_arg) {
+        return new Promise((resolve) => {
+            let selectedValue = null;
+            let html = `
+               <div class="flex gap-4 p-4 justify-center items-center">
                  <div class="rectangle w-24 h-12 flex items-center
                      justify-center rounded-lg border-2 cursor-pointer
                      text-black border-gray-300"
@@ -333,286 +295,275 @@ const pack_ask_args_for_sort = async function (textArg) {
                      class="form-checkbox h-5 w-5 text-blue-600">
                    Inverser la sélection ?
                </label>`;
-
-        alertify.webamc_dialog(
-            textArg, html,
-            function(evt) {
-                const isChecked = document.getElementById("swal-checkbox")
-                      .checked;
-                if(!selectedValue) {
-                    evt.cancel = true;
-                    return;
-                }
-                resolve({ value: selectedValue, rev: isChecked });
-            },
-            function() { resolve(false); }
-        );
-        const rectangles = document.querySelectorAll(".rectangle");
-        rectangles.forEach(rectangle => {
-            rectangle.addEventListener("click", function () {
-                rectangles.forEach(
-                    r => r.classList.remove(
-                        "bg-blue-500", "border-blue-500", "text-white"));
-                this.classList.add(
-                    "bg-blue-500", "border-blue-500", "text-white");
-                selectedValue = this.getAttribute("data-value");
+            alertify.webamc_dialog(
+                text_arg, html,
+                function(evt) {
+                    const isChecked = document.getElementById("swal-checkbox")
+                          .checked;
+                    if(!selectedValue) {
+                        evt.cancel = true;
+                        return;
+                    }
+                    resolve({ value: selectedValue, rev: isChecked });
+                },
+                function() { resolve(false); }
+            );
+            const rectangles = document.querySelectorAll(".rectangle");
+            rectangles.forEach(rectangle => {
+                rectangle.addEventListener("click", function () {
+                    rectangles.forEach(
+                        r => r.classList.remove(
+                            "bg-blue-500", "border-blue-500", "text-white"));
+                    this.classList.add(
+                        "bg-blue-500", "border-blue-500", "text-white");
+                    selectedValue = this.getAttribute("data-value");
+                });
             });
         });
-    });
-}
-
-
-const pack_ask_args_for_head = async function(text) {
-    return new Promise((resolve) => {
-        const html = '<input type="number" id="head"/>';
-        const onyes = function(evt) {
-            const val = $('#head').val();
-            if(!val) {
-                evt.cancel = true;
-            } else {
-                resolve(val);
+    }
+    async ask_args_for_head(text) {
+        return new Promise((resolve) => {
+            const html = '<input type="number" id="head"/>';
+            const onyes = function(evt) {
+                const val = $('#head').val();
+                if(!val) {
+                    evt.cancel = true;
+                } else {
+                    resolve(val);
+                }
+            };
+            const onno = function(evt) {
+                resolve(null);
+            };
+            alertify.webamc_dialog(text, html, onyes, onno);
+        });
+    }
+    async add_filter(op) {
+        let arg_selected = false;
+        let rev_asked = false;
+        let args = null;
+        switch (op) {
+        case 'head':
+            args = await this.ask_args_for_head(
+                'Combien de questions souhaitez vous ? '
+            );
+            if(args == null) {
+                return;
             }
-        };
-        const onno = function(evt) {
-            resolve(null);
-        };
-        alertify.webamc_dialog(text, html, onyes, onno);
-    });
-}
-
-
-const pack_add_filter = async function (op) {
-    arg_selected = false;
-    rev_asked = false;
-    switch (op) {
-    case "head":
-        args = await pack_ask_args_for_head(
-            "Combien de questions souhaitez vous ? "
+            arg_selected = args;
+            break;
+        case 'difficulty':
+            args = await this.ask_args_for_difficulty(
+                'Quel est le niveau de difficulté ? '
+            );
+            if(args == null) {
+                return;
+            }
+            arg_selected = args['value'];
+            if(arg_selected) {
+                rev_asked = args['rev'];
+            }
+            break; 
+        case 'tag':
+            args = await this.ask_args_for_tag('Choisir les tags disponibles');
+            if(args == null) {
+                return;
+            }
+            arg_selected = args['value'];
+            if(arg_selected) {
+                rev_asked = args['rev'];
+            }
+            break; 
+        case 'sort':
+            args = await this.ask_args_for_sort('Trier par');
+            if(args == null) {
+                return;
+            }
+            arg_selected = args['value'];
+            if(arg_selected) {
+                rev_asked = args['rev'];
+            }
+            break;
+        default:
+            arg_selected = false;
+            break;
+        }
+        if(arg_selected == null) {
+            return;
+        }
+        this.stack_filters();
+        let new_filter = new Filter(
+            this.ctr ++,
+            'null',
+            op,
+            this,
+            arg_selected,
+            rev_asked == false ? null : true
         );
-        if(args == null) {
-            return;
-        }
-        arg_selected = args;
-        break;
-    case "with-difficulty":
-        args = await pack_ask_args_for_difficulty(
-            "Quel est le niveau de difficulté ? "
-        );
-        if(args == null) {
-            return;
-        }
-        arg_selected = args["value"];
-        if(arg_selected) {
-            rev_asked = args["rev"];
-        }
-        break; 
-    case "with-code":
-        args = await pack_ask_args_for_code(
-            "Entrer le code du QCM : ", "text"
-        );
-        if(args == null) {
-            return;
-        }
-        arg_selected = args["value"];
-        if(arg_selected) {
-            rev_asked = args["rev"];
-        }
-        break; 
-    case "with-tag":
-        args = await pack_ask_args_for_tag("Choisir les tags disponibles");
-        if(args == null) {
-            return;
-        }
-        arg_selected = args["value"].map(tag => tag.tag_name);
-        if(arg_selected) {
-            rev_asked = args["rev"];
-        }
-        break; 
-    case "sort":
-        args = await pack_ask_args_for_sort("Trier par");
-        if(args == null) {
-            return;
-        }
-        arg_selected = args["value"];
-        if(arg_selected) {
-            rev_asked = args["rev"];
-        }
-        break;
-    default:
-        arg_selected = false;
-        break;
+        new_filter.arg = arg_selected;
+        this.filters.push(new_filter);
+        this.update_html();
     }
-
-    if(arg_selected == null) return;
-    pack_stack_filters();
-    let newFilter = new Filter(
-        idCounter++, "null", op, arg_selected, rev_asked==false ? null : true
-    );
-    newFilter.arg = arg_selected;
-    filters.push(newFilter);
-    pack_update_html();
-}
-
-
-const pack_get_filter_by_id = function (filters, id) {
-    for(let filter of filters) {
-        if(filter.id == id) {
-            return filter;
+    get_filter_by_id(filters, id) {
+        for(let filter of filters) {
+            if(filter.id == id) {
+                return filter;
+            }
+            let found = this.get_filter_by_id(filter.content, id);
+            if(found != null) {
+                return found;
+            }
         }
-        let found = pack_get_filter_by_id(filter.content, id);
-        if(found != null) {
-            return found;
-        }
+        return null;
     }
-    return null;
-}
-
-
-const pack_remove_filter_by_id = function (id, parentid) {
-    let removedFilter = null;
-    if(parentid == "null" || parentid == null) {
-        let index = filters.findIndex(f => f.id == id);
-        if(index != -1) {
-            pack_stack_filters();
-            removedFilter = filters.splice(index, 1)[0];
-        }
-    } else {
-        let parentFilter = pack_get_filter_by_id(filters, parentid);
-        if(parentFilter != "null" || parentFilter != null) {
-            let index = parentFilter.content.findIndex(f => f.id == id);
+    remove_filter_by_id(id, parentid) {
+        let removed_filter = null;
+        if(parentid == 'null' || parentid == null) {
+            let index = this.filters.findIndex(f => f.id == id);
             if(index != -1) {
-                pack_stack_filters();
-                removedFilter = parentFilter.content.splice(index, 1)[0];
+                this.stack_filters();
+                removed_filter = this.filters.splice(index, 1)[0];
+            }
+        } else {
+            let parent_filter = this.get_filter_by_id(this.filters, parentid);
+            if(parent_filter != 'null' || parent_filter != null) {
+                let index = parent_filter.content.findIndex(f => f.id == id);
+                if(index != -1) {
+                    this.stack_filters();
+                    removed_filter = parent_filter.content.splice(index, 1)[0];
+                }
             }
         }
+        return removed_filter;
     }
-    return removedFilter;
-}
-
-
-const pack_remove_only_filter = function (id, parentid) {
-    let removedFilter = null;
-    let filter = pack_get_filter_by_id(filters, id);
-    let childs = filter.content.slice();
-    for (let f of childs){
-        f.parentid = parentid;
-    }
-    if(parentid == null || parentid == "null") {
-        filters = filters.concat(childs);
-        let index = filters.findIndex(f => f.id == id);
-        if(index != -1){
-            pack_stack_filters();
-            removedFilter = filters.splice(index, 1)[0];
-            console.log("Filters after removing: ", filters);
+    remove_only_filter(id, parentid) {
+        let removed_filter = null;
+        let filter = this.get_filter_by_id(this.filters, id);
+        let childs = filter.content.slice();
+        for (let f of childs){
+            f.parentid = parentid;
         }
-    } else {
-        let parentFilter = pack_get_filter_by_id(filters, parentid);
-        parentFilter.content = parentFilter.content.concat(childs);
-        let index = parentFilter.content.findIndex(f => f.id == id);
-        if(index != -1) {
-            pack_stack_filters();
-            removedFilter = parentFilter.content.splice(index, 1)[0];
-        }
-    }
-    return removedFilter;
-}
-
-
-const pack_update_html = function() {
-    let download_button = document.getElementById("download_button");
-    let save_button = document.getElementById("save_button");
-    if(filters.length > 0) {
-        if(filters.length > 1) {
-            document
-                .getElementById("jsonOutput")
-                .textContent = JSON.stringify(
-                    filters.map(f=>f.getJSON()), null, 2
-                );
+        if(parentid == null || parentid == 'null') {
+            this.filters = this.filters.concat(childs);
+            let index = this.filters.findIndex(f => f.id == id);
+            if(index != -1){
+                this.stack_filters();
+                removed_filter = this.filters.splice(index, 1)[0];
+            }
         } else {
-            document
-                .getElementById("jsonOutput")
-                .textContent = JSON.stringify(
-                    filters[0].getJSON(), null, 2
-                );
+            let parent_filter = this.get_filter_by_id(this.filters, parentid);
+            parent_filter.content = parent_filter.content.concat(childs);
+            let index = parent_filter.content.findIndex(f => f.id == id);
+            if(index != -1) {
+                this.stack_filters();
+                removed_filter = parent_filter.content.splice(index, 1)[0];
+            }
         }
-        download_button.disabled = false;
-        save_button.disabled = false;
-    } else {
-        download_button.disabled = true;
-        save_button.disabled = true;
-        document.getElementById("jsonOutput").textContent = "";
+        return removed_filter;
     }
-    let container = document.getElementById("filtersContainer");
-    container.innerHTML = "";
-    filters.forEach(f => {
-        container.appendChild(f.createHTML());
-    });
-}
-
-
-const pack_reset_filters = function () {
-    pack_stack_filters();
-    filters = [];
-    idCounter = 0;
-    pack_update_html();
-}
-
-
-const pack_download_json = function () {
-    const jsonContent = JSON.stringify(filters.map(f => f.getJSON()), null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '_pack.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-
-const pack_import_json = function (jsonObject) {
-    pack_stack_filters();
-    filters = [];
-    idcounter = 0;
-    for(let filter of jsonObject) {
-        filters.push(pack_get_filter_from_json(filter, null));
+    update_html() {
+        /*
+        let download_button = document.getElementById('download_button');
+        let save_button = document.getElementById('save_button');
+        if(this.filters.length > 0) {
+            if(this.filters.length > 1) {
+                document
+                    .getElementById('jsonOutput')
+                    .textContent = JSON.stringify(
+                        this.filters.map(f=>f.get_json()), null, 2
+                    );
+            } else {
+                document
+                    .getElementById('jsonOutput')
+                    .textContent = JSON.stringify(
+                        this.filters[0].get_json(), null, 2
+                    );
+            }
+            download_button.disabled = false;
+            save_button.disabled = false;
+        } else {
+            download_button.disabled = true;
+            save_button.disabled = true;
+            document.getElementById('jsonOutput').textContent = '';
+            }
+            */
+        let container = this.filters_container();
+        container.html('');
+        this.filters.forEach(
+            function (f) {
+                container.append(f.create_html());
+            }
+        );
     }
-    pack_update_html();
-}
-
-
-const pack_add_imported_json = function (jsonObject) {
-    pack_stack_filters();
-    for(let filter of jsonObject) {
-        filters.push(pack_get_filter_from_json(filter, null));
+    reset_filters() {
+        this.stack_filters();
+        this.filters = [];
+        this.ctr = 0;
+        this.update_html();
     }
-    pack_update_html();
-}
-
-
-const pack_get_filter_from_json = function (jsonFilter, parentFilterId) {
-    let op = jsonFilter.op;
-    let arg = null;
-    let rev = null;
-    let content = null;
-    if(jsonFilter.hasOwnProperty("arg")) arg = jsonFilter.arg;
-    if(jsonFilter.hasOwnProperty("rev")) rev = jsonFilter.rev;
-    if(jsonFilter.hasOwnProperty("content")) content = jsonFilter.content;
-    let filter = new Filter(idCounter++, parentFilterId, op, arg, rev);
-    if(content != null) {
-        content = Array.isArray(content) ? content : [content];
-        for(jf of content) {
-            let f = pack_get_filter_from_json(jf, filter.id);
-            filter.content.push(f);
+    download_json() {
+        const jsonContent = JSON.stringify(
+            this.filters.map(f => f.get_json()), null, 2
+        );
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '_pack.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    import_json(json_object) {
+        this.stack_filters();
+        this.filters = [];
+        idcounter = 0;
+        for(let filter of json_object) {
+            this.filters.push(this.get_filter_from_json(filter, null));
         }
+        this.update_html();
     }
-    return filter;
-}
-
-
-const pack_save = async function () {
-    let html = `
+    add_imported_json(json_object) {
+        this.stack_filters();
+        for(let filter of json_object) {
+            this.filters.push(this.get_filter_from_json(filter, null));
+        }
+        this.update_html();
+    }
+    get_filter_from_json(json_filter, parent_filter_id) {
+        let op = json_filter.op;
+        let arg = null;
+        let rev = null;
+        let content = null;
+        if(json_filter.hasOwnProperty('arg')) {
+            arg = json_filter.arg;
+        }
+        if(json_filter.hasOwnProperty('rev')) {
+            rev = json_filter.rev;
+        }
+        if(json_filter.hasOwnProperty('content')) {
+            content = json_filter.content;
+        }
+        this.ctr ++;
+        let filter = new Filter(
+            this.ctr,
+            parent_filter_id,
+            op,
+            this,
+            arg,
+            rev
+        );
+        if(content != null) {
+            content = Array.isArray(content) ? content : [content];
+            for(jf of content) {
+                let f = this.get_filter_from_json(jf, filter.id);
+                filter.content.push(f);
+            }
+        }
+        return filter;
+    }
+    async save() {
+        let html = `
     <form id="qcm-form" method='POST'>
       <div style="margin-bottom: 15px;">
         <input type="text" id="title" name="title"
@@ -627,121 +578,199 @@ const pack_save = async function () {
       </div>
     </form>`;
 
-    alertify.webamc_dialog(
-        'Nouveau QCM', html, 
-        function(evt) {
-            const title = document.getElementById("title").value;
-            const code = document.getElementById("code").value;
-            const json = document.getElementById("jsonOutput").textContent;
-            
-            if(!title || !code) {
-                evt.cancel = true; 
-                return;
+        alertify.webamc_dialog(
+            'Nouveau QCM', html, 
+            function(evt) {
+                const title = document.getElementById("title").value;
+                const code = document.getElementById("code").value;
+                const json = document.getElementById("jsonOutput").textContent;
+                if(!title || !code) {
+                    evt.cancel = true; 
+                    return;
+                }
+                const pack = JSON.parse(json);
+                const form_data = { title, code, pack };
+                const success = function (_) {
+                    this.reset_filters();
+                    base_report_infos(['MCQ loaded']); 
+                    alertify.success("Sauvegardé avec succès !"); 
+                };
+                xhr_post_oper(
+                    Constants.path_item_oper_save_pack, form_data, success);
+            },
+            function() {}
+        );
+    }
+    stack_filters() {
+        if(this.filters != []) {
+            if(this.filters_save == null) {
+                this.filters_save = []
+            } else {
+                let filters_copy = this.copy_filters(
+                    this.filters.slice()
+                );
+                this.filters_save.push(filters_copy);
             }
-
-            const pack = JSON.parse(json);
-            const formData = { title, code, pack };
-
-            const success = function (_) {
-                pack_reset_filters();
-                base_report_infos(['MCQ loaded']); 
-                alertify.success("Sauvegardé avec succès !"); 
-            };
-            xhr_post_oper(
-                Constants.path_item_oper_save_pack, formData, success);
-        },
-        function() {}
-    );
-}
-
-
-const pack_stack_filters = function () {
-    if(filters != []) {
-        if(filters_save == null) {
-            filters_save = []
         } else {
-            let filters_copy = pack_copy_filters(filters.slice());
-            filters_save.push(filters_copy);
+            this.filters_save = null;
         }
-    } else {
-        filters_save = null;
     }
-}
-
-
-const pack_copy_filters = function (filters) {
-    for (let f of filters){
-        f.content = f.content.slice();
-        pack_copy_filters(f.content);
+    copy_filters(filters) {
+        for (let f of filters){
+            f.content = f.content.slice();
+            this.copy_filters(f.content);
+        }
+        return filters;
     }
-    return filters;
-}
+    filters_container_id() {
+        return this.id + '-filters';
+    }
+    button_id(btn) {
+        return this.id + '-button-' + btn;
+    }
+    filters_container() {
+        return $('#' + this.filters_container_id());
+    }
+    button(btn) {
+        return $('#' + this.button_id(btn));
+    }
+    constructor(div_container_id, id) {
+        let html = '';
+        const _this = this;
+        this.id = id;
+        this.filters = [];
+        this.ctr = 0;
+        this.filters_save = [];
+        this.div_container = $('#' + div_container_id);
+        this.div_container.html(this.html());
+        /*
+        let download_button = document.getElementById('download_button');
+        download_button.disabled = true;
+        let save_button = document.getElementById('save_button');
+        save_button.disabled = true;
+        let json_container = document.getElementById('jsonOutput');
+        json_container.style.display = 'none';
+        document
+            .getElementById('save_button')
+            .addEventListener('click', async function(event){
+                await this.save();
+            });
 
-
-const pack_init = function () {
-    filters = [];
-    idCounter = 0;
-    filters_save = [];
-    container = document.getElementById("filtersContainer");
-    download_button = document.getElementById("download_button");
-    download_button.disabled = true;
-    save_button = document.getElementById("save_button");
-    save_button.disabled = true;
-    jsonContainer = document.getElementById("jsonOutput");
-    jsonContainer.style.display = "none";
-    document
-        .getElementById("save_button")
-        .addEventListener("click", async function(event){
-            await pack_save();
-        });
-
-    document
-        .getElementById("import_button")
-        .addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const jsonData = JSON.parse(event.target.result);
-                    pack_import_json(jsonData);
-                } catch (error) {
-                    console.error("Erreur lors du parsing du JSON :", error);
+        document
+            .getElementById('import_button')
+            .addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const jsonData = JSON.parse(event.target.result);
+                        this.import_json(jsonData);
+                    } catch (error) {
+                        console.error(
+                            'Erreur lors du parsing du JSON :', error);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        document
+            .getElementById('add_import_button')
+            .addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if(!file) {
+                    return;
                 }
-            };
-            reader.readAsText(file);
-        });
-    
-    document
-        .getElementById("add_import_button")
-        .addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const jsonData = JSON.parse(event.target.result);
-                    pack_add_imported_json(jsonData);
-                } catch (error) {
-                    console.error("Erreur lors du parsing du JSON :", error);
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const jsonData = JSON.parse(event.target.result);
+                        this.add_imported_json(jsonData);
+                    } catch (error) {
+                        console.error(
+                            'Erreur lors du parsing du JSON :', error);
+                    }
+                };
+                reader.readAsText(file);
+                });
+        */
+        this.filters_container().on(
+            'ondragover',
+            function (evt) {
+                e.preventDefault()
+            }
+        );
+        this.filters_container().on(
+            'ondrop',
+            function (evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                let target_id = evt.dataTransfer.getData('id');
+                let target_parentid = evt.dataTransfer.getData('parentid');
+                if(target_parentid != 'null' || target_parentid == null) {
+                    let target_filter = this.remove_filter_by_id(
+                        target_id, target_parentid
+                    );
+                    target_filter.parentid = null;
+                    filters.push(target_filter);
+                    this.update_html();
                 }
-            };
-            reader.readAsText(file);
-        });
-
-    container.ondragover = e => e.preventDefault();
-    container.ondrop = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        let target_id = e.dataTransfer.getData("id");
-        let target_parentid = e.dataTransfer.getData("parentid");
-        if(target_parentid != "null" || target_parentid == null) {
-            let target_filter = pack_remove_filter_by_id(
-                target_id, target_parentid
+            }
+        );
+        for (const [filter, _] of Object.entries(pack_filters)) {
+            this.button(filter).on(
+                'click',
+                function (evt) {
+                    _this.add_filter(filter);
+                }
             );
-            target_filter.parentid = null;
-            filters.push(target_filter);
-            pack_update_html();
         }
-    };
+    }
+    html() {
+        let result = '<div class_="flex flex-wrap gap-2 mb-4">'
+        for (const [filter, data] of Object.entries(pack_filters)) {
+            result += `
+             <button
+               id="${this.button_id(filter)}"
+               class="px-4 py-2 rounded ${data['class']}"
+               title="${data['title']}">
+               ${filter}
+             </button>`
+            ;
+        }
+        result += `
+           </div>
+           <div id="${this.filters_container_id()}" draggable="true"
+             class="min-h-[100px] p-4 bg-gray-200 rounded mb-4">
+           </div>`
+        ;
+        return result;
+    }
 }
+
+
+const pack_filters = {
+    'all': {
+        'class': 'bg-blue-500',
+        'title': 'Toutes les questions'
+    },
+    'shuf': {
+        'class': 'bg-[#00ff9B]',
+        'title': 'Mélanger les questions'
+    },
+    'head': {
+        'class': 'bg-[#ffc300]',
+        'title': 'Choisir un certain nombre de questions'
+    },
+    'difficulty': {
+        'class': 'bg-[#ff5733]',
+        'title': 'Choisir la difficulté'
+    },
+    'sort': {
+        'class': 'bg-[#ff0080]',
+        'title': 'Trier les questions'
+    },
+    'tag': {
+        'class': 'bg-blue-700',
+        'title': 'Choisir les tags des questions'
+    }
+};
