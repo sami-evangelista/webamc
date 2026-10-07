@@ -408,10 +408,9 @@ sequence of operations successively applied. Available operations are:
   \verb+code+)
 \item \verb+shuf+: select questions randomly
 \item \verb+head+: select the first questions from those selected so far
-\item \verb+with-code+: select questions based on their codes
-\item \verb+with-difficulty+: select questions based on their
+\item \verb+by-difficulty+: select questions based on their
   difficulty
-\item \verb+with-tag+: select questions based on their tags
+\item \verb+by-tag+: select questions based on their tags
 \end{itemize}
 
 An operation is specified with a dictionary having the following keys:
@@ -419,7 +418,7 @@ An operation is specified with a dictionary having the following keys:
 \item \verb+op+: the operation realised, among those listed above
 \item \verb+arg+: for some operations, specify an argument (e.g., the
   number of questions selected for operation \verb+head+)
-\item \verb+rev+: for \verb+with-XXX+ operations, operate a negation
+\item \verb+rev+: for \verb+by-XXX+ operations, operate a negation
   during the selection (e.g., to select questions that do {\em not}
   have a specific tag)
 \item \verb+content+: questions on which this operation is realised,

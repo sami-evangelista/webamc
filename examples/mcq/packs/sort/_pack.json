@@ -2,7 +2,7 @@
    "op": "sort",
    "arg": "difficulty",
    "content": {
-      "op": "with-tag",
+      "op": "by-tag",
       "arg": ["réseaux"]
    }
 }

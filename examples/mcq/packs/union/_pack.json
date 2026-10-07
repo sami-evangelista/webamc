@@ -2,11 +2,11 @@
    "op": "shuf",
    "content": [
       {
-         "op": "with-tag",
+         "op": "by-tag",
          "arg": ["linux"]
       },
       {
-         "op": "with-difficulty",
+         "op": "by-difficulty",
          "rev": true,
          "arg": [3, 4, 5]
       }

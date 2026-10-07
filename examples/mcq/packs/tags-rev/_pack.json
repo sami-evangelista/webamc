@@ -1,5 +1,5 @@
 {
-   "op": "with-tag",
+   "op": "by-tag",
    "rev": true,
    "arg": ["linux"]
 }

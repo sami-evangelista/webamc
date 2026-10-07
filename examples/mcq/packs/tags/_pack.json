@@ -1,10 +1,10 @@
 {
    "op": "shuf",
    "content": {
-      "op": "with-difficulty",
+      "op": "by-difficulty",
       "arg": [4, 5],
       "content":{
-         "op": "with-tag",
+         "op": "by-tag",
          "arg": ["linux"]
       }
    }

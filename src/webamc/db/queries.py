@@ -350,17 +350,12 @@ def gen_pack_questions(
                 pass
             else:
                 return result.order_by(by.desc() if rev else by)
-        if oper == "with-code":
-            return result.where(
-                tables.Item.itm_code.in_(arg) if not rev
-                else tables.Item.itm_code.not_in(arg)
-            )
-        if oper == "with-difficulty":
+        if oper == "by-difficulty":
             return result.where(
                 tables.Item.itm_difficulty.in_(arg) if not rev
                 else tables.Item.itm_difficulty.not_in(arg)
             )
-        if oper == "with-tag":
+        if oper == "by-tag":
             sub = dbs.query(
                 tables.Item.itm_id.distinct()
             ).where(

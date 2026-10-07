@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables, desc, queries, util as db_util
+from webamc.db import tables, desc, queries
 from webamc.www.db import util as www_db_util
 from . import database_list
 
@@ -199,22 +199,16 @@ def _content_pack(
         ctx: context.Context,
         item: tables.Item
 ) -> he.Element:
-    textarea_id = f"textarea-pack-{item.itm_id}"
     pack = queries.get_pack(ctx.dbs, item.itm_id)
-    textarea = www_db_util.html_element(
-        ctx,
-        db_util.get_col(tables.Pack.pak_spec),
-        val=json.dumps(json.loads(pack.pak_spec), indent=2)
-    ).set_attr(
-        "id", textarea_id
+    id_div_pack = f"div-pack-{item.itm_id}"
+    div_pack = he.Div(id_=id_div_pack)
+    id_pack = f"pack-{item.itm_id}"
+    script = he.Script(
+        f"var init = {json.dumps(pack.pak_spec)};"
+        f"var pack = new Pack({json.dumps(id_div_pack)}, "
+        f"{json.dumps(id_pack)}, init);"
     )
-    a_edit = base.static_img(
-        "edit",
-        "verb_update",
-        js=f"item_update_pack({item.itm_id})"
-    )
-    return he.ElementList(textarea, he.Br(), a_edit)
-
+    return he.ElementList(div_pack, script)
 
 def _content_question(
         ctx: context.Context,

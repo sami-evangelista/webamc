@@ -31,12 +31,11 @@ TICKET_ACCOUNT_CREATION: ticket_type_t = 2
 
 pack_op_t = tp.Literal[
     "all",
-    "shuf",
-    "sort",
+    "by-difficulty",
+    "by-tag",
     "head",
-    "with-code",
-    "with-difficulty",
-    "with-tag"
+    "shuf",
+    "sort"
 ]
 
 dict_pack_spec_t = tp_ext.TypedDict(

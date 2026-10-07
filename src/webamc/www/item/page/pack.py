@@ -6,6 +6,7 @@ def page(
         ctx: context.Context,
         **kwargs: tp.Unpack[router.args_page_item_t]
 ) -> he.Element:
+    """
     button7 = he.Button(
         he.Str("Afficher le JSON"),
         onclick="pack.show_json_area()",
@@ -80,7 +81,7 @@ def page(
         div4,
         class_="max-w-4xl p-6 rounded-lg shadow-lg box"
     )
-
+"""
     div_pack = he.Div(id_="div-pack")
-    js = he.Script("var pack = new Pack('div-pack', 'pack');")
+    js = he.Script("new Pack('div-pack', 'pack');")
     return he.ElementList(div_pack, js)
