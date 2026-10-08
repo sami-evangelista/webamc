@@ -10,7 +10,7 @@ const admin_delete_row = function (tbl_name, pkey_name, pkey_val) {
         };
         xhr_db_delete(tbl_name, where, success);
     };
-    base_ask_confirmation(Lang['qst_item_row_confirmation'], go);
+    base_ask_confirmation(Lang['qst_confirmation_db_row_deletion'], go);
 };
 
 

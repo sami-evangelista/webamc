@@ -22,7 +22,6 @@ const pack_filters = {
 
 class Filter {
     constructor(id, parentid, op, pack, arg, rev) {
-        console.log(id, parentid, op);
         this.id = id;
         this.parentid = parentid;
         this.op = op;
@@ -216,12 +215,7 @@ class Pack {
               Inverser la sélection ?
             </label>`;
             const onyes = function(evt) {
-                const tags = [];
-                Object.entries(tag_table.tags).forEach(
-                    function ([tag_id, tag]) {
-                        tags.push(tag['tag_name']);
-                    }
-                );
+                const tags = tag_table.get_tag_names();
                 if(tags.length > 0) {
                     const data = {
                         'value': tags,
@@ -458,6 +452,12 @@ class Pack {
         this.ctr = 0;
         this.update_html();
     }
+    get_json() {
+        const result = JSON.stringify(
+            this.filters.map(f => f.get_json()), null, 2
+        );
+        return result;
+    }
     download_json() {
         const jsonContent = JSON.stringify(
             this.filters.map(f => f.get_json()), null, 2
@@ -472,7 +472,6 @@ class Pack {
         document.body.removeChild(link);
     }
     import_json(json_object) {
-        console.log(json_object);
         this.stack_filters();
         this.filters = [];
         this.ctr = 0;

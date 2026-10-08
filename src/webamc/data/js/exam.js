@@ -32,7 +32,7 @@ const exam_delete = function (db_exm_id, db_exm_mcq) {
 	];
 	xhr_db_delete('exam', where, success);
     }
-    const question = Lang['qst_exam_deletion_confirmation'];
+    const question = Lang['qst_confirmation_exam_deletion'];
     base_ask_confirmation(question, go);
 }
 
@@ -98,7 +98,7 @@ const exam_delete_registrations = function () {
     };
     $('.checkbox_registration').each(handle_checkbox);
     if(queries.length > 0) {
-		const question = Lang['qst_item_deletion_confirmation'];
+		const question = Lang['qst_confirmation_item_deletion'];
 		const go = function(){
 			const success = function (_) {
 				 exam_dashboard_select();

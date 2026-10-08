@@ -172,7 +172,6 @@ class Item(Base):
     itm_visible: bool = CO(ct.Boolean, nullable=False, default=True)
     itm_parent: None | int = CO(RefItem)  # type: ignore
     itm_order = CO(ct.Integer)
-    itm_img = CO(sa.LargeBinary)
     __table_args__ = (
         CC(ItemType.get_constraint("itm_type")),
         CC(ItemDifficulty.get_constraint("itm_difficulty")),

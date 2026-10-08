@@ -144,19 +144,19 @@ def get_attribute(
     div_id = f"div-{col.name}-{id_}"
     js = f"db_col_show_input({id_}, '{col.name}', '{pkey.name}')"
     a_id = f"{div_id}-link"
-    span_val_id = f"{div_id}-val"
+    div_val_id = f"{div_id}-val"
     a = he.A(
-        he.Div(element_val, id_=span_val_id),
+        he.Div(element_val, id_=div_val_id),
         href=f"javascript:{js}",
         id_=a_id
     )
-    span_input_id = f"{div_id}-input"
-    span_input = he.Span(
+    div_input_id = f"{div_id}-input"
+    div_input = he.Div(
         he.Empty(),
         style="display: none;",
-        id_=span_input_id
+        id_=div_input_id
     )
-    result = he.Div(a, span_input)
+    result = he.Div(a, div_input)
     return result
 
 
@@ -178,36 +178,34 @@ def get_filter_wheres(
 ) -> list[sa.sql.elements.BinaryExpression[tp.Any]]:
     cols = [col for col in db_util.get_tbl_cols(tbl) if is_visible(col)]
     result: list[sa.sql.elements.BinaryExpression[tp.Any]] = list()
+    typed_value: tp.Any
     for col in cols:
         col_name = db_util.get_col_name(col)
-        op_name = col_name + "-cmp"
-        if col_name in args:
-            value = args[col_name]
-            typed_value: tp.Any
-            oper = args.get(op_name)
-            if oper is not None:
-                # this should not be necessary to type the value
-                # because values received should be correct
-                if value is None:
-                    typed_value = None
-                elif isinstance(col.type, sa.Integer):
-                    typed_value = int(value)
-                elif isinstance(col.type, sa.Boolean):
-                    typed_value = bool(value)
-                else:
-                    typed_value = str(value)
-                if oper == "=":
-                    result.append(col == typed_value)
-                elif oper == "!=":
-                    result.append(col != typed_value)
-                elif oper == "<":
-                    result.append(col < typed_value)
-                elif oper == ">":
-                    result.append(col > typed_value)
-                elif oper == "like":
-                    result.append(col.like(f"%{typed_value}%"))
-                elif oper == "notlike":
-                    result.append(col.notlike(f"%{typed_value}%"))
+        value = args.get(col_name)
+        oper = args.get(col_name + "-cmp")
+        if value is not None and oper is not None:
+            # this should not be necessary to type the value
+            # because values received should be correct
+            if value is None:
+                typed_value = None
+            elif isinstance(col.type, sa.Integer):
+                typed_value = int(value)
+            elif isinstance(col.type, sa.Boolean):
+                typed_value = bool(value)
+            else:
+                typed_value = str(value)
+            if oper == "=":
+                result.append(col == typed_value)
+            elif oper == "!=":
+                result.append(col != typed_value)
+            elif oper == "<":
+                result.append(col < typed_value)
+            elif oper == ">":
+                result.append(col > typed_value)
+            elif oper == "like":
+                result.append(col.like(f"%{typed_value}%"))
+            elif oper == "notlike":
+                result.append(col.notlike(f"%{typed_value}%"))
     return result
 
 

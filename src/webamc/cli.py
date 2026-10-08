@@ -54,17 +54,12 @@ def command_init(args: argparse.Namespace) -> None:
         db.op.connect()
         db.op.init()
         db.op.close()
-    else:
-        print("deletion canceled")
 
 
 def command_loadcsv(args: argparse.Namespace) -> None:
-    delimiter: None | str = args.delimiter
-    if delimiter is None:
-        delimiter = ";"
     db.op.connect()
     for i in args.input:
-        loadcsv.action(i, delimiter)
+        loadcsv.action(i, args.delimiter)
     db.op.close()
 
 
@@ -96,6 +91,13 @@ def get_argparser() -> argparse.ArgumentParser:
     )
     sub_parser.set_defaults(command=command_check)
 
+    # action checklang
+    sub_parser = sub_parsers.add_parser(
+        "checklang",
+        help="check language files for missing texts"
+    )
+    sub_parser.set_defaults(command=command_checklang)
+
     # action compile
     sub_parser = sub_parsers.add_parser(
         "compile",
@@ -114,24 +116,6 @@ def get_argparser() -> argparse.ArgumentParser:
         help="number of threads/processes to use for compilation (default: 4)"
     )
     sub_parser.set_defaults(command=command_compile)
-
-    # action genexamples
-    sub_parser = sub_parsers.add_parser(
-        "genexamples",
-        help="generate csv example files"
-    )
-    sub_parser.add_argument(
-        "output", type=str,
-        help="ouput directory in which files will be generated"
-    )
-    sub_parser.set_defaults(command=command_genexamples)
-
-    # action checklang
-    sub_parser = sub_parsers.add_parser(
-        "checklang",
-        help="check language files for missing texts"
-    )
-    sub_parser.set_defaults(command=command_checklang)
 
     # action extract
     sub_parser = sub_parsers.add_parser(
@@ -155,6 +139,17 @@ def get_argparser() -> argparse.ArgumentParser:
     )
     sub_parser.set_defaults(command=command_gendoc)
 
+    # action genexamples
+    sub_parser = sub_parsers.add_parser(
+        "genexamples",
+        help="generate csv example files"
+    )
+    sub_parser.add_argument(
+        "output", type=str,
+        help="ouput directory in which files will be generated"
+    )
+    sub_parser.set_defaults(command=command_genexamples)
+
     # action init
     sub_parser = sub_parsers.add_parser(
         "init",
@@ -176,7 +171,7 @@ def get_argparser() -> argparse.ArgumentParser:
         help="input csv file"
     )
     sub_parser.add_argument(
-        "-d", "--delimiter", type=str,
+        "-d", "--delimiter", type=str, default=";",
         help="field delimiter (default is ';')"
     )
     sub_parser.set_defaults(command=command_loadcsv)

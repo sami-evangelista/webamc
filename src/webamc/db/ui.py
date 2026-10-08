@@ -187,8 +187,5 @@ class Select(Input):
         ]
         if self.col.nullable:
             options.insert(0, he.Option(value=""))
-        result = self._init_element(
-            he.Select(*options, type_="select"),
-            **kwargs
-        )
+        result = self._init_element(he.Select(*options), **kwargs)
         return result

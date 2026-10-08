@@ -94,11 +94,12 @@ info_no_mcq_available;No MCQ available.
 info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 msg_file_list_exam;List of files associated with the exam.
-msg_no_data_exam;No data available for the exam..
+msg_no_data_exam;No data available for the exam.
 name_action;Action
 name_actions;actions
 name_archive;Archive
 name_confirmation;confirmation
+name_content;content
 name_copies;sheets
 name_dashboard;dashboard
 name_date;date
@@ -170,20 +171,22 @@ param_err_invalid_duplicate_value;%s: duplicate value
 param_err_invalid_null_value;%s: value expected
 param_err_invalid_value;%s: invalid value
 param_seq_instance_num;instance %s
+param_seq_items_found;%s item(s) found
 param_seq_next_question;next question (%s)
 param_seq_previous_question;previous question (%s)
 param_seq_registrations_done;%s registration(s) done
 param_seq_switch_mode;switch mode (%s)
 param_seq_users_registered;%s user(s) registered for this exam
+qst_confirmation_db_row_deletion;Do you confirm the deletion of this row ?
+qst_confirmation_exam_deletion;The exam will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
+qst_confirmation_item_deletion;The item will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
+qst_confirmation_item_detach;The item will not be deleted from your database but will be detached from its parent. Do you confirm the operation ?
+qst_confirmation_mcq_form;Do you confirm the submission of your answers ?
 qst_confirmation_project_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
 qst_confirmation_project_clean_associations;Do you confirm the deletion of the association sheet/student ?
 qst_confirmation_project_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
-qst_confirmation_project_delete;Do you confirm the deletion of this project ?
-qst_exam_deletion_confirmation;Do you confirm the deletion of this exam ?
-qst_item_deletion_confirmation;Do you confirm the deletion of this item ?
-qst_item_row_confirmation;Do you confirm the deletion of this row ?
-qst_mcq_form_confirmation;Do you confirm the submission of your answers ?
-qst_restart_mcq_confirmation;Would you like to restart the MCQ ?
+qst_confirmation_project_deletion;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
+qst_confirmation_restart_mcq;Would you like to restart the MCQ ?
 seq_administrate_this_mcq;administrate this MCQ
 seq_analyse_answer_sheets;analyse answer sheets
 seq_associate_automatic;associate students and sheets (automatic)
@@ -199,7 +202,6 @@ seq_enter_new_eaddr;type your new email address
 seq_error_messages;error message(s)
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;information message(s)
-seq_items_found;item(s) found
 seq_latex_id;student ID in latex file
 seq_manual_association;manual association
 seq_new_project;new project
@@ -269,6 +271,7 @@ verb_cancel;cancel
 verb_close;close
 verb_create;create
 verb_delete;delete
+verb_detach;detach
 verb_filter;filter
 verb_restart;restart
 verb_send;send

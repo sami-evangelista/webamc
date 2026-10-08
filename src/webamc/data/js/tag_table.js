@@ -20,6 +20,24 @@ class TagTable {
 	this.html();
     }
 
+    get_tag_ids() {
+        let result = [];
+        for(const tag_id in this.tags) {
+            result.push(Number(tag_id));
+        }
+        return result;
+    }
+
+    get_tag_names() {
+        let result = [];
+        Object.entries(tag_table.tags).forEach(
+            function ([tag_id, tag]) {
+                result.push(tag['tag_name']);
+            }
+        );
+        return result;
+    }
+
     datalist_id() {
         return this.container_id + '-datalist';
     }

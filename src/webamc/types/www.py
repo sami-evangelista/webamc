@@ -50,6 +50,7 @@ static_img_t = tp.Literal[
     "switch-mode",
     "tag",
     "trash",
+    "unlink",
     "upload",
     "warning",
     "zoom-in",

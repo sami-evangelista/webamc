@@ -24,19 +24,6 @@ def page(
     # <tr> containing attributes
     trs: list[he.Tr] = list()
 
-    # deletion link
-    if session.has_admin_right(ctx, item):
-        a_delete = base.static_img(
-            "trash",
-            "verb_delete",
-            js=f"item_delete({item.itm_id});"
-        )
-        tr = he.Tr(
-            he.Td(),
-            he.Td(a_delete)
-        )
-        trs.append(tr)
-
     # select item columns to show
     cols = ["itm_title", "itm_date"]
     cols += {
@@ -59,11 +46,10 @@ def page(
             except AttributeError:
                 pass
         assert found
-        tr = he.Tr(
-            he.Td(he.Txt(desc.col_desc(col))),
-            he.Td(www_db_util.get_attribute(ctx, col, val, item.itm_id))
-        )
-        trs.append(tr)
+        trs += [
+            he.Tr(he.Td(he.Em(he.Txt(desc.col_desc(col))))),
+            he.Tr(he.Td(www_db_util.get_attribute(ctx, col, val, item.itm_id)))
+        ]
 
     # <tr> containing <table> with groups (if it is an mcq)
     if mcq is None:
@@ -79,11 +65,10 @@ def page(
         init_grps = [
             grp.grp_id for grp in queries.get_mcq_grps(ctx.dbs, item.itm_id)
         ]
-        tr = he.Tr(
-            he.Td(he.Txt("name_groups")),
-            he.Td(he.Div(id_=table_grps_id))
-        )
-        trs.append(tr)
+        trs += [
+            he.Tr(he.Td(he.Em(he.Txt("name_groups")))),
+            he.Tr(he.Td(he.Div(id_=table_grps_id)))
+        ]
 
     # <tr> containing <table> with tags
     tags = {
@@ -94,11 +79,10 @@ def page(
         }
         for tag in queries.get_item_tags(ctx.dbs, item.itm_id)
     }
-    tr = he.Tr(
-        he.Td(he.Txt("name_tags")),
-        he.Td(he.Div(id_=table_tags_id))
-    )
-    trs.append(tr)
+    trs += [
+        he.Tr(he.Td(he.Em(he.Txt("name_tags")))),
+        he.Tr(he.Td(he.Div(id_=table_tags_id)))
+    ]
 
     img_instance = he.Img(
         src=base.img_src(ctx, item.itm_id, iti_num),
@@ -106,11 +90,10 @@ def page(
     )
     if len(all_instances) == 1:
         if all_instances[0].iti_img is not None:
-            tr = he.Tr(
-                he.Td(he.Txt("name_statement")),
-                he.Td(img_instance)
-            )
-            trs.append(tr)
+            trs += [
+                he.Tr(he.Td(he.Em(he.Txt("name_statement")))),
+                he.Tr(he.Td(img_instance))
+            ]
     else:
         options = [
             he.Option(
@@ -120,7 +103,7 @@ def page(
             for i in all_instances
         ]
         onchange = (
-            f"item_admin_code_click({item.itm_id}, this.value);"
+            f"item_admin_code_click({item.itm_id}, false, this.value);"
             " return false;"
         )
         select_instance = he.Select(
@@ -128,20 +111,18 @@ def page(
             onchange=onchange,
             class_="select-instance"
         )
-        tr = he.Tr(
-            he.Td(select_instance),
-            he.Td(img_instance)
-        )
-        trs.append(tr)
+        trs += [
+            he.Tr(he.Td(select_instance)),
+            he.Tr(he.Td(img_instance))
+        ]
 
     # <tr> for item content
     content = _content(ctx, item, iti_num)
     if content is not None:
-        tr = he.Tr(
-            he.Td(),
-            he.Td(content)
-        )
-        trs.append(tr)
+        trs += [
+            he.Tr(he.Td(he.Em(he.Txt("name_content")))),
+            he.Tr(he.Td(content))
+        ]
 
     # <table> containing all previous <tr>
     table_attributes = he.Table(
@@ -190,8 +171,8 @@ def _content_exercise(
         item: tables.Item
 ) -> he.Element:
     return he.ElementList(*[
-        database_list.div_item(ctx, row)
-        for row in queries.get_children(ctx.dbs, item.itm_id)
+        database_list.div_item(ctx, item_child, item)
+        for item_child in queries.get_children(ctx.dbs, item.itm_id)
     ])
 
 
@@ -202,13 +183,16 @@ def _content_pack(
     pack = queries.get_pack(ctx.dbs, item.itm_id)
     id_div_pack = f"div-pack-{item.itm_id}"
     div_pack = he.Div(id_=id_div_pack)
-    id_pack = f"pack-{item.itm_id}"
     script = he.Script(
         f"var init = {json.dumps(pack.pak_spec)};"
-        f"var pack = new Pack({json.dumps(id_div_pack)}, "
-        f"{json.dumps(id_pack)}, init);"
+        f"item_pack_load({item.itm_id}, {json.dumps(id_div_pack)}, init);"
     )
-    return he.ElementList(div_pack, script)
+    a_update = base.static_img(
+        "edit",
+        "verb_update",
+        js=f"item_pack_update({item.itm_id});"
+    )
+    return he.ElementList(div_pack, a_update, script)
 
 def _content_question(
         ctx: context.Context,

@@ -50,7 +50,6 @@ item_t = tp.TypedDict(
         "cho_last": bool,
         "itm_code": str,
         "itm_difficulty": int,
-        "itm_img": bytes,
         "itm_order": int,
         "itm_parent": int,
         "itm_rnd": bool,

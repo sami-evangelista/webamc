@@ -137,11 +137,17 @@ class Empty(Element):
     def __str__(self) -> str:
         return ""
 class Txt(Element):
-    def __init__(self, id_: types.txt_t, fmt: bool = True):
+    def __init__(
+            self,
+            id_: types.txt_t,
+            fmt: bool = True,
+            args: tuple[str] | None = None
+    ):
         self.id_ = id_
         self.fmt = fmt
+        self.args = args
     def __str__(self) -> str:
-        result = lang.txt(self.id_)
+        result = lang.txt(self.id_, self.args)
         if self.fmt:
             result = fmt.fmt_title(result)
         result = html.escape(result)

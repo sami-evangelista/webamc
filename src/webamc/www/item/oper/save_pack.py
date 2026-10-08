@@ -20,8 +20,7 @@ def data(
         itm_usr=session.usr_id(ctx),
         itm_visible=True,
         itm_parent=None,
-        itm_order=0,
-        itm_img=None
+        itm_order=0
     )
     ctx.dbs.add(item)
     ctx.dbs.flush()

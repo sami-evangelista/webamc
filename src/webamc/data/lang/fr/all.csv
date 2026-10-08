@@ -1,15 +1,6 @@
 id;text
-seq_project_file_log_webamc;fichier de log
-seq_project_file_ods_scores;tableau des notes
-seq_project_file_pdf_answer_sheets;copies scannées
-seq_project_file_pdf_correction;correction
-seq_project_file_pdf_subject;sujet (un seul fichier contenant toutes les copies)
-seq_project_file_source;source
-seq_project_file_zip_annotated_sheets;copies scannées et annotées
-seq_project_file_zip_sheets;sujet (un fichier / étudiante)
-err_file_required;Un fichier est requis pour réaliser cette action.
-err_data_required;Un paramètre est requis pour réaliser cette action.
-err_action_required;Une action est requise pour réaliser celle-ci.
+action_download_archive;Télécharger l'archive
+action_refresh;Rafraîchir
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;utilisateur
@@ -60,31 +51,36 @@ col_desc_usr_eaddr;adresse électronique
 col_desc_usr_fst_name;prénom
 col_desc_usr_id;#
 col_desc_usr_name;nom
+err_action_required;Une action est requise pour réaliser celle-ci.
 err_admin_empty_csv_file;Le fichier CSV est vide.
 err_admin_no_right_to_update_table;Vous n'avez pas le droit de modifier cette table.
 err_admin_table_undeterminable;Impossible de déterminer la table de destination.
-err_project_amc_not_installed;Impossible de trouver AMC sur le système.
-err_project_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
-err_project_invalid_source;Fichier source non reconnu.
+err_data_required;Un paramètre est requis pour réaliser cette action.
 err_db_invalid_values;Valeurs invalides.
 err;Erreur.
+err_file_required;Un fichier est requis pour réaliser cette action.
 err_http_403;Erreur 403 - Accès interdit !!!
 err_http_404;Erreur 404 - Ressource non trouvée !!!
 err_http_422;Erreur 422 - Requête invalide !!!
 err_http_500;Erreur 500 - Erreur du serveur !!!
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
-err_project_invalid_code;Le code du projet est invalide.
-err_project_invalid_tex_archive;L'archive latex est invalide.
 err_invalid_ticket;Ce ticket n'est plus vaide.
 err_io;Erreur d'entrée/sortie.
 err_item_admin_empty_archive;L'archive est vide.
 err_mail_file_not_found;Fichier de mail non trouvé.
 err_mail_server;Impossible de se connecter au serveur de messagerie.
 err_missing_file;Un fichier est nécessaire pour pouvoir réaliser cette action.
+error_exam_access_denied;L'examen n'existe pas ou vous n'y avez pas accès.
+error_exam_not_found;Examen introuvable.
+err_project_already_exists;Un projet avec le même code existe déjà.
+err_project_amc_not_installed;Impossible de trouver AMC sur le système.
+err_project_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
+err_project_invalid_code;Le code du projet est invalide.
+err_project_invalid_source;Fichier source non reconnu.
+err_project_invalid_tex_archive;L'archive latex est invalide.
 err_project_missing_or_invalid_parameter;Paramètre manquant ou invalide.
 err_project_not_a_zip_file;Le fichier fourni n'est pas une archive ZIP.
-err_project_already_exists;Un projet avec le même code existe déjà.
 err_unknown_eaddr;Adresse électronique inconnue.
 err_wrong_credentials;Mot de passe incorrect.
 header_authentication_account_creation;Création d'un compte
@@ -92,35 +88,50 @@ header_authentication_cas;Authentification par un serveur
 header_authentication_local;Authentification locale
 header_authentication_password_change;Changement de mot de passe
 info_exam_finished;Examen terminé !
+info_exam_status;Statut de l'épreuve : %s
 info_no_exam_available;Aucun examen n'est disponible.
 info_no_mcq_available;Aucun QCM n'est disponible.
 info_please_wait;Opération en cours. Veuillez patienter.
 info_progress_saved;Progression sauvegardée.
+msg_file_list_exam;Liste des fichiers associés à l'examen.
+msg_no_data_exam;Aucune donnée disponible pour cet examen.
+name_action;Action
 name_actions;actions
+name_archive;Archive
 name_confirmation;confirmation
+name_content;contenu
 name_copies;copies
-name_date;date
 name_dashboard;tableau de bord
+name_date;date
 name_details;détails
 name_exam;examen
 name_exercise;exercice
+name_file;Fichier
+name_file_name;Nom du fichier
 name_groups;groupes
+name_login;Login
 name_mcq;QCM
 name_minutes;minutes
+name_mod_date;Date de modification
 name_no;non
 name_page;page
 name_parameters;paramètres
+name_progress;Progression
 name_question;question
 name_review;révision
 name_rights;droits
 name_sender;expéditeur
+name_size;Taille
 name_statement;énoncé
+name_status;Statut
+name_student;Étudiant
 name_submission;soumission
 name_table;table
 name_tags;tags
 name_threshold;seuil
 name_title;titre
 name_type;type
+name_type;Type
 name_view;vue
 name_yes;oui
 op_after;après
@@ -141,8 +152,8 @@ page_title_exam_creation;création
 page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
 page_title_exam;examen
-page_title_index;index
 page_title_inbox;boîte de réception
+page_title_index;index
 page_title_item_database;base de données
 page_title_item_groups;groupes
 page_title_item_pack;création
@@ -160,20 +171,23 @@ page_title_ticket_error;erreur de ticket
 param_err_invalid_duplicate_value;%s: valeur en double
 param_err_invalid_null_value;%s: valeur attendue
 param_err_invalid_value;%s: valeur invalide
+param_seq_instance_num;Instance %s
+param_seq_items_found;%s élément(s) trouvé(s)
 param_seq_next_question;question suivante (%s)
 param_seq_previous_question;question précédente (%s)
 param_seq_registrations_done;%s enregistrement(s) effectué(s)
 param_seq_switch_mode;modifier le mode (%s)
 param_seq_users_registered;%s utilisatrice(s) enregistrée(s) pour cet examen
+qst_confirmation_db_row_deletion;Confirmez-vous la suppression de cette ligne ?
+qst_confirmation_exam_deletion;Cet examen sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
+qst_confirmation_item_deletion;Cet élément sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
+qst_confirmation_item_detach;L'élément ne sera pas supprimé mais détaché de son élément parent. Confirmez-vous l'opération ?
+qst_confirmation_mcq_form;Confirmez-vous l'envoi de vos réponses ?
 qst_confirmation_project_associate_automatic;Confirmez-vous l'association automatique ?  Ceci supprimera toutes les associations déjà enregistrées.
 qst_confirmation_project_clean_associations;Confirmez-vous la suppression des associations copie/étudiante ?
 qst_confirmation_project_compile;Confirmez-vous la génération du sujet ? Ceci supprimera tous les documents de travail actuel. Annulez si vous avez déjà imprimé les sujets.
-qst_confirmation_project_delete;Confirmez-vous la suppression de ce projet ?
-qst_exam_deletion_confirmation;Confirmez-vous la suppression de cet examen ?
-qst_item_deletion_confirmation;Confirmez-vous la suppression de cet élément ?
-qst_item_row_confirmation;Confirmez-vous la suppression de cette ligne ?
-qst_mcq_form_confirmation;Confirmez-vous l'envoi de vos réponses ?
-qst_restart_mcq_confirmation;Voulez vous recommencer ce QCM ?
+qst_confirmation_project_deletion;Ce projet ainsi que tous les fichiers qui lui sont associés seront supprimés. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
+qst_confirmation_restart_mcq;Voulez vous recommencer ce QCM ?
 seq_administrate_this_mcq;administrer ce QCM
 seq_analyse_answer_sheets;analyser les copies scannées
 seq_associate_automatic;associer étudiantes et copies (mode automatique)
@@ -189,12 +203,19 @@ seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
 seq_error_messages;message(s) d'erreur
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;message(s) d'information
-seq_items_found;élément(s) trouvés
 seq_latex_id;identifiant étudiant dans le code latex
 seq_manual_association;association manuelle
 seq_new_project;nouveau projet
 seq_new_row;nouvelle ligne
 seq_no_name;pas de fichier d'image
+seq_project_file_log_webamc;fichier de log
+seq_project_file_ods_scores;tableau des notes
+seq_project_file_pdf_answer_sheets;copies scannées
+seq_project_file_pdf_correction;correction
+seq_project_file_pdf_subject;sujet (un seul fichier contenant toutes les copies)
+seq_project_file_source;source
+seq_project_file_zip_annotated_sheets;copies scannées et annotées
+seq_project_file_zip_sheets;sujet (un fichier / étudiante)
 seq_records_found;enregistrement(s) trouvé(s)
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
@@ -205,19 +226,25 @@ seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
 seq_warning_messages;message(s) d'avertissement
 seq_zip_file;fichier ZIP
-stats_title;Tableau de bord des statistiques
-stats_select_exam;Sélectionnez un examen...
-stats_choose_exam;1. Choisir un examen :
-stats_select_qst;Sélectionnez une question...
-stats_choose_qst;2. Choisir une question :
-stats_qst_prefix;Question
-stats_answers_detail;Détail des réponses :
 stats_answer_prefix;Réponse
+stats_answers_detail;Détail des réponses :
+stats_choose_exam;1. Choisir un examen :
+stats_choose_qst;2. Choisir une question :
 stats_evo_title;Évolution d'un étudiant sur un QCM
-stats_select_student;Sélectionnez un étudiant...
-stats_select_mcq;Sélectionnez un QCM...
-stats_student_prefix;1. Étudiant :
 stats_mcq_prefix;2. QCM ciblé :
+stats_qst_prefix;Question
+stats_select_exam;Sélectionnez un examen...
+stats_select_mcq;Sélectionnez un QCM...
+stats_select_qst;Sélectionnez une question...
+stats_select_student;Sélectionnez un étudiant...
+stats_student_prefix;1. Étudiant :
+stats_title;Tableau de bord des statistiques
+status_finished;Terminé
+status_inactive;Inactif (> 5 min)
+status_in_progress;En cours
+status_not_started;Non commencé
+status_online;En ligne
+status_upcoming;À venir
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse életronique modifiée avec succès.
 succ_login;Connexion réussie.
@@ -244,35 +271,11 @@ verb_cancel;annuler
 verb_close;fermer
 verb_create;créer
 verb_delete;supprimer
+verb_detach;détacher
 verb_filter;filtrer
-verb_send;envoyer
 verb_restart;recommencer
+verb_send;envoyer
 verb_start;démarrer
 verb_update;modifier
 verb_validate;valider
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
-error_exam_not_found;Examen introuvable.
-error_exam_access_denied;L'examen n'existe pas ou vous n'y avez pas accès.
-name_login;Login
-name_student;Étudiant
-name_progress;Progression
-name_status;Statut
-info_exam_status;Statut de l'épreuve : %s
-status_upcoming;À venir
-status_in_progress;En cours
-status_finished;Terminé
-status_online;En ligne
-status_not_started;Non commencé
-status_inactive;Inactif (> 5 min)
-name_archive;Archive
-action_download_archive;Télécharger l'archive
-name_size;Taille
-name_action;Action
-msg_no_data_exam;Aucune donnée disponible pour cet examen.
-name_file_name;Nom du fichier
-name_file;Fichier
-name_mod_date;Date de modification
-msg_file_list_exam;Liste des fichiers associés à l'examen.
-action_refresh;Rafraîchir
-name_type;Type
-param_seq_instance_num;Instance %s

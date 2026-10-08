@@ -12,6 +12,7 @@ def page(
     # type
     itm_types = [
         (he.Txt("name_mcq"), "mcq"),
+        (he.Txt("name_exercise"), "exe"),
         (he.Txt("name_question"), "qst")
     ]
     select_type = he.Select(

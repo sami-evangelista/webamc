@@ -79,7 +79,7 @@ const mcq_post_form = function () {
 
 
 const mcq_validate = function () {
-    base_ask_confirmation(Lang['qst_mcq_form_confirmation'], mcq_post_form);
+    base_ask_confirmation(Lang['qst_confirmation_mcq_form'], mcq_post_form);
 }
 
 
@@ -104,7 +104,7 @@ const mcq_reset_all = function () {
 	$('#btn-validate_mcq').show();
 	mcq_reset_mode();
     };
-    base_ask_confirmation(Lang['qst_restart_mcq_confirmation'], go);
+    base_ask_confirmation(Lang['qst_confirmation_restart_mcq'], go);
 }
 
 

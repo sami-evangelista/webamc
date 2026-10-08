@@ -3,3 +3,29 @@
     list-style-type: none;
     position: relative;
 }
+
+/* <div> containing item codes in the item admin page */
+div.item-code {
+    min-height: 30px;
+    width: 600px;
+    border-radius: 6px;
+    border: 2px solid;
+    padding: 4px;
+    margin: 5px 0px 5px 0px;
+    position: relative;
+}
+div.item-code-mcq {
+    background-color: var(--color-code-mcq);
+}
+div.item-code-question {
+    background-color: var(--color-code-question);
+}
+div.item-code-exercise {
+    background-color: var(--color-code-exercise);
+}
+
+.item-box-buttons {
+    top: 2px;
+    right: 2px;
+    position: absolute;
+}

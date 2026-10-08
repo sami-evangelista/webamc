@@ -1,3 +1,4 @@
+import re
 from importlib import resources
 
 from webamc.all import *
@@ -35,3 +36,9 @@ def action() -> None:
                 err = True
         if not err:
             termout.info(f"[{lg}] no error found")
+    for js in (resources.files("webamc") / "data" / "js").iterdir():
+        for line in js.read_text().split("\n"):
+            for expr in re.finditer(r"Lang\['([^']+)'\]", line):
+                for txt in expr.groups():
+                    if txt not in types.literal_type_values(types.txt_t):
+                        termout.error(f"undefined text {txt} in {js.name}")
