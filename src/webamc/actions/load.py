@@ -20,10 +20,10 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
                 if key.startswith(prefix)
             }
 
-        if "itm_parent" in item:
-            if item["itm_parent"] not in num_map:
+        if "parent" in item:
+            if item["parent"] not in num_map:
                 return None
-            item["itm_parent"] = num_map[item["itm_parent"]]
+            item["parent"] = num_map[item["parent"]]
 
         tex_file = item.get("tex_file")
 
@@ -61,6 +61,15 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
         dbs.flush()
         dbs.refresh(db_item)
         result = int(db_item.itm_id)
+
+        # insertion in item_relation
+        if "parent" in item:
+            db_item_relation = tables.ItemRelation(
+                itr_child=result,
+                itr_parent=item["parent"],
+                itr_order=item["order"]
+            )
+            dbs.add(db_item_relation)
 
         # if it is an mcq we insert an mcq and records
         is_mcq = item.get("is_mcq", False)

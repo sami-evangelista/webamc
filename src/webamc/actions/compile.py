@@ -50,8 +50,6 @@ item_t = tp.TypedDict(
         "cho_last": bool,
         "itm_code": str,
         "itm_difficulty": int,
-        "itm_order": int,
-        "itm_parent": int,
         "itm_rnd": bool,
         "itm_standalone": bool,
         "itm_title": str,
@@ -60,7 +58,9 @@ item_t = tp.TypedDict(
         "itm_visible": bool,
         "pak_spec": str,
         "qst_type": types.question_type_t,
-        "instances": list[instance_t]
+        "instances": list[instance_t],
+        "order": int,
+        "parent": int
     },
     total=False
 )
@@ -173,8 +173,8 @@ def _ctx_new_item(input_tex: Path, read_mdata: bool = True) -> item_t:
     item["num"] = CTX["num"]
     try:
         code, parent, order = CTX["stack"].pop()
-        item["itm_parent"] = parent
-        item["itm_order"] = order + 1
+        item["parent"] = parent
+        item["order"] = order + 1
         CTX["stack"].append((code, parent, order + 1))
     except IndexError:
         pass

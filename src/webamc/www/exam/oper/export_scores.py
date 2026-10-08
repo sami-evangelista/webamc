@@ -1,6 +1,5 @@
 import io
 import typing as tp
-
 import openpyxl
 from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
@@ -8,12 +7,13 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.formatting.rule import FormulaRule
 from fastapi.responses import Response
 
-from webamc.www.all import context
+from webamc.www.all import *
 from webamc.db import queries, tables
 
 
 def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
-
+    return fa.responses.HTMLResponse("")
+    """
     # getting global data from exam
     monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
     if not monitoring_data:
@@ -249,3 +249,4 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         media_type=mtype,
         headers=headers_response
     )
+"""

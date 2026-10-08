@@ -195,7 +195,8 @@ def get_exam_monitoring(
         dbs: Session,
         exam_id: int
 ) -> types.exam_monitoring_t | None:
-
+    return None
+"""
     # get exam info
     exam = dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
     if not exam:
@@ -214,7 +215,6 @@ def get_exam_monitoring(
         global_status = "in progress"
 
     # get total questions for this exam's mcq
-
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == exam.exm_mcq
     ).all()
@@ -304,6 +304,7 @@ def get_exam_monitoring(
         "exam_end": exam_end,
         "students": students_data
     }
+"""
 
 
 def gen_pack_questions(
@@ -326,8 +327,7 @@ def gen_pack_questions(
                 tables.Item.itm_visible
                 & (tables.Item.itm_id == tables.Question.qst_id)
                 & (tables.Item.itm_usr == usr_id)
-                & (tables.Item.itm_standalone
-                   | (tables.Item.itm_parent == None))  # pylint: disable=C0121
+                & (tables.Item.itm_standalone)
                 & (tables.Item.itm_id.not_in(not_in))
             )
         all_op: types.pack_spec_t = {"op": "all"}
@@ -395,9 +395,10 @@ def get_children(dbs: Session, itm_id: int) -> list[tables.Item]:
     return dbs.query(
         tables.Item
     ).where(
-        tables.Item.itm_parent == itm_id
+        (tables.ItemRelation.itr_parent == itm_id)
+        & (tables.ItemRelation.itr_child == tables.Item.itm_id)
     ).order_by(
-        tables.Item.itm_order
+        tables.ItemRelation.itr_order
     ).all()
 
 
@@ -426,10 +427,10 @@ def get_question_choices(dbs: Session, qst_id: int) -> list[tables.Choice]:
     return dbs.query(
         tables.Choice
     ).where(
-        (tables.Item.itm_parent == qst_id)
-        & (tables.Item.itm_id == tables.Choice.cho_id)
+        (tables.ItemRelation.itr_parent == qst_id)
+        & (tables.ItemRelation.itr_child == tables.Choice.cho_id)
     ).order_by(
-        tables.Item.itm_order
+        tables.ItemRelation.itr_order
     ).all()
 
 
@@ -606,6 +607,8 @@ def get_student_detailed_scores(
         exam_id: int,
         sub_id: int
 ) -> dict[int, float]:
+    return dict()
+    """
     result = dict()
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == exam_id
@@ -647,9 +650,11 @@ def get_student_detailed_scores(
                 question_score = max(0.0, q_score_temp)
         result[qst.qst_id] = round(question_score, 2)
     return result
-
+    """
 
 def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
+    return list()
+"""
     direct_items = dbs.query(tables.Item.itm_id).filter(
         tables.Item.itm_parent == mcq_id
     ).all()
@@ -660,6 +665,7 @@ def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
         tables.Item.itm_parent.in_(parent_ids)
     ).all()
     return result
+"""
 
 
 def list_recipients(

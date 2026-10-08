@@ -81,16 +81,15 @@ def data(
     for cho_id, cho_checked in mcq_result["mcq_choices"].items():
         row = ctx.dbs.query(
             tables.Choice,
-            tables.Item
+            tables.ItemRelation
         ).where(
             (tables.Choice.cho_id == int(cho_id))
-            & (tables.Choice.cho_id == tables.Item.itm_id)
+            & (tables.Choice.cho_id == tables.ItemRelation.itr_child)
         ).first()
         assert row is not None
-        choice, item = row.tuple()
+        choice, relation = row.tuple()
         cho_correct = bool(choice.cho_correct)
-        assert item.itm_parent is not None
-        qst_id = int(item.itm_parent)
+        qst_id = relation.itr_parent
         correct = cho_checked == cho_correct
         corr["qst"].setdefault(qst_id, True)
         corr["cho"][cho_id] = correct

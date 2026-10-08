@@ -170,18 +170,27 @@ class Item(Base):
     )
     itm_usr: int = CO(RefUsr, nullable=False)
     itm_visible: bool = CO(ct.Boolean, nullable=False, default=True)
-    itm_parent: None | int = CO(RefItem)  # type: ignore
-    itm_order = CO(ct.Integer)
     __table_args__ = (
         CC(ItemType.get_constraint("itm_type")),
         CC(ItemDifficulty.get_constraint("itm_difficulty")),
         CC(f"itm_code <> null or itm_type = {types.ITEM_TYPE_CHOICE}"),
-        CC(f"itm_type <> {types.ITEM_TYPE_CHOICE} or itm_parent <> null"),
         FK(["itm_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["itm_parent"], ["item.itm_id"], ondelete="CASCADE"),
-        UC("itm_parent", "itm_order"),
         UC("itm_code", "itm_usr")
     )
+
+
+class ItemRelation(Base):
+    __tablename__ = "item_relation"
+    itr_id: int = CO(ct.Integer, primary_key=True)
+    itr_parent: int = CO(RefItem, nullable=False)
+    itr_child: int = CO(RefItem, nullable=False)
+    itr_order: int = CO(ct.Integer, nullable=False)
+    __table_args__ = (
+        FK(["itr_parent"], ["item.itm_id"], ondelete="CASCADE"),
+        FK(["itr_child"], ["item.itm_id"], ondelete="CASCADE"),
+        UC("itr_parent", "itr_order"),
+    )
+
 
 
 class ItemInstance(Base):

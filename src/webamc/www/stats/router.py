@@ -7,6 +7,7 @@ from .model.args_evo_t import args_evo_t
 router = fa.APIRouter()
 
 
+"""
 @router.get("/stats/page/dashboard")
 def route_stats_page_dashboard(
         req: fa.Request,
@@ -334,3 +335,4 @@ def route_stats_tags_data(req: fa.Request) -> fa.Response:
             "tag_ids": tag_ids,
             "counts": counts
         })
+"""

@@ -18,9 +18,7 @@ def data(
         itm_rnd=False,
         itm_difficulty=None,
         itm_usr=session.usr_id(ctx),
-        itm_visible=True,
-        itm_parent=None,
-        itm_order=0
+        itm_visible=True
     )
     ctx.dbs.add(item)
     ctx.dbs.flush()
