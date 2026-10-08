@@ -38,9 +38,6 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             output.warning(f"{tex_file}: no CODE provided in item")
             return None
 
-        item["itm_standalone"] = (
-            item.get("itm_standalone", False) or "itm_parent" not in item
-        )
         item["itm_usr"] = usr_id
 
         # duplicate detection
