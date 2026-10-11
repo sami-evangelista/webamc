@@ -5,31 +5,68 @@ var item_packs = {};
 var item_admin_roots = new Set();
 
 
-const item_delete = function (itm_id) {
-    const go = function () {
-        const where = [{
-            'op': '=',
-            'col': 'itm_id',
-            'val': itm_id
-        }];
-        xhr_db_delete('item', where, function (_) { item_filter() });
-    };
-    const question = Lang['qst_confirmation_item_deletion'];
-    base_ask_confirmation(question, go);
+const item_remove_child_item = function (itm_id) {
+    $('#div-item-code-' + itm_id).remove();
+    $('#div-item-body-' + itm_id).remove();
 }
 
 
-const item_detach = function (itm_id) {
+const item_detach = function (itm_id, itm_id_parent) {
     const go = function () {
-        const where = [{
+        const db_where = [
+            {'op': '=', 'col': 'itr_parent', 'val': itm_id_parent},
+            {'op': '=', 'col': 'itr_child', 'val': itm_id},
+        ];
+        const success = function() {
+            item_remove_child_item(itm_id);
+        };
+        xhr_db_delete('item_relation', db_where, success);
+    };
+    base_ask_confirmation(Lang['qst_confirmation_item_detach'], go);
+}
+
+
+const item_deletion_success = function (itm_id, is_root) {
+    const result = function () {
+        if(is_root) {
+            item_filter();
+        } else {
+            item_remove_child_item(itm_id);
+        }
+    };
+    return result;
+}
+
+
+const item_delete = function (itm_id, is_root) {
+    const go = function () {
+        const db_where = {
             'op': '=',
             'col': 'itm_id',
             'val': itm_id
-        }];
-        xhr_db_delete('item', where, function (_) { item_filter() });
+        };
+        xhr_db_delete(
+            'item', [db_where], item_deletion_success(itm_id, is_root)
+        );
     };
-    const question = Lang['qst_confirmation_item_detach'];
-    base_ask_confirmation(question, go);
+    base_ask_confirmation(Lang['qst_confirmation_item_deletion'], go);
+}
+
+
+const item_delete_recursively = function (itm_id, is_root) {
+    const go = function () {
+        const data = {
+            'itm_id': itm_id
+        };
+        xhr_post(
+            Constants.path_item_oper_recursive_deletion,
+            item_deletion_success(itm_id, is_root),
+            data
+        );
+    };
+    base_ask_confirmation(
+        Lang['qst_confirmation_item_recursive_deletion'], go
+    );
 }
 
 

@@ -25,14 +25,21 @@ def page(
     trs: list[he.Tr] = list()
 
     # select item columns to show
-    cols = ["itm_title", "itm_date"]
+    cols = [
+        "itm_title",
+        "itm_date",
+        "itm_visible"
+    ]
     cols += {
-        types.ITEM_TYPE_PACK: list(),
+        types.ITEM_TYPE_PACK: [
+        ],
         types.ITEM_TYPE_EXERCISE: [
             "itm_rnd"
         ],
         types.ITEM_TYPE_QUESTION: [
-            "itm_standalone", "itm_rnd", "itm_difficulty"
+            "itm_standalone",
+            "itm_rnd",
+            "itm_difficulty"
         ]
     }[item.itm_type]
     if mcq is not None:
@@ -118,11 +125,10 @@ def page(
 
     # <tr> for item content
     content = _content(ctx, item, iti_num)
-    if content is not None:
-        trs += [
-            he.Tr(he.Td(he.Em(he.Txt("name_content")))),
-            he.Tr(he.Td(content))
-        ]
+    trs += [
+        he.Tr(he.Td(he.Em(he.Txt("name_content")))),
+        he.Tr(he.Td(content))
+    ]
 
     # <table> containing all previous <tr>
     table_attributes = he.Table(
@@ -156,7 +162,7 @@ def _content(
         ctx: context.Context,
         item: tables.Item,
         iti_num: int
-) -> None | he.Element:
+) -> he.Element:
     if item.itm_type == types.ITEM_TYPE_EXERCISE:
         return _content_exercise(ctx, item)
     if item.itm_type == types.ITEM_TYPE_QUESTION:

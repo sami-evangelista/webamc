@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import queries, desc, tables, row_op
+from webamc.db import queries, desc, tables, errors as db_errors
 from webamc.www.db import util as www_db_util
 
 
@@ -65,29 +65,27 @@ def _page_eaddr_change(
     assert tkt.tkt_usr is not None
     usr = queries.get_usr(ctx.dbs, tkt.tkt_usr)
     assert usr is not None
-    values: types.db_map_t = {
-        "usr_eaddr": tkt.tkt_eaddr
-    }
-    ok, err, values = row_op.check_tbl_values(ctx.dbs, "usr", values, "update")
-    if not ok:
-        if err is None or err == list():
-            msg: he.Element = he.Empty()
-        else:
-            msg = he.Str(err[0])
-    else:
-        ctx.dbs.query(
+    try:
+        # update usr
+        usr = ctx.dbs.query(
             tables.Usr
         ).where(
             tables.Usr.usr_id == usr.usr_id
-        ).update({
-            "usr_eaddr": values["usr_eaddr"]
-        })
+        ).first()
+        assert usr is not None
+        usr.usr_eaddr = tkt.tkt_eaddr
+
+        # delete ticket
         ctx.dbs.query(
             tables.Ticket
         ).where(
             tables.Ticket.tkt_id == tkt.tkt_id
         ).delete()
-        msg = he.Txt("succ_eaddr_changed")
+        ctx.dbs.commit()
+    except db_errors.DBException as ex:
+        ctx.dbs.rollback()
+        return base.wrap_errors(ex.msg())
+    msg = he.Txt("succ_eaddr_changed")
     return base.page(ctx, "page_title_eaddr_change", msg)
 
 

@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 
 from webamc.www.all import *
-from webamc.db import util as db_util, row_op
+from webamc.db import util as db_util, errors as db_errors
 from webamc.www.db import util as www_db_util, router
 
 
@@ -34,17 +34,7 @@ def data(
         tbl = db_util.get_tbl(q["table"])
         tbl_meta = db_util.get_tbl_meta(q["table"])
         typ = q["type"]
-        ok, err, values = row_op.check_tbl_values(
-            ctx.dbs, tbl, q.get("values", dict()), typ
-        )
-        if not ok:
-            ctx.dbs.rollback()
-            return fa.responses.JSONResponse({
-                "success": False,
-                "msgs": err,
-                "result": None
-            })
-        values = row_op.transform_tbl_values(tbl, values)
+        values = q.get("values", dict())
         conds = [build_where(where) for where in q.get("where", list())]
         wheres = sa.and_(*conds)
         try:
@@ -64,7 +54,9 @@ def data(
                 rvalues.append([get_db_object_values(new_obj)])
                 rrvalues.append([])
             elif typ == "update":
-                ctx.dbs.query(tbl).where(wheres).update(values)  # type: ignore
+                for row in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
+                    for k, v in values.items():
+                        setattr(row, k, v)
                 rvalues.append([dict(values.items())])
                 rrvalues.append([{
                     col_name: www_db_util.val_fmt(
@@ -72,13 +64,10 @@ def data(
                     )[1]
                     for col_name, val in values.items()
                 }])
-        except:
+            ctx.dbs.commit()
+        except db_errors.DBException as ex:
             ctx.dbs.rollback()
-            return fa.responses.JSONResponse({
-                "success": False,
-                "msgs": [lang.txt("err_db_invalid_values")],
-                "result": None
-            })
+            return base.wrap_errors(ex.msg())
     result: types.json_response_t = {
         "success": True,
         "msgs": list(),

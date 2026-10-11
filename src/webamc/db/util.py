@@ -13,9 +13,7 @@ def get_tbl_name(tbl: Table) -> str:
 def get_tbl_pkey(tbl: str | Table) -> Column[tp.Any]:
     if isinstance(tbl, Table):
         tbl = get_tbl_name(tbl)
-    pkeys = struct["tbls"][tbl]["pkeys"]
-    assert len(pkeys) == 1
-    return pkeys[0]
+    return struct["tbls"][tbl]["pkey"]
 
 
 def get_tbl_fkeys(
@@ -77,7 +75,7 @@ db_struct_tbl_t = tp.TypedDict(
         "meta": DeclarativeMeta,
         "def": Table,
         "cols": list[Column[tp.Any]],
-        "pkeys": list[Column[tp.Any]],
+        "pkey": Column[tp.Any],
         "fkeys": dict[Column[tp.Any], list[Column[tp.Any]]]
     },
     total=True
@@ -120,7 +118,7 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
             "meta": tbl_cls,
             "def": tbl,
             "cols": list(tbl.columns),
-            "pkeys": [col for col in tbl.columns if col.primary_key],
+            "pkey": next(col for col in tbl.columns if col.primary_key),
             "fkeys": {
                 col: [fkey.column for fkey in col.foreign_keys]
                 for col in tbl.columns
@@ -137,8 +135,15 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
 
     # perform some checks
 
-    # a foreign key can only be an integer
+    # only one column form the primary key
     for tbl, tbl_def in struct["tbls"].items():
+        assert 1 == len(
+            [col for col in tbl_def["def"].columns if col.primary_key]
+        )
+
+    # a foreign or a primary key can only be an integer
+    for tbl, tbl_def in struct["tbls"].items():
+        assert isinstance(tbl_def["pkey"].type, sa.Integer)
         for fkey in tbl_def["fkeys"]:
             assert isinstance(fkey.type, sa.Integer)
 

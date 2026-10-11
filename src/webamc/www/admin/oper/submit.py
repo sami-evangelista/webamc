@@ -5,14 +5,10 @@ from webamc.actions import loadcsv
 def data(
         ctx: context.Context,
         csv_file: fa.UploadFile
-) -> types.json_response_t:
-    def error_result(err: types.txt_t) -> types.json_response_t:
-        return {
-            "success": False,
-            "msgs": [lang.txt(err)],
-            "result": None
-        }
-    result: types.json_response_t
+) -> fa.responses.Response:
+    def error_result(err: types.txt_t) -> fa.responses.Response:
+        return base.wrap_errors(lang.txt(err))
+    result: fa.responses.Response
     content = csv_file.file.read()
     if len(content) == 0:
         return error_result("err_admin_empty_csv_file")
@@ -30,10 +26,10 @@ def data(
             load_result = base.generic_load_file(
                 tmp_file.name, "csv", csv_delimiter=";"
             )
-            result = {
+            result = fa.responses.JSONResponse({
                 "success": True,
                 "msgs": list(),
                 "result": load_result
-            }
+            })
     os.remove(tmp_file.name)
     return result

@@ -1,5 +1,6 @@
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
+from sqlalchemy.engine.base import Connection
 
 from webamc.all import *
 from webamc.util import fmt, security
@@ -42,7 +43,11 @@ class Date(sa.Date, ColType):
     js_type = "date"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        return datetime.date.fromisoformat(val)
+        if isinstance(val, datetime.date):
+            return val
+        if isinstance(val, str):
+            return datetime.date.fromisoformat(val)
+        raise ValueError
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
@@ -58,7 +63,11 @@ class DateTime(sa.DateTime, ColType):
     js_type = "datetime"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        return datetime.datetime.fromisoformat(val)
+        if isinstance(val, datetime.datetime):
+            return val
+        if isinstance(val, str):
+            return datetime.datetime.fromisoformat(val)
+        raise ValueError
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
@@ -83,7 +92,7 @@ class Boolean(sa.Boolean, ColType):
     js_type = "boolean"
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        return bool(val)
+        return val in ("1", 1, True)
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val:
@@ -115,7 +124,7 @@ class ConstrainedString(String):
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
         result = str(val)
-        if cls.regexp is not None and not re.match(cls.regexp, result):
+        if cls.regexp is not None and not re.fullmatch(cls.regexp, result):
             raise ValueError
         if cls.len_range[0] is not None and len(result) < cls.len_range[0]:
             raise ValueError
@@ -170,6 +179,10 @@ class Password(ConstrainedString):
         return security.hash_password(str(val))
 
 
+class ItemCode(ConstrainedString):
+    regexp = r"[a-zA-Z0-9.\-_/]+"
+
+
 class PackSpec(LargeString):
     input_type = ui.Textarea
     @classmethod
@@ -210,9 +223,9 @@ class ForeignKey(IntEnum):
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> int:
         result = int(val)
-        dbs = tp.cast(Session, kwargs["dbs"])
+        conn = tp.cast(Connection, kwargs["conn"])
         tbl = cls.col.table
-        row = dbs.query(tbl).where(cls.col == result).first()
+        row = conn.execute(tbl.select().where(cls.col == result)).first()
         if row is None:
             raise ValueError
         return result

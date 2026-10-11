@@ -21,7 +21,7 @@ def route_oper_submit(
 ) -> fa.Response:
     from .oper import submit
     ctx = context.Context(req)
-    return fa.responses.JSONResponse(submit.data(ctx, csv_file))
+    return submit.data(ctx, csv_file)
 
 
 @router.post("/admin/page/table")

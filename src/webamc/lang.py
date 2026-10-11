@@ -39,15 +39,11 @@ def load_texts() -> None:
                     texts[tp.cast(types.txt_t, t["id"])] = t["text"]
 
 
-def txt(id_: types.txt_t, args: None | tuple[str] = None) -> str:
+def txt(id_: types.txt_t, *args: str) -> str:
     load_texts()
     if id_ not in texts:
         return id_
-    if args is None:
-        result = texts[id_]
-    else:
-        result = texts[id_] % args
-    return result
+    return texts[id_] % args
 
 
 def exists(id_: types.txt_t) -> bool:

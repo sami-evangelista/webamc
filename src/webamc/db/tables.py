@@ -1,7 +1,9 @@
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm.mapper import Mapper
+from sqlalchemy.engine.base import Connection
 
 from webamc.all import *
-from . import col_types as ct
+from . import col_types as ct, errors
 
 
 FK = sa.ForeignKeyConstraint
@@ -11,7 +13,7 @@ CO = sa.Column
 
 Base = declarative_base()
 
-now = sa.func.now()  # pylint: disable=not-callable
+now = sa.func.now()
 
 
 # definition of some foreign key column types
@@ -158,8 +160,9 @@ class Item(Base):
     __tablename__ = "item"
     itm_id: int = CO(ct.Integer, primary_key=True)
     itm_type: types.item_type_t = CO(ItemType, nullable=False)
-    itm_code = CO(ct.String)
+    itm_code = CO(ct.ItemCode)
     itm_title = CO(ct.String)
+    itm_is_mcq: bool = CO(ct.Boolean, nullable=False)
     itm_standalone: bool = CO(ct.Boolean, nullable=False, default=False)
     itm_rnd: bool = CO(ct.Boolean, nullable=False, default=False)
     itm_difficulty: None | types.item_difficulty_t = CO(  # type: ignore
@@ -170,11 +173,17 @@ class Item(Base):
     )
     itm_usr: int = CO(RefUsr, nullable=False)
     itm_visible: bool = CO(ct.Boolean, nullable=False, default=True)
+    itm_parent: int = CO(RefItem)
     __table_args__ = (
         CC(ItemType.get_constraint("itm_type")),
         CC(ItemDifficulty.get_constraint("itm_difficulty")),
-        CC(f"itm_code <> null or itm_type = {types.ITEM_TYPE_CHOICE}"),
+        CC(f"not itm_is_mcq or itm_type = {types.ITEM_TYPE_EXERCISE} "
+           f"or itm_type = {types.ITEM_TYPE_PACK}"),
+        CC(f"itm_code is not null or itm_type = {types.ITEM_TYPE_CHOICE}"),
+        CC(f"itm_parent is not null or itm_type <> {types.ITEM_TYPE_CHOICE}"),
+        CC(f"itm_parent is null or itm_type = {types.ITEM_TYPE_CHOICE}"),
         FK(["itm_usr"], ["usr.usr_id"], ondelete="CASCADE"),
+        FK(["itm_parent"], ["item.itm_id"], ondelete="CASCADE"),
         UC("itm_code", "itm_usr")
     )
 
@@ -402,6 +411,7 @@ class Message(Base):
     )
 
 
+# codes used only when loading csv files
 TBL_CODES: dict[str, list[str]] = {
     "admin": ["adm_usr", "adm_tbl"],
     "attr": ["atr_code"],
@@ -439,3 +449,112 @@ RefRegistration.col = Registration.reg_id
 RefRegistration.fmt = lambda reg: str(reg.reg_id)
 RefItemInstance.col = ItemInstance.iti_id
 RefItemInstance.fmt = lambda iti: str(iti.iti_id)
+
+
+def create_listeners() -> tp.Any:
+
+    # checks performed during or insert or update
+    def basic_checks(
+            tbl: sa.sql.schema.Table,
+            conn: Connection,
+            target: tp.Any,
+            row_id: None | int
+    ) -> None:
+        tname = tbl.name
+        pkey = next(c for c in tbl.columns if c.primary_key)
+        for col in tbl.columns:
+            cname = col.name
+            val = getattr(target, cname, None)
+            null_val = val is None or val == ""
+
+            # check non null values
+            if isinstance(col.type, ct.ColType) and not null_val:
+                try:
+                    val = col.type.val_chk(val, conn=conn)
+                    val = col.type.val_transform(val)
+                    setattr(target, cname, val)
+                except ValueError as ex:
+                    raise errors.DBInvalidValue(tname, cname, val) from ex
+
+            # check uniqueness (single column)
+            if col.unique:
+                cond = col == val
+                if row_id is not None:
+                    cond = cond & (pkey != row_id)
+                row = conn.execute(tbl.select().where(cond)).first()
+                if row is not None:
+                    raise errors.DBDuplicateValue(tname, cname, val)
+
+        # check uniqueness constraints of the table
+        for cons in tbl.constraints:
+            if (
+                    isinstance(cons, UC)
+                    and all(
+                        getattr(target, col.name, None) is not None
+                        for col in cons.columns
+                    )
+            ):
+                cond = sa.and_(
+                    *(col == getattr(target, col.name) for col in cons.columns)
+                )
+                if row_id is not None:
+                    cond = cond & (pkey != row_id)
+                row = conn.execute(tbl.select().where(cond)).first()
+                if row is not None:
+                    raise errors.DBDuplicateValue(
+                        tbl.name,
+                        [col.name for col in cons.columns],
+                        [getattr(target, col.name) for col in cons.columns]
+                    )
+
+    def insert_listener(t):  # type: ignore
+        def result(
+                mapper: Mapper[tp.Any],
+                conn: Connection,
+                target: tp.Any
+        ) -> None:
+            tbl: sa.sql.schema.Table = t.__table__
+            tname = tbl.name
+            basic_checks(tbl, conn, target, None)
+
+            # check null values are allowed
+            for col in tbl.columns:
+                cname = col.name
+                val = getattr(target, cname, None)
+                null_val = val is None or val == ""
+                if (
+                        null_val
+                        and not col.nullable
+                        and not col.primary_key
+                ):
+                    raise errors.DBInvalidNullValue(tname, cname)
+
+        return result
+    def update_listener(t):  # type: ignore
+        def result(
+                mapper: Mapper[tp.Any],
+                conn: Connection,
+                target: tp.Any
+        ) -> None:
+            tbl: sa.sql.schema.Table = t.__table__
+            tname = tbl.name
+            pkey = next(c for c in tbl.columns if c.primary_key)
+            basic_checks(tbl, conn, target, getattr(target, pkey.name))
+
+            # check null values are allowed
+            for col in tbl.columns:
+                cname = col.name
+                if (
+                        hasattr(target, cname)
+                        and getattr(target, cname) is None
+                        and not col.nullable
+                ):
+                    raise errors.DBInvalidNullValue(tname, cname)
+        return result
+    t: tp.Any
+    for t in Base.__subclasses__():
+        sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
+        sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
+
+
+create_listeners()

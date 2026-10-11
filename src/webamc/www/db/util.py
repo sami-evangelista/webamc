@@ -95,7 +95,8 @@ def has_right_to_execute(
             "mcq": "mcq_id",
             "mcq_grp": "mgp_mcq",
             "pack": "pak_id",
-            "question": "qst_id"
+            "question": "qst_id",
+            "item_relation": "itr_child"
         }[tbl]
         if typ in {"delete", "select", "update"}:
             return check_item_id(get_col_value(col_item, "where"))
@@ -318,10 +319,12 @@ cols_visible = {
     "mcq_mode",
     "tag_color",
     "tag_desc",
+    "tag_id",
     "tag_name",
     "tbl_name",
     "uat_usr",
     "uat_attr",
+    "uat_id",
     "uat_value",
     "ugp_grp",
     "ugp_id",
@@ -358,10 +361,12 @@ cols_updatable = {
     "itm_rnd",
     "itm_title",
     "itm_standalone",
+    "itm_visible",
     "mcq_mode",
     "tag_color",
     "tag_desc",
     "tag_name",
+    "tbl_id",
     "tbl_name",
     "uat_usr",
     "uat_attr",

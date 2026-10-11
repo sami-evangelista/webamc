@@ -44,18 +44,19 @@ item_t = tp.TypedDict(
     {
         "num": int,
         "tags": list[str],
-        "is_mcq": bool,
         "tex_file": str,
         "cho_correct": bool,
         "cho_last": bool,
         "itm_code": str,
         "itm_difficulty": int,
+        "itm_is_mcq": bool,
         "itm_rnd": bool,
         "itm_standalone": bool,
         "itm_title": str,
         "itm_type": types.item_type_t,
         "itm_usr": int,
         "itm_visible": bool,
+        "itm_parent": int,
         "pak_spec": str,
         "qst_type": types.question_type_t,
         "instances": list[instance_t],
@@ -690,7 +691,7 @@ def _compile_dir_traversal(
         if f in files:
             in_exe = True
             item = _ctx_new_item(files[f])
-            item["is_mcq"] = f == "tex_file_mcq"
+            item["itm_is_mcq"] = f == "tex_file_mcq"
             if pack is None:
                 item["itm_type"] = types.ITEM_TYPE_EXERCISE
             else:

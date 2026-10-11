@@ -11,7 +11,7 @@ def page(
     session.check_admin_table(ctx, args["tbl_id"])
 
     elements: list[he.Element] = list()
-    row_per_page = 20
+    row_per_page = 10
 
     # get table informations
     tbl_name = tp.cast(
@@ -58,9 +58,9 @@ def page(
 
     # create the query to select and count rows
     wheres = www_db_util.get_filter_wheres(tbl, args["filters"])
-    query = ctx.dbs.query(tbl).where(sa.and_(*wheres))
+    query = ctx.dbs.query(tbl).where(sa.and_(*wheres)).order_by(pkey)
     query_count = query.statement.with_only_columns(  # type: ignore
-        sa.func.count(pkey)  # pylint: disable=not-callable
+        sa.func.count(pkey)
     ).order_by(None)
     nrows = int(ctx.dbs.execute(query_count).scalar())  # type: ignore
     start = (args["page_num"] - 1) * row_per_page

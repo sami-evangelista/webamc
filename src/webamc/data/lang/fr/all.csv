@@ -40,6 +40,7 @@ col_desc_tag_name;nom
 col_desc_tbl_id;#
 col_desc_tbl_name;nom
 col_desc_uat_attr;attribut
+col_desc_uat_id;#
 col_desc_uat_usr;utilisateur
 col_desc_uat_value;valeur
 col_desc_ugp_grp;groupe
@@ -56,6 +57,7 @@ err_admin_empty_csv_file;Le fichier CSV est vide.
 err_admin_no_right_to_update_table;Vous n'avez pas le droit de modifier cette table.
 err_admin_table_undeterminable;Impossible de déterminer la table de destination.
 err_data_required;Un paramètre est requis pour réaliser cette action.
+err_db_invalid_request;Requête invalide.
 err_db_invalid_values;Valeurs invalides.
 err;Erreur.
 err_file_required;Un fichier est requis pour réaliser cette action.
@@ -154,9 +156,9 @@ page_title_exam_database;base de données
 page_title_exam;examen
 page_title_inbox;boîte de réception
 page_title_index;index
+page_title_item_add;création
 page_title_item_database;base de données
 page_title_item_groups;groupes
-page_title_item_pack;création
 page_title_item;QCM en ligne
 page_title_item_submit_form;soumission
 page_title_password_change;changement de mot de passe
@@ -180,8 +182,9 @@ param_seq_switch_mode;modifier le mode (%s)
 param_seq_users_registered;%s utilisatrice(s) enregistrée(s) pour cet examen
 qst_confirmation_db_row_deletion;Confirmez-vous la suppression de cette ligne ?
 qst_confirmation_exam_deletion;Cet examen sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
-qst_confirmation_item_deletion;Cet élément sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
+qst_confirmation_item_deletion;Cet élément sera supprimé de votre base de données mais son contenu ne le sera pas. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
 qst_confirmation_item_detach;L'élément ne sera pas supprimé mais détaché de son élément parent. Confirmez-vous l'opération ?
+qst_confirmation_item_recursive_deletion;Cet élément ainsi que tout son contenu sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
 qst_confirmation_mcq_form;Confirmez-vous l'envoi de vos réponses ?
 qst_confirmation_project_associate_automatic;Confirmez-vous l'association automatique ?  Ceci supprimera toutes les associations déjà enregistrées.
 qst_confirmation_project_clean_associations;Confirmez-vous la suppression des associations copie/étudiante ?
@@ -199,6 +202,7 @@ seq_compile_latex;générer le sujet
 seq_confirmation_request;demande de confirmation
 seq_csv_file;fichier CSV
 seq_delete_project;supprimer ce projet
+seq_delete_recursively;supprimer cet élément et tout son contenu
 seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
 seq_error_messages;message(s) d'erreur
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes

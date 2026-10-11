@@ -40,6 +40,7 @@ col_desc_tag_name;name
 col_desc_tbl_id;#
 col_desc_tbl_name;name
 col_desc_uat_attr;attribute
+col_desc_uat_id;#
 col_desc_uat_usr;user
 col_desc_uat_value;value
 col_desc_ugp_grp;group
@@ -56,6 +57,7 @@ err_admin_empty_csv_file;The CSV file is empty.
 err_admin_no_right_to_update_table;You are not allowed to update this table.
 err_admin_table_undeterminable;Impossible to determine destination table.
 err_data_required;A parameter is required to perform this action.
+err_db_invalid_request;Invalid request.
 err_db_invalid_values;Invalid values.
 err;Error.
 err_file_required;A file is required to perform this action.
@@ -153,10 +155,10 @@ page_title_exam_database;database
 page_title_exam;exam
 page_title_inbox;inbox
 page_title_index;index
+page_title_item_add;creation
 page_title_item_database;database
 page_title_item_groups;groups
 page_title_item;Online MCQ
-page_title_item_pack;creation
 page_title_item_submit_form;submission
 page_title_password_change;password change
 page_title_profile_group;group membership
@@ -179,8 +181,9 @@ param_seq_switch_mode;switch mode (%s)
 param_seq_users_registered;%s user(s) registered for this exam
 qst_confirmation_db_row_deletion;Do you confirm the deletion of this row ?
 qst_confirmation_exam_deletion;The exam will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
-qst_confirmation_item_deletion;The item will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
+qst_confirmation_item_deletion;The item will be deleted from your database but its content will not be. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_item_detach;The item will not be deleted from your database but will be detached from its parent. Do you confirm the operation ?
+qst_confirmation_item_recursive_deletion;The item as well as all its content will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_mcq_form;Do you confirm the submission of your answers ?
 qst_confirmation_project_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
 qst_confirmation_project_clean_associations;Do you confirm the deletion of the association sheet/student ?
@@ -198,6 +201,7 @@ seq_compile_latex;compile latex
 seq_confirmation_request;confirmation request
 seq_csv_file;CSV file
 seq_delete_project;delete this project
+seq_delete_recursively;delete this element and all its content
 seq_enter_new_eaddr;type your new email address
 seq_error_messages;error message(s)
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes

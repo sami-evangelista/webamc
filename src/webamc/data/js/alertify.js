@@ -34,7 +34,12 @@ $(document).ready(function() {
 		};
 	    },
 	    prepare: function(){
-		this.setContent(this.message);
+                const content =
+                      '<p style="text-align: justify">'
+                      + this.message
+                      + '</p>'
+                ;
+		this.setContent(content);
 	    },
 	    callback: function(closeEvent) {
 		if (closeEvent.index == 0) {

@@ -16,15 +16,16 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
         where += www_db_util.get_filter_wheres("item", filters)
         where += {
             "mcq": [
-                tables.Item.itm_id == tables.Mcq.mcq_id
+                tables.Item.itm_is_mcq == True  # pylint: disable=C0121
             ],
             "qst": [
-                tables.Item.itm_type == types.ITEM_TYPE_QUESTION,
-                tables.Item.itm_id == tables.Question.qst_id
+                tables.Item.itm_type == types.ITEM_TYPE_QUESTION
             ],
             "exe": [
-                tables.Item.itm_type == types.ITEM_TYPE_EXERCISE,
-                tables.Item.itm_id == tables.Exercise.exe_id
+                tables.Item.itm_is_mcq == False,  # pylint: disable=C0121
+                tables.Item.itm_type.in_({
+                    types.ITEM_TYPE_EXERCISE, types.ITEM_TYPE_PACK
+                })
             ]
         }[filters.get("itm_type", "mcq")]
         itm_id = filters.get("itm_id")
@@ -55,7 +56,7 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
     if not filters.get("display_num_found", True):
         p = he.P(he.Str("&nbsp;", escape=False))
     else:
-        p = he.P(he.Txt("param_seq_items_found", args=(str(len(elements)), )))
+        p = he.P(he.Txt("param_seq_items_found", str(len(elements))))
 
     # if there is only one item returned by the query, load it
     if len(items) == 1:
@@ -77,6 +78,7 @@ def div_item(
     mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
     div_code_id = f"div-item-code-{item.itm_id}"
     div_body_id = f"div-item-body-{item.itm_id}"
+    is_root = item_parent is None
 
     # <div> containing item code
     if mcq is not None:
@@ -93,14 +95,23 @@ def div_item(
         img_unlink = base.static_img(
             "unlink",
             "verb_detach",
-            js=f"item_detach({item.itm_id});"
+            js=f"item_detach({item.itm_id}, {item_parent.itm_id});"
         )
         buttons.append(img_unlink)
     if session.has_admin_right(ctx, item):
         img_delete = base.static_img(
-            "trash",
+            "dismiss",
             "verb_delete",
-            js=f"item_delete({item.itm_id});"
+            js=f"item_delete({item.itm_id}, {json.dumps(is_root)});"
+        )
+        buttons.append(img_delete)
+        img_delete = base.static_img(
+            "trash",
+            "seq_delete_recursively",
+            js=(
+                "item_delete_recursively"
+                f"({item.itm_id}, {json.dumps(is_root)});"
+            )
         )
         buttons.append(img_delete)
     if len(buttons) == 0:
@@ -110,7 +121,6 @@ def div_item(
             *buttons,
             class_="item-box-buttons"
         )
-    is_root = item_parent is None
     p_code = he.P(
         label,
         he.Str(f" [{item.itm_code}]"),

@@ -8,7 +8,7 @@ args_oper_save_pack_t = tp_ext.TypedDict("args_oper_save_pack_t", {
     "title": str,
     "pack": tp.Any
 })
-args_page_item_t = tp_ext.TypedDict("args_page_item_t", {
+args_item_t = tp_ext.TypedDict("args_item_t", {
     "itm_id": int
 })
 
@@ -31,6 +31,16 @@ def route_oper_submit(
     from .oper import submit
     with context.Context(req) as ctx:
         return submit.data(ctx, zip_file)
+
+
+@router.post("/item/oper/recursive-deletion")
+def route_oper_recursive_deletion(
+        req: fa.Request,
+        args: args_item_t
+) -> fa.Response:
+    from .oper import recursive_deletion
+    with context.Context(req) as ctx:
+        return recursive_deletion.data(ctx, args)
 
 
 @router.post("/item/page/database-list")
@@ -70,7 +80,7 @@ def route_page_main(
         sub_page: None | str = None,
         itm_id: None | int = None
 ) -> fa.Response:
-    from .page import database, submit_form, pack, groups
+    from .page import database, submit_form, add, groups
     layout: base.page_layout_t = {
         "title": "page_title_item",
         "path": "/item/page/main",
@@ -78,7 +88,7 @@ def route_page_main(
         "sub_pages": {
             "database": (False, "database", database.page),
             "submit_form": (False, "upload", submit_form.page),
-            "pack": (True, "add", pack.page),
+            "add": (True, "add", add.page),
             "groups": (False, "group", groups.page)
         }
     }

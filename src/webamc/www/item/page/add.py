@@ -1,0 +1,14 @@
+from webamc.www.all import *
+from webamc.www.item import router
+
+
+def page(
+        ctx: context.Context,
+        **kwargs: tp.Unpack[router.args_item_t]
+) -> he.Element:
+    trs: list[he.Element] = list()
+    result = he.Table(
+        *trs,
+        class_="table-form"
+    )
+    return result

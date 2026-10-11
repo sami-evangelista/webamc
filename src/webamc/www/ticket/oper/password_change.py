@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables, queries, row_op
+from webamc.db import tables, queries, errors as db_errors
 from webamc.www.ticket import router
 
 
@@ -15,30 +15,27 @@ def data(
     tkt, usr = tkt_usr
     if tkt.tkt_type != types.TICKET_PASSWORD_CHANGE:
         return base.wrap_code("err_invalid_ticket")
-    values: types.db_map_t = {
-        "loc_password": str(args["loc_password"])
-    }
-    ok, err, values = row_op.check_tbl_values(
-        ctx.dbs, "local_auth", values, "update"
-    )
-    if not ok:
-        return fa.responses.JSONResponse({
-            "success": False,
-            "msgs": list() if err is None else err,
-            "result": None
-        })
-    values = row_op.transform_tbl_values("local_auth", values)
     tkt, usr = tkt_usr
-    ctx.dbs.query(
-        tables.LocalAuth
-    ).where(
-        tables.LocalAuth.loc_usr == usr.usr_id
-    ).update({
-        "loc_password": values["loc_password"]
-    })
-    ctx.dbs.query(
-        tables.Ticket
-    ).where(
-        tables.Ticket.tkt_id == tkt.tkt_id
-    ).delete()
+
+    try:
+        # update password
+        select = sa.select(
+            tables.LocalAuth
+        ).where(
+            tables.LocalAuth.loc_usr == usr.usr_id
+        )
+        loc = ctx.dbs.scalars(select).first()
+        assert loc is not None
+        loc.loc_password = args["loc_password"]
+
+        # delete ticket
+        ctx.dbs.query(
+            tables.Ticket
+        ).where(
+            tables.Ticket.tkt_id == tkt.tkt_id
+        ).delete()
+        ctx.dbs.commit()
+    except db_errors.DBException as ex:
+        ctx.dbs.rollback()
+        return base.wrap_errors(ex.msg())
     return base.wrap_code("succ_password_changed")

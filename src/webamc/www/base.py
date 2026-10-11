@@ -288,7 +288,10 @@ def static_img(
 ) -> he.Element:
     result: he.Element
     src = static_img_src(img, size)
-    title_str = lang.txt(title, title_args)
+    if title_args is None:
+        title_str = lang.txt(title)
+    else:
+        title_str = lang.txt(title, *title_args)
     result = he.Img(src=src, title=title_str, alt=title_str, **kwargs)
     if href != "":
         result["class"] += " btn"
@@ -421,6 +424,15 @@ def wrap_code(code: types.oper_code_t, result: tp.Any = None) -> fa.Response:
         "success": not code.startswith("err"),
         "msgs": [lang.txt(types.oper_code_to_txt(code))],
         "result": result
+    }
+    return fa.responses.JSONResponse(response)
+
+
+def wrap_errors(*msg: str) -> fa.Response:
+    response: types.json_response_t = {
+        "success": False,
+        "msgs": [*msg],
+        "result": None
     }
     return fa.responses.JSONResponse(response)
 

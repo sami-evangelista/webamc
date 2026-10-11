@@ -39,6 +39,7 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             return None
 
         item["itm_usr"] = usr_id
+        is_mcq = item.setdefault("itm_is_mcq", False)
 
         # duplicate detection
         if itm_code is not None:
@@ -51,6 +52,12 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             if query.first() is not None:
                 output.warning(f"{tex_file}: duplicate item {itm_code}")
                 return None
+
+        # if it is a choice we set its to itm_parent so that the
+        # choice is automatically deleted when the question is
+        if item["itm_type"] == types.ITEM_TYPE_CHOICE:
+            assert "parent" in item
+            item["itm_parent"] = item["parent"]
 
         # new item
         db_item = tables.Item(**sub_dict("itm_"))
@@ -69,7 +76,6 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             dbs.add(db_item_relation)
 
         # if it is an mcq we insert an mcq and records
-        is_mcq = item.get("is_mcq", False)
         if is_mcq:
             mcq = tables.Mcq(mcq_id=result)
             dbs.add(mcq)
