@@ -1,21 +1,21 @@
 const pack_filters = {
     'all': {
-        'title': 'Toutes les questions'
+        'title': 'seq_pack_take_all'
     },
     'by-difficulty': {
-        'title': 'Choisir la difficulté'
+        'title': 'seq_pack_take_by_difficulty'
     },
     'by-tag': {
-        'title': 'Choisir les tags des questions'
+        'title': 'seq_pack_take_by_tag'
     },
     'head': {
-        'title': 'Choisir un certain nombre de questions'
+        'title': 'seq_pack_take_head'
     },
     'shuf': {
-        'title': 'Mélanger les questions'
+        'title': 'seq_pack_take_shuf'
     },
     'sort': {
-        'title': 'Trier les questions'
+        'title': 'seq_pack_take_sort'
     }
 };
 
@@ -32,62 +32,51 @@ class Filter {
         this.content = [];
     }
     create_html() {
-        this.div = document.createElement("div");
-        this.div.className = "pack-box pack-" + this.op;
+        this.div = document.createElement('div');
+        this.div.className = 'pack-box pack-' + this.op;
         this.div.draggable = true;
-        this.div.setAttribute("data-id", this.id);
-        this.div.setAttribute("data-parent", this.parentid);
+        this.div.setAttribute('data-id', this.id);
+        this.div.setAttribute('data-parent', this.parentid);
 
         // filter text
-        const text_node = document.createElement("div");
+        const text_node = document.createElement('div');
         text_node.innerHTML =
             `<strong>${this.op}</strong>${this.arg ? `
         (arg: ${this.arg}${this.rev ? ', rev: true' : ''})` : ''}`;
 
         // filter buttons
-        const all_delete_button = document.createElement("button");
-        all_delete_button.title = "Supprimer uniquement la boîte";
-        all_delete_button.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24" stroke-width="2"
-          stroke="currentColor" width="20" height="20">
-          <path stroke-linecap="round" stroke-linejoin="round"
-          d="M6 18L18 6M6 6l12 12"/>
-        </svg>`;
-        all_delete_button.onclick = () => {
+        const delete_button = document.createElement('img');
+        delete_button.title = Lang['seq_pack_delete_box'];
+        delete_button.src = base_img_src('dismiss');
+        delete_button.className = 'btn';
+        delete_button.onclick = () => {
             this.remove_only_me();
         };
-        const delete_button = document.createElement("button");
-        delete_button.title = "Supprimer la boîte et les enfants";
-        delete_button.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          width="20" height="20">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v12a2 2 0
-              01-2 2H8a2 2 0 01-2-2V6h12z"/>
-        </svg>`;
-        delete_button.onclick = () => {
+        const delete_all_button = document.createElement('img');
+        delete_all_button.title = Lang['seq_pack_delete_all_box'];
+        delete_all_button.src = base_img_src('trash');
+        delete_all_button.className = 'btn';
+        delete_all_button.onclick = () => {
             this.remove_filter();
         };
-        const delete_div = document.createElement("div");
+        const delete_div = document.createElement('div');
         delete_div.className = 'pack-box-buttons';
-        delete_div.appendChild(all_delete_button);
         delete_div.appendChild(delete_button);
+        delete_div.appendChild(delete_all_button);
 
         this.div.appendChild(text_node);
         this.div.appendChild(delete_div);
         this.div.ondragstart = (e) => {
-            e.dataTransfer.setData("id", this.id);
-            e.dataTransfer.setData("parentid", this.parentid);
+            e.dataTransfer.setData('id', this.id);
+            e.dataTransfer.setData('parentid', this.parentid);
             e.stopPropagation();
         };
         this.div.ondragover = e => e.preventDefault();
         this.div.ondrop = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            let target_id = e.dataTransfer.getData("id");
-            let target_parentid = e.dataTransfer.getData("parentid");
+            let target_id = e.dataTransfer.getData('id');
+            let target_parentid = e.dataTransfer.getData('parentid');
             if(target_id != this.id
                && !this.is_my_ancestor(this.pack.filters, target_id)) {
                 let target_filter = this.pack.remove_filter_by_id(
@@ -137,15 +126,15 @@ class Filter {
     }
     get_json() {
         return {
-            "op": this.op,
-            ...(this.op != "all" && this.op != "shuff" && this.arg != null ?
-                {"arg": this.pack.format_array(this.arg)} : {}),
-            ...(((this.op.includes("with")) || this.op == "sort")
-                && this.rev != null ? {"rev": this.rev} : {}),
+            'op': this.op,
+            ...(this.op != 'all' && this.op != 'shuff' && this.arg != null ?
+                {'arg': this.pack.format_array(this.arg)} : {}),
+            ...(((this.op.includes('with')) || this.op == 'sort')
+                && this.rev != null ? {'rev': this.rev} : {}),
             ...(this.content.length > 0 ? 
-                {"content": this.content.length > 1 ? 
+                {'content': this.content.length > 1 ? 
                  this.content.filter(f => f !== null).map(f => f.get_json()):
-                 this.content[0] != "null" ? this.content[0].get_json() : {}}
+                 this.content[0] != 'null' ? this.content[0].get_json() : {}}
                 : {})
         };
     }
@@ -153,20 +142,10 @@ class Filter {
 
 
 class Pack {
-    show_json_area() {
-        let json_container = document.getElementById("jsonOutput");
-        if(json_container.style.display == "none") {
-            json_container.style.display = "block";
-            $("#showjson-button").html("Masquer le JSON");
-        } else {
-            json_container.style.display = "none";
-            $("#showjson-button").html("Afficher le JSON");
-        }
-    }
     format_array(array) {
         return array;
     }
-    async ask_args_for_difficulty(text_arg) {
+    async ask_args_for_difficulty(title) {
         const _this = this;
         const f = async function(resolve) {
             let html = '<div>';
@@ -178,7 +157,7 @@ class Pack {
             html += '</div>'
                 + '<label>'
                 + `<input type="checkbox" id="${_this.id}-rev-diff">`
-                + 'Inverser la sélection ?</label>';
+                + Lang['seq_pack_reverse_selection'] + '</label>';
             const onyes = function (evt) {
                 const selected = [];
                 for(let i = Constants.min_diff;
@@ -196,27 +175,28 @@ class Pack {
                     resolve(data);
                 } else {
                     evt.cancel = true;
-                    return;
                 }
             };
             const onno = function() {
                 resolve(null);
             }
-            alertify.webamc_dialog(text_arg, html, onyes, onno);
+            alertify.webamc_dialog(title, html, onyes, onno);
         };
         return new Promise(f);
     }
-    async ask_args_for_tag(text_arg) {
+    async ask_args_for_tag(title) {
         const _this = this;
         const f = async function(resolve) {
             const html = `<div id="${_this.id}-tags"></div>
               <label>
             <input type="checkbox" id="${_this.id}-rev-tags">
-              Inverser la sélection ?
+              ${Lang['seq_pack_reverse_selection']}
             </label>`;
             const onyes = function(evt) {
                 const tags = tag_table.get_tag_names();
-                if(tags.length > 0) {
+                if(0 == tags.length) {
+                    evt.cancel = true;
+                } else {
                     const data = {
                         'value': tags,
                         'rev': $('#' + _this.id + '-rev-tags').prop('checked')
@@ -227,26 +207,30 @@ class Pack {
             const onno = function(evt) {
                 resolve(null);
             };
-            alertify.webamc_dialog(text_arg, html, onyes, onno);
+            alertify.webamc_dialog(title, html, onyes, onno);
             const tag_table = new TagTable(
                 _this.id + '-tags', {}, true, null, true, null
             );
         };
         return new Promise(f);
     }
-    async ask_args_for_sort(text_arg) {
+    async ask_args_for_sort(title) {
         const _this = this;
         const f = async function(resolve) {
             const html = `
                <div>
                  <select id="${_this.id}-sort">
-                    <option value="difficulty" selected>Difficulté</option>
-                    <option value="code">Code</option>
+                   <option value="difficulty" selected>
+                     ${Lang['col_desc_itm_difficulty']}
+                   </option>
+                   <option value="code">
+                     ${Lang['col_desc_itm_code']}
+                   </option>
                  </select>
                </div>
                <label>
                  <input type="checkbox" id="${_this.id}-rev-sort">
-                 Inverser la sélection ?
+                 ${Lang['seq_pack_reverse_selection']}
                </label>`;
             const onyes = function(evt) {
                 const pref = '#' + _this.id;
@@ -265,11 +249,11 @@ class Pack {
             const onno = function(evt) {
                 resolve(null);
             };
-            alertify.webamc_dialog(text_arg, html, onyes, onno);
+            alertify.webamc_dialog(title, html, onyes, onno);
         }
         return new Promise(f);
     }
-    async ask_args_for_head(text) {
+    async ask_args_for_head(title) {
         const _this = this;
         const f = async function(resolve) {
             const html = `<input type="number" id="${_this.id + '-head'}">`;
@@ -284,62 +268,40 @@ class Pack {
             const onno = function(evt) {
                 resolve(null);
             };
-            alertify.webamc_dialog(text, html, onyes, onno);
+            alertify.webamc_dialog(title, html, onyes, onno);
         };
         return new Promise(f);
     }
     async add_filter(op) {
         let arg_selected = false;
         let rev_asked = false;
-        let args = null;
-        switch (op) {
-        case 'head':
-            args = await this.ask_args_for_head(
-                'Combien de questions souhaitez vous ? '
-            );
-            if(args == null) {
-                return;
-            }
-            arg_selected = args;
-            break;
-        case 'by-difficulty':
-            args = await this.ask_args_for_difficulty(
-                'Quel est le niveau de difficulté ? '
-            );
-            if(args == null) {
-                return;
-            }
-            arg_selected = args['value'];
-            if(arg_selected) {
-                rev_asked = args['rev'];
-            }
-            break; 
-        case 'by-tag':
-            args = await this.ask_args_for_tag('Choisir les tags disponibles');
-            if(args == null) {
-                return;
-            }
-            arg_selected = args['value'];
-            if(arg_selected) {
-                rev_asked = args['rev'];
-            }
-            break; 
-        case 'sort':
-            args = await this.ask_args_for_sort('Trier par');
-            if(args == null) {
-                return;
-            }
-            arg_selected = args['value'];
-            if(arg_selected) {
-                rev_asked = args['rev'];
-            }
-            break;
-        default:
+        const title = Lang[pack_filters[op]['title']];
+        const fun = {
+            'head': this.ask_args_for_head,
+            'by-difficulty': this.ask_args_for_difficulty,
+            'by-tag': this.ask_args_for_tag,
+            'sort': this.ask_args_for_sort
+        };
+        if(!(op in fun)) {
             arg_selected = false;
-            break;
-        }
-        if(arg_selected == null) {
-            return;
+        } else {
+            const args = await fun[op](title);
+            if(args == null) {
+                return;
+            }
+            switch (op) {
+            case 'head':
+                arg_selected = args;
+                break;
+            case 'sort':
+            case 'by-difficulty':
+            case 'by-tag':
+                arg_selected = args['value'];
+                if(arg_selected) {
+                    rev_asked = args['rev'];
+                }
+                break;
+            }
         }
         this.stack_filters();
         let new_filter = new Filter(
@@ -413,31 +375,6 @@ class Pack {
         return removed_filter;
     }
     update_html() {
-        /*
-        let download_button = document.getElementById('download_button');
-        let save_button = document.getElementById('save_button');
-        if(this.filters.length > 0) {
-            if(this.filters.length > 1) {
-                document
-                    .getElementById('jsonOutput')
-                    .textContent = JSON.stringify(
-                        this.filters.map(f=>f.get_json()), null, 2
-                    );
-            } else {
-                document
-                    .getElementById('jsonOutput')
-                    .textContent = JSON.stringify(
-                        this.filters[0].get_json(), null, 2
-                    );
-            }
-            download_button.disabled = false;
-            save_button.disabled = false;
-        } else {
-            download_button.disabled = true;
-            save_button.disabled = true;
-            document.getElementById('jsonOutput').textContent = '';
-            }
-            */
         let container = this.filters_container();
         container.html('');
         this.filters.forEach(
@@ -521,45 +458,6 @@ class Pack {
             }
         }
         return filter;
-    }
-    async save() {
-        let html = `
-    <form id="qcm-form" method='POST'>
-      <div style="margin-bottom: 15px;">
-        <input type="text" id="title" name="title"
-          style="width:100%; padding:8px; border:1px solid #ccc;
-            border-radius:4px;"
-          placeholder="Entrez le titre du QCM" required>
-      </div>
-      <div>
-        <input type="text" id="code" name="code"
-          style="width:100%; padding:8px; border:1px solid #ccc;
-              border-radius:4px;" placeholder="Entrez le code du QCM" required>
-      </div>
-    </form>`;
-
-        alertify.webamc_dialog(
-            'Nouveau QCM', html, 
-            function(evt) {
-                const title = document.getElementById("title").value;
-                const code = document.getElementById("code").value;
-                const json = document.getElementById("jsonOutput").textContent;
-                if(!title || !code) {
-                    evt.cancel = true; 
-                    return;
-                }
-                const pack = JSON.parse(json);
-                const form_data = { title, code, pack };
-                const success = function (_) {
-                    this.reset_filters();
-                    base_report_infos(['MCQ loaded']); 
-                    alertify.success("Sauvegardé avec succès !"); 
-                };
-                xhr_post_oper(
-                    Constants.path_item_oper_save_pack, form_data, success);
-            },
-            function() {}
-        );
     }
     stack_filters() {
         if(this.filters != []) {
@@ -696,14 +594,17 @@ class Pack {
              <button
                id="${this.button_id(filter)}"
                class="pack-button pack-${filter}"
-               title="${data['title']}">
+               title="${Lang[data['title']]}">
                ${filter}
              </button>`
             ;
         }
         result += `
            </div>
-           <div id="${this.filters_container_id()}" draggable="true">
+           <div
+             class="pack-filters"
+             id="${this.filters_container_id()}"
+             draggable="true">
            </div>`
         ;
         return result;

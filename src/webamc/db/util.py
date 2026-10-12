@@ -6,70 +6,104 @@ from webamc.all import *
 from . import tables
 
 
-def get_tbl_name(tbl: Table) -> str:
-    return tbl.name
+tbl_t = str | Table | DeclarativeMeta
+col_t = str | sa.Column[tp.Any] | InstrumentedAttribute[tp.Any]
 
 
-def get_tbl_pkey(tbl: str | Table) -> Column[tp.Any]:
-    if isinstance(tbl, Table):
-        tbl = get_tbl_name(tbl)
-    return struct["tbls"][tbl]["pkey"]
+def get_tbl(t: tbl_t) -> Table:
+    if isinstance(t, Table):
+        return t
+    if isinstance(t, str):
+        return struct["tbls"][t]["def"]
+    return t.__table__  # type: ignore
 
 
-def get_tbl_fkeys(
-        tbl: str | Table
-) -> dict[Column[tp.Any], list[Column[tp.Any]]]:
-    if isinstance(tbl, Table):
-        tbl = get_tbl_name(tbl)
-    return struct["tbls"][tbl]["fkeys"]
+def get_tbl_name(t: tbl_t) -> str:
+    return get_tbl(t).name
 
 
-def get_tbl_cols(tbl: str | Table) -> list[Column[tp.Any]]:
-    if isinstance(tbl, Table):
-        tbl = get_tbl_name(tbl)
-    return struct["tbls"][tbl]["cols"]
+def get_tbl_meta(t: tbl_t) -> DeclarativeMeta:
+    if isinstance(t, str):
+        return struct["tbls"][t]["meta"]
+    if isinstance(t, Table):
+        return get_tbl_meta(get_tbl_name(t))
+    return t
 
 
-def get_tbl(tbl: str) -> Table:
-    return struct["tbls"][tbl]["def"]
+def get_tbl_pkey(t: tbl_t) -> Column[tp.Any]:
+    return struct["tbls"][get_tbl_name(t)]["pkey"]
 
 
-def get_tbl_meta(tbl: str | DeclarativeMeta | Table) -> DeclarativeMeta:
-    if isinstance(tbl, str):
-        return struct["tbls"][tbl]["meta"]
-    if isinstance(tbl, Table):
-        return get_tbl_meta(get_tbl_name(tbl))
-    return tbl
+def get_tbl_fkeys(t: tbl_t) -> dict[Column[tp.Any], list[Column[tp.Any]]]:
+    return struct["tbls"][get_tbl_name(t)]["fkeys"]
 
 
-def get_tbl_doc(tbl: str | DeclarativeMeta | Table) -> str | None:
-    return getattr(get_tbl_meta(tbl), "__doc__", None)
+def get_tbl_cols(t: tbl_t) -> list[Column[tp.Any]]:
+    return struct["tbls"][get_tbl_name(t)]["cols"]
 
 
-def get_col(col: str | InstrumentedAttribute[tp.Any]) -> Column[tp.Any]:
-    if isinstance(col, InstrumentedAttribute):
-        col_name = col.name
-    else:
-        col_name = col
-    return struct["cols"][col_name]["def"]
+def get_info(t: tbl_t, f: str) -> tp.Any | None:
+    info = getattr(get_tbl_meta(t), "info", None)
+    if info is None:
+        return None
+    return info.get(f, None)
 
 
-def get_col_name(col: Column[tp.Any]) -> str:
-    return col.name
+def get_tbl_doc(t: tbl_t) -> str | None:
+    return get_info(t, "doc")
 
 
-def get_col_tbl(col: str | Column[tp.Any]) -> Table:
-    if isinstance(col, Column):
-        col = col.name
-    return struct["cols"][col]["tbl"]
+def get_tbl_code(t: tbl_t) -> Column[tp.Any] | None:
+    c = get_info(t, "code")
+    if c is None:
+        return None
+    return get_col(c)
 
 
-def get_tbl_code(tbl: str | DeclarativeMeta | Table) -> Column[tp.Any] | None:
-    return getattr(get_tbl_meta(tbl), "__code__", None)
+def get_col(c: col_t) -> Column[tp.Any]:
+    if isinstance(c, str):
+        return struct["cols"][c]["def"]
+    if isinstance(c, InstrumentedAttribute):
+        return get_col(c.name)
+    return c
 
 
-def get_all_tbl_names() -> list[str]:
-    return list(struct["tbls"])
+def get_col_name(c: col_t) -> str:
+    if isinstance(c, str):
+        return c
+    return c.name
+
+
+def get_col_doc(c: col_t) -> str | None:
+    return get_col(c).info.get("doc")
+
+
+def get_col_tbl(c: col_t) -> Table:
+    return struct["cols"][get_col_name(c)]["tbl"]
+
+
+def get_all_tbl_names() -> tp.Generator[str]:
+    yield from struct["tbls"]
+
+
+def is_col_visible(c: col_t) -> bool:
+    return bool(get_col(c).info.get("ui_visible", False))
+
+
+def is_col_updatable(c: col_t) -> bool:
+    return bool(get_col(c).info.get("ui_updatable", False))
+
+
+def get_tbl_visible_cols(t: tbl_t) -> tp.Generator[Column[tp.Any]]:
+    for c in get_tbl_cols(t):
+        if is_col_visible(c):
+            yield c
+
+
+def get_tbl_updatable_cols(t: tbl_t) -> tp.Generator[Column[tp.Any]]:
+    for c in get_tbl_cols(t):
+        if is_col_updatable(c):
+            yield c
 
 
 db_struct_tbl_t = tp.TypedDict(

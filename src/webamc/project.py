@@ -73,14 +73,6 @@ association_t = dict[
     tuple[int, int],  # (student, copy)
     tuple[None | str, None | str, None | Path]  # (auto, manual, name-file)
 ]
-dir_t = tp.Literal[
-    "copies",
-    "cr",
-    "data",
-    "outbox",
-    "scans",
-    "tex"
-]
 file_t = tp.Literal[
     "csv_list",
     "json_status",

@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import util as db_util, desc
+from webamc.db import util as db_util, desc, tables
 from webamc.www.db import util as www_db_util
 from webamc.www.item import router
 
@@ -39,8 +39,7 @@ def page(
             he.Td(he.Txt(desc.col_desc(col))),
             he.Td(*get_inputs(col))
         )
-        for col in db_util.get_tbl_cols("item")
-        if www_db_util.is_visible(col)
+        for col in db_util.get_tbl_visible_cols(tables.Item)
     ]
     table = he.Table(
         he.Tr(he.Td(he.Txt("name_type")), he.Td(select_type)),

@@ -67,79 +67,128 @@ class UsrRight(ct.IntEnum):
 
 class Usr(Base):
     __tablename__ = "usr"
+    info = {
+        "code": "usr_code",
+        "doc": "This table defines users."
+    }
     usr_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     usr_code: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc=r"unique user code",
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"unique user code",
+        }
     )
     usr_eaddr: str = sa.Column(
         ct.Eaddr,
         nullable=False,
         unique=True,
-        doc=r"unique electronic address"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"unique electronic address"
+        }
     )
     usr_fst_name: str = sa.Column(
         ct.FstName,
         nullable=False,
-        doc=r"first name"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"first name"
+        }
     )
     usr_name: str = sa.Column(
         ct.Name,
         nullable=False,
-        doc=r"last name"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"last name"
+        }
     )
-    __code__ = usr_code
-    __doc__ = "This table defines users."
 
 
 class Attr(Base):
     __tablename__ = "attr"
+    info = {
+        "code": "atr_code",
+        "doc": """This table lists attributes that may be associated to
+           users (e.g., student ID)."""
+    }
     atr_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     atr_code: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc=r"unique attribute code"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"unique attribute code"
+        }
     )
     atr_desc: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc=r"a description of the attribute"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"a description of the attribute",
+        }
     )
-    __code__ = atr_code
-    __doc__ = """This table lists attributes that may be associated to
-       users (e.g., student ID)."""
 
 
 class UsrAttr(Base):
     __tablename__ = "usr_attr"
     uat_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     uat_usr: int = sa.Column(
         RefUsr,
         nullable=False,
-        doc=r"user (references {\tt usr.usr\_code})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"user (references {\tt usr.usr\_code})"
+        }
     )
     uat_attr: int = sa.Column(
         RefAttr,
         nullable=False,
-        doc=r"attribute (references {\tt attr.atr\_code})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"attribute (references {\tt attr.atr\_code})"
+        }
     )
     uat_value: str = sa.Column(
         ct.String,
         nullable=False,
-        doc="value of the attribute for the user"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "value of the attribute for the user"
+        }
     )
     __table_args__ = (
         UniqueConstraint(
@@ -204,27 +253,48 @@ class Ticket(Base):
 
 class CasAuth(Base):
     __tablename__ = "cas_auth"
+    info = {
+        "code": "cas_login",
+        "doc": """This table controls CAS authentication. Each row
+           gives access to one user."""
+    }
     cas_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     cas_enabled: bool = sa.Column(
         ct.Boolean,
         default=False,
         nullable=False,
-        doc="1 if CAS authentication enabled for the user, 0 otherwise"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "1 if CAS authentication enabled for the user, 0 otherwise"
+        }
     )
     cas_login: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc="login of the user on the CAS server"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "login of the user on the CAS server"
+        }
     )
     cas_usr: int = sa.Column(
         RefUsr,
         nullable=False,
         unique=True,
-        doc=r"user which is granted access (references {\tt usr.usr\_code})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""user which is granted access (references {\tt
+               usr.usr\_code})"""
+        }
     )
     __table_args__ = (
         ForeignKeyConstraint(
@@ -233,38 +303,65 @@ class CasAuth(Base):
             ondelete="CASCADE"
         ),
     )
-    __code__ = cas_login
-    __doc__ = """This table controls CAS authentication. Each row
-       gives access to one user."""
 
 
 class LocalAuth(Base):
     __tablename__ = "local_auth"
+    info = {
+        "code": "loc_login",
+        "doc": r"""This table controls local system
+           authentication. Each row gives access to one user. The
+           login used by the user to authenticate is her/his code. An
+           empty password prevents the user from logging meaning that
+           he/she has to first reset his/her password. If not empty,
+           the password is given plain."""
+    }
     loc_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     loc_enabled: bool = sa.Column(
         ct.Boolean,
         nullable=False,
         default=False,
-        doc=r"1 if local authentication is enabled for the user, 0 otherwise"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""1 if local authentication is enabled for the
+               user, 0 otherwise"""
+        }
     )
     loc_login: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc=r"login of the user"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"login of the user"
+        }
     )
     loc_password: str = sa.Column(
         ct.Password,
-        doc="plain-text password (possibly empty)"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "plain-text password (possibly empty)"
+        }
     )
     loc_usr: int = sa.Column(
         RefUsr,
         nullable=False,
         unique=True,
-        doc=r"user which is granted access (references {\tt usr.usr\_code})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""user which is granted access (references {\tt
+               usr.usr\_code})"""
+        }
     )
     __table_args__ = (
         ForeignKeyConstraint(
@@ -273,50 +370,63 @@ class LocalAuth(Base):
             ondelete="CASCADE"
         ),
     )
-    __code__ = loc_login
-    __doc__ = r"""This table controls local system
-       authentication. Each row gives access to one user. The login
-       used by the user to authenticate is her/his code. An empty
-       password prevents the user from logging meaning that he/she has
-       to first reset his/her password. If not empty, the password is
-       given plain."""
 
 
 class Tbl(Base):
     __tablename__ = "tbl"
+    info = {
+        "code": "tbl_name",
+        "doc": """This table contains the list of names of tables
+           which can be administrated through the web interface, i.e.,
+           for which CSV file submission is allowed."""
+    }
     tbl_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     tbl_name: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc=r"unique table name"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"unique table name"
+        }
     )
-    __code__ = tbl_name
-    __doc__ = """This table contains the list of names of tables which
-       can be administrated through the web interface, i.e., for which
-       CSV file submission is allowed."""
 
 
 class Admin(Base):
     __tablename__ = "admin"
     adm_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     adm_usr: int = sa.Column(
         RefUsr,
         nullable=False,
-        doc=r"""user which is granted admin right (references {\tt
-           usr.usr\_code})"""
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""user which is granted admin right (references
+               {\tt usr.usr\_code})"""
+        }
     )
     adm_tbl: int = sa.Column(
         RefTbl,
         nullable=False,
-        doc=r"""table on which this right admin right is granted
-           (references {\tt tbl.tbl\_name})"""
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""table on which this right admin right is
+               granted (references {\tt tbl.tbl\_name})"""
+        }
     )
     __table_args__ = (
         UniqueConstraint(
@@ -349,10 +459,17 @@ class Item(Base):
         nullable=False
     )
     itm_code: str | None = sa.Column(  # type: ignore
-        ct.ItemCode
+        ct.ItemCode,
+        info={
+            "ui_visible": True
+        }
     )
     itm_title: str | None = sa.Column(  # type: ignore
-        ct.String
+        ct.String,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     itm_is_mcq: bool = sa.Column(
         ct.Boolean,
@@ -361,15 +478,36 @@ class Item(Base):
     itm_standalone: bool = sa.Column(
         ct.Boolean,
         nullable=False,
-        default=False
+        default=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     itm_rnd: bool = sa.Column(
         ct.Boolean,
         nullable=False,
-        default=False
+        default=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    itm_visible: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=True,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     itm_difficulty: int | None = sa.Column(  # type: ignore
-        ItemDifficulty
+        ItemDifficulty,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     itm_date: datetime.datetime = sa.Column(
         ct.DateTime,
@@ -379,11 +517,6 @@ class Item(Base):
     itm_usr: int = sa.Column(
         RefUsr,
         nullable=False
-    )
-    itm_visible: bool = sa.Column(
-        ct.Boolean,
-        nullable=False,
-        default=True
     )
     itm_parent: int | None = sa.Column(  # type: ignore
         RefItem
@@ -505,7 +638,11 @@ class Mcq(Base):
     mcq_mode: types.mcq_mode_t = sa.Column(
         McqMode,
         nullable=False,
-        default=types.MCQ_MODE_EXAM
+        default=types.MCQ_MODE_EXAM,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     __table_args__ = (
         ForeignKeyConstraint(
@@ -597,27 +734,44 @@ class Choice(Base):
 
 class Tag(Base):
     __tablename__ = "tag"
+    info = {
+        "code": "tag_name",
+        "doc": """This table defines tags that can be associated to MCQ
+           items (e.g., questions)."""
+    }
     tag_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     tag_name: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc="unique tag name"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "unique tag name"
+        }
     )
     tag_desc: str | None = sa.Column(  # type: ignore
         ct.String,
-        doc="tag description (possibly empty)"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "tag description (possibly empty)"
+        }
     )
     tag_color: str | None = sa.Column(  # type: ignore
         ct.Color,
-        doc=r"tag color of the form \verb+#RRGGBB+ (possibly empty)"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"tag color of the form \verb+#RRGGBB+ (possibly empty)"
+        }
     )
-    __code__ = tag_name
-    __doc__ = """This table defines tags that can be associated to MCQ
-       items (e.g., questions)."""
 
 
 class ItemTag(Base):
@@ -800,20 +954,35 @@ class Answer(Base):
 
 class Grp(Base):
     __tablename__ = "grp"
+    info = {
+        "code": "grp_name",
+        "doc": "This table defines user groups."
+    }
     grp_id: int = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     grp_name: str = sa.Column(
         ct.String,
         nullable=False,
         unique=True,
-        doc="unique group name"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": "unique group name"
+        }
     )
     grp_parent: int | None = sa.Column(  # type: ignore
         RefGrp,
-        doc=r"""parent group name (possibly empty, references {\tt
-           grp.grp\_name})"""
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"""parent group name (possibly empty, references
+               {\tt grp.grp\_name})"""
+        }
     )
     __table_args__ = (
         ForeignKeyConstraint(
@@ -825,8 +994,6 @@ class Grp(Base):
             "grp_parent IS NULL OR grp_parent <> grp_id"
         ),
     )
-    __code__ = grp_name
-    __doc__ = "This table defines user groups."
 
 
 class Exam(Base):
@@ -837,16 +1004,28 @@ class Exam(Base):
     )
     exm_mcq: int = sa.Column(
         RefMcq,
-        nullable=False
+        nullable=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     exm_start: datetime.datetime = sa.Column(
         ct.DateTime,
-        nullable=False
+        nullable=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     exm_duration: int = sa.Column(
         ct.PositiveInteger,
         nullable=False,
-        default=60
+        default=60,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
     )
     __table_args__ = (
         ForeignKeyConstraint(
@@ -867,25 +1046,40 @@ class UsrGrp(Base):
     __tablename__ = "usr_grp"
     ugp_id = sa.Column(
         ct.Integer,
-        primary_key=True
+        primary_key=True,
+        info={
+            "ui_visible": True
+        }
     )
     ugp_usr: int = sa.Column(
         RefUsr,
         nullable=False,
-        doc=r"user (references {\tt usr.usr\_code})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"user (references {\tt usr.usr\_code})"
+        }
     )
     ugp_grp: int = sa.Column(
         RefGrp,
         nullable=False,
-        doc=r"group (references {\tt grp.grp\_name})"
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": r"group (references {\tt grp.grp\_name})"
+        }
     )
     ugp_right: types.usr_right_t = sa.Column(
         UsrRight,
         nullable=False,
-        doc=fr"""right given to the user on the group:
-           {types.USR_RIGHT_VIEW} for view (right to view MCQ
-           submitted for that group), {types.USR_RIGHT_SUBMIT} for
-           submit (right to submit MCQ for that group)"""
+        info={
+            "ui_visible": True,
+            "ui_updatable": True,
+            "doc": fr"""right given to the user on the group:
+               {types.USR_RIGHT_VIEW} for view (right to view MCQ
+               submitted for that group), {types.USR_RIGHT_SUBMIT} for
+               submit (right to submit MCQ for that group)"""
+        }
     )
     __table_args__ = (
         UniqueConstraint(
@@ -1096,6 +1290,8 @@ def create_listeners() -> tp.Any:
                         null_val
                         and not col.nullable
                         and not col.primary_key
+                        and col.default is None
+                        and col.server_default is None
                 ):
                     raise errors.DBInvalidNullValue(tname, cname)
 

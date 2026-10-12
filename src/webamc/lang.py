@@ -49,7 +49,3 @@ def txt(id_: types.txt_t, *args: str) -> str:
 def exists(id_: types.txt_t) -> bool:
     load_texts()
     return id_ in texts
-
-
-def all_texts() -> list[str]:
-    return sorted(texts)

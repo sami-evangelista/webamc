@@ -81,7 +81,7 @@ path_t = tp.Literal[
     "/item/page/group",
     "/item/page/main",
     "/item/oper/recursive-deletion",
-    "/item/oper/save-pack",
+    "/item/oper/save",
     "/item/oper/submit",
     "/mcq/page/form",
     "/mcq/oper/correction",

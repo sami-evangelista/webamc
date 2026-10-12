@@ -19,11 +19,7 @@ def page(
     ).tbl_name
     tbl = db_util.get_tbl(tbl_name)
     pkey = db_util.get_tbl_pkey(tbl)
-    cols = [
-        col
-        for col in db_util.get_tbl_cols(tbl)
-        if www_db_util.is_visible(col)
-    ]
+    cols = list(db_util.get_tbl_visible_cols(tbl))
 
     # table head with column description and new button
     js = "admin_new_row_btn_click()"
@@ -36,8 +32,7 @@ def page(
     # hidden row containing input fields for a new record
     inputs = {
         col.name: www_db_util.html_element(ctx, col, prefix="new-")
-        for col in cols
-        if www_db_util.is_updatable(col)
+        for col in db_util.get_tbl_updatable_cols(tbl)
     }
     tds = [
         he.Td(inputs[col.name] if col.name in inputs else he.Empty())

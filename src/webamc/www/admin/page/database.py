@@ -19,7 +19,6 @@ def page(
     # get table informations
     tbl_name = tp.cast(tables.Tbl, queries.get_tbl(ctx.dbs, tbl_id)).tbl_name
     tbl = db_util.get_tbl(tbl_name)
-    cols = db_util.get_tbl_cols(tbl)
 
     # select with table names
     opts = [
@@ -62,8 +61,7 @@ def page(
                     www_db_util.get_col_input_type(ctx, col).element()
                 )
             )
-            for col in cols
-            if www_db_util.is_updatable(col)
+            for col in db_util.get_tbl_updatable_cols(tbl)
         ],
         class_="table-form",
         id_="table-filters",

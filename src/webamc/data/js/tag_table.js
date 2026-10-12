@@ -30,7 +30,7 @@ class TagTable {
 
     get_tag_names() {
         let result = [];
-        Object.entries(tag_table.tags).forEach(
+        Object.entries(this.tags).forEach(
             function ([tag_id, tag]) {
                 result.push(tag['tag_name']);
             }

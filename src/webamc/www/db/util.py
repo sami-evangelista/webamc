@@ -121,7 +121,7 @@ def get_attribute(
     tbl = db_util.get_col_tbl(col)
     tbl_name = db_util.get_tbl_name(tbl)
     pkey = db_util.get_tbl_pkey(tbl)
-    updatable = updatable and is_updatable(col)
+    updatable = updatable and db_util.is_col_updatable(col)
     if updatable:
         where: list[types.db_where_t] = list()
         if values is not None:
@@ -177,10 +177,9 @@ def get_filter_wheres(
         tbl: sa.Table | str,
         args: dict[str, tp.Any]
 ) -> list[sa.sql.elements.BinaryExpression[tp.Any]]:
-    cols = [col for col in db_util.get_tbl_cols(tbl) if is_visible(col)]
     result: list[sa.sql.elements.BinaryExpression[tp.Any]] = list()
     typed_value: tp.Any
-    for col in cols:
+    for col in db_util.get_tbl_visible_cols(tbl):
         col_name = db_util.get_col_name(col)
         value = args.get(col_name)
         oper = args.get(col_name + "-cmp")
@@ -222,25 +221,6 @@ def get_pkey_val(
         if w["op"] == "=" and w["col"] == pkey_name
     )
     return next(gen, None)
-
-
-def is_visible(col: str | sa.Column[tp.Any]) -> bool:
-    if isinstance(col, str):
-        col = db_util.get_col(col)
-    col_name = db_util.get_col_name(col)
-    return col_name in cols_visible
-
-
-def is_updatable(col: str | sa.Column[tp.Any]) -> bool:
-
-    # get informations on the column's table
-    if isinstance(col, str):
-        col = db_util.get_col(col)
-    col_name = db_util.get_col_name(col)
-    tbl = db_util.get_col_tbl(col)
-    pkey = db_util.get_tbl_pkey(tbl)
-
-    return col is not pkey and col_name in cols_updatable
 
 
 def get_col_input_type(
@@ -287,95 +267,3 @@ def get_attributes(
             )
             for col in cols
         )
-
-
-# columns that are visible from the web interface
-cols_visible = {
-    "atr_id",
-    "atr_code",
-    "atr_desc",
-    "adm_id",
-    "adm_tbl",
-    "adm_usr",
-    "loc_enabled",
-    "loc_id",
-    "loc_login",
-    "loc_usr",
-    "cas_enabled",
-    "cas_id",
-    "cas_login",
-    "cas_usr",
-    "exm_duration",
-    "exm_id",
-    "exm_mcq",
-    "exm_start",
-    "grp_id",
-    "grp_name",
-    "grp_parent",
-    "itm_code",
-    "itm_difficulty",
-    "itm_rnd",
-    "itm_standalone",
-    "mcq_mode",
-    "tag_color",
-    "tag_desc",
-    "tag_id",
-    "tag_name",
-    "tbl_name",
-    "uat_usr",
-    "uat_attr",
-    "uat_id",
-    "uat_value",
-    "ugp_grp",
-    "ugp_id",
-    "ugp_right",
-    "ugp_usr",
-    "usr_code",
-    "usr_eaddr",
-    "usr_fst_name",
-    "usr_id",
-    "usr_name",
-    "rvs_usr",
-    "rvs_mcq"
-}
-
-
-# columns that can be updated from the web interface
-cols_updatable = {
-    "atr_code",
-    "atr_desc",
-    "adm_tbl",
-    "adm_usr",
-    "loc_enabled",
-    "loc_login",
-    "loc_usr",
-    "cas_enabled",
-    "cas_login",
-    "cas_usr",
-    "exm_duration",
-    "exm_mcq",
-    "exm_start",
-    "grp_name",
-    "grp_parent",
-    "itm_difficulty",
-    "itm_rnd",
-    "itm_title",
-    "itm_standalone",
-    "itm_visible",
-    "mcq_mode",
-    "tag_color",
-    "tag_desc",
-    "tag_name",
-    "tbl_id",
-    "tbl_name",
-    "uat_usr",
-    "uat_attr",
-    "uat_value",
-    "ugp_grp",
-    "ugp_right",
-    "ugp_usr",
-    "usr_code",
-    "usr_eaddr",
-    "usr_fst_name",
-    "usr_name"
-}

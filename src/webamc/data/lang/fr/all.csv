@@ -283,3 +283,12 @@ verb_start;démarrer
 verb_update;modifier
 verb_validate;valider
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
+seq_pack_reverse_selection;Inverser la sélection
+seq_pack_delete_box;Supprimer la boîte
+seq_pack_delete_all_box;Supprimer la boîte et son contenu
+seq_pack_take_all;Prendre toutes les questions
+seq_pack_take_by_difficulty;Choisir des questions selon leur niveau de difficulté
+seq_pack_take_by_tag;Choisir des questions selon leur(s) tag(s)
+seq_pack_take_head;Prendre un certain nombre de questions
+seq_pack_take_shuf;Mélanger aléatoirement les questions
+seq_pack_take_sort;Trier les questions

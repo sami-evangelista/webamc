@@ -114,13 +114,14 @@ def action() -> None:
             w("\\item Columns:\n")
             w("\\begin{itemize}" + sep + "\n")
             for col in util.get_tbl_cols(tbl):
-                if col.doc is None:
+                col_doc = util.get_col_doc(col)
+                if col_doc is None:
                     continue
                 col_name = util.get_col_name(col)
                 if util.get_col(col_name) in util.get_tbl_cols(tbl):
                     w(
                         "\\item\\texttt{" + _texify(col_name) + "} --- "
-                        + col.doc + "\n"
+                        + col_doc + "\n"
                     )
             w("\\end{itemize}\n")
             w("\\end{itemize}\n")

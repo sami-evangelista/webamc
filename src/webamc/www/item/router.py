@@ -13,14 +13,14 @@ args_item_t = tp_ext.TypedDict("args_item_t", {
 })
 
 
-@router.post("/item/oper/save-pack")
+@router.post("/item/oper/save")
 def route_oper(
         req: fa.Request,
         args: args_oper_save_pack_t
 ) -> fa.Response:
-    from .oper import save_pack
+    from .oper import save
     with context.Context(req) as ctx:
-        return save_pack.data(ctx, args)
+        return save.data(ctx, args)
 
 
 @router.post("/item/oper/submit")
