@@ -15,7 +15,7 @@ import types as _types
 
 import webamc
 from webamc.all import *
-from webamc.db import util, doc, dotify
+from webamc.db import util, dotify
 from webamc.util import termout
 
 
@@ -103,18 +103,24 @@ def action() -> None:
     termout.info(f"generate {f}")
     with open(f, "w", encoding="utf-8") as fd:
         w = fd.write
-        for tbl_name, tbl_doc in doc.tbls.items():
+        for tbl_name in util.get_all_tbl_names():
             tbl = util.get_tbl(tbl_name)
+            tbl_doc = util.get_tbl_doc(tbl)
+            if tbl_doc is None:
+                continue
             w("\\subsection{Table \\texttt{" + _texify(tbl_name) + "}}\n")
             w("\\begin{itemize}" + sep + "\n")
             w("\\item Description: " + tbl_doc + "\n")
             w("\\item Columns:\n")
             w("\\begin{itemize}" + sep + "\n")
-            for col_name, col_doc in doc.cols.items():
+            for col in util.get_tbl_cols(tbl):
+                if col.doc is None:
+                    continue
+                col_name = util.get_col_name(col)
                 if util.get_col(col_name) in util.get_tbl_cols(tbl):
                     w(
                         "\\item\\texttt{" + _texify(col_name) + "} --- "
-                        + col_doc + "\n"
+                        + col.doc + "\n"
                     )
             w("\\end{itemize}\n")
             w("\\end{itemize}\n")

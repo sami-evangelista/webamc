@@ -1,15 +1,10 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
+from sqlalchemy import ForeignKeyConstraint, CheckConstraint, UniqueConstraint
 
 from webamc.all import *
 from . import col_types as ct, errors
-
-
-FK = sa.ForeignKeyConstraint
-UC = sa.UniqueConstraint
-CC = sa.CheckConstraint
-CO = sa.Column
 
 Base = declarative_base()
 
@@ -72,294 +67,796 @@ class UsrRight(ct.IntEnum):
 
 class Usr(Base):
     __tablename__ = "usr"
-    usr_id: int = CO(ct.Integer, primary_key=True)
-    usr_code: str = CO(ct.String, nullable=False, unique=True)
-    usr_eaddr: str = CO(ct.Eaddr, nullable=False, unique=True)
-    usr_fst_name: str = CO(ct.FstName, nullable=False)
-    usr_name: str = CO(ct.Name, nullable=False)
+    usr_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    usr_code: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc=r"unique user code",
+    )
+    usr_eaddr: str = sa.Column(
+        ct.Eaddr,
+        nullable=False,
+        unique=True,
+        doc=r"unique electronic address"
+    )
+    usr_fst_name: str = sa.Column(
+        ct.FstName,
+        nullable=False,
+        doc=r"first name"
+    )
+    usr_name: str = sa.Column(
+        ct.Name,
+        nullable=False,
+        doc=r"last name"
+    )
+    __code__ = usr_code
+    __doc__ = "This table defines users."
 
 
 class Attr(Base):
     __tablename__ = "attr"
-    atr_id: int = CO(ct.Integer, primary_key=True)
-    atr_code: str = CO(ct.String, nullable=False, unique=True)
-    atr_desc: str = CO(ct.String, nullable=False, unique=True)
+    atr_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    atr_code: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc=r"unique attribute code"
+    )
+    atr_desc: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc=r"a description of the attribute"
+    )
+    __code__ = atr_code
+    __doc__ = """This table lists attributes that may be associated to
+       users (e.g., student ID)."""
 
 
 class UsrAttr(Base):
     __tablename__ = "usr_attr"
-    uat_id: int = CO(ct.Integer, primary_key=True)
-    uat_usr: int = CO(RefUsr, nullable=False)
-    uat_attr: int = CO(RefAttr, nullable=False)
-    uat_value: str = CO(ct.String, nullable=False)
-    __table_args__ = (
-        UC("uat_usr", "uat_attr"),
-        FK(["uat_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["uat_attr"], ["attr.atr_id"], ondelete="CASCADE"),
+    uat_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    uat_usr: int = sa.Column(
+        RefUsr,
+        nullable=False,
+        doc=r"user (references {\tt usr.usr\_code})"
+    )
+    uat_attr: int = sa.Column(
+        RefAttr,
+        nullable=False,
+        doc=r"attribute (references {\tt attr.atr\_code})"
+    )
+    uat_value: str = sa.Column(
+        ct.String,
+        nullable=False,
+        doc="value of the attribute for the user"
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "uat_usr",
+            "uat_attr"
+        ),
+        ForeignKeyConstraint(
+            ["uat_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["uat_attr"],
+            ["attr.atr_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    __doc__ = "This table associates users and attributes."
 
 
 class Ticket(Base):
     __tablename__ = "ticket"
-    tkt_id: int = CO(ct.Integer, primary_key=True)
-    tkt_type: types.ticket_type_t = CO(TicketType, nullable=False)
-    tkt_usr: None | int = CO(RefUsr)  # type: ignore
-    tkt_eaddr: str = CO(ct.String, nullable=False)
-    tkt_value: str = CO(ct.String, nullable=False)
-    tkt_deadline: datetime.datetime = CO(ct.DateTime, nullable=False)
+    tkt_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    tkt_type: types.ticket_type_t = sa.Column(
+        TicketType,
+        nullable=False
+    )
+    tkt_usr: int | None = sa.Column(  # type: ignore
+        RefUsr
+    )
+    tkt_eaddr: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
+    tkt_value: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
+    tkt_deadline: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["tkt_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        UC("tkt_type", "tkt_usr"),
-        CC(f"tkt_type = {types.TICKET_ACCOUNT_CREATION} "
-           "or tkt_usr is not null"),
+        ForeignKeyConstraint(
+            ["tkt_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        UniqueConstraint(
+            "tkt_type",
+            "tkt_usr"
+        ),
+        CheckConstraint(
+            f"tkt_type = {types.TICKET_ACCOUNT_CREATION} "
+            "or tkt_usr is not null"
+        ),
     )
 
 
 class CasAuth(Base):
     __tablename__ = "cas_auth"
-    cas_id: int = CO(ct.Integer, primary_key=True)
-    cas_enabled: bool = CO(ct.Boolean, nullable=False, default=False)
-    cas_login: str = CO(ct.String, nullable=False, unique=True)
-    cas_usr: int = CO(RefUsr, nullable=False, unique=True)
-    __table_args__ = (
-        FK(["cas_usr"], ["usr.usr_id"], ondelete="CASCADE"),
+    cas_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    cas_enabled: bool = sa.Column(
+        ct.Boolean,
+        default=False,
+        nullable=False,
+        doc="1 if CAS authentication enabled for the user, 0 otherwise"
+    )
+    cas_login: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc="login of the user on the CAS server"
+    )
+    cas_usr: int = sa.Column(
+        RefUsr,
+        nullable=False,
+        unique=True,
+        doc=r"user which is granted access (references {\tt usr.usr\_code})"
+    )
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["cas_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    __code__ = cas_login
+    __doc__ = """This table controls CAS authentication. Each row
+       gives access to one user."""
 
 
 class LocalAuth(Base):
     __tablename__ = "local_auth"
-    loc_id: int = CO(ct.Integer, primary_key=True)
-    loc_enabled: bool = CO(ct.Boolean, nullable=False, default=False)
-    loc_login: str = CO(ct.String, nullable=False, unique=True)
-    loc_password: str = CO(ct.Password)
-    loc_usr: int = CO(RefUsr, nullable=False, unique=True)
-    __table_args__ = (
-        FK(["loc_usr"], ["usr.usr_id"], ondelete="CASCADE"),
+    loc_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    loc_enabled: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=False,
+        doc=r"1 if local authentication is enabled for the user, 0 otherwise"
+    )
+    loc_login: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc=r"login of the user"
+    )
+    loc_password: str = sa.Column(
+        ct.Password,
+        doc="plain-text password (possibly empty)"
+    )
+    loc_usr: int = sa.Column(
+        RefUsr,
+        nullable=False,
+        unique=True,
+        doc=r"user which is granted access (references {\tt usr.usr\_code})"
+    )
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["loc_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    __code__ = loc_login
+    __doc__ = r"""This table controls local system
+       authentication. Each row gives access to one user. The login
+       used by the user to authenticate is her/his code. An empty
+       password prevents the user from logging meaning that he/she has
+       to first reset his/her password. If not empty, the password is
+       given plain."""
 
 
 class Tbl(Base):
     __tablename__ = "tbl"
-    tbl_id: int = CO(ct.Integer, primary_key=True)
-    tbl_name: str = CO(ct.String, nullable=False, unique=True)
+    tbl_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    tbl_name: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc=r"unique table name"
+    )
+    __code__ = tbl_name
+    __doc__ = """This table contains the list of names of tables which
+       can be administrated through the web interface, i.e., for which
+       CSV file submission is allowed."""
 
 
 class Admin(Base):
     __tablename__ = "admin"
-    adm_id: int = CO(ct.Integer, primary_key=True)
-    adm_usr: int = CO(RefUsr, nullable=False)
-    adm_tbl: int = CO(RefTbl, nullable=False)
-    __table_args__ = (
-        UC("adm_usr", "adm_tbl"),
-        FK(["adm_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["adm_tbl"], ["tbl.tbl_id"], ondelete="CASCADE"),
+    adm_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    adm_usr: int = sa.Column(
+        RefUsr,
+        nullable=False,
+        doc=r"""user which is granted admin right (references {\tt
+           usr.usr\_code})"""
+    )
+    adm_tbl: int = sa.Column(
+        RefTbl,
+        nullable=False,
+        doc=r"""table on which this right admin right is granted
+           (references {\tt tbl.tbl\_name})"""
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "adm_usr",
+            "adm_tbl"
+        ),
+        ForeignKeyConstraint(
+            ["adm_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["adm_tbl"],
+            ["tbl.tbl_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    __doc__ = """This table defines grants administration privileges
+       to users on tables."""
 
 
 class Item(Base):
     __tablename__ = "item"
-    itm_id: int = CO(ct.Integer, primary_key=True)
-    itm_type: types.item_type_t = CO(ItemType, nullable=False)
-    itm_code = CO(ct.ItemCode)
-    itm_title = CO(ct.String)
-    itm_is_mcq: bool = CO(ct.Boolean, nullable=False)
-    itm_standalone: bool = CO(ct.Boolean, nullable=False, default=False)
-    itm_rnd: bool = CO(ct.Boolean, nullable=False, default=False)
-    itm_difficulty: None | types.item_difficulty_t = CO(  # type: ignore
+    itm_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    itm_type: types.item_type_t = sa.Column(
+        ItemType,
+        nullable=False
+    )
+    itm_code: str | None = sa.Column(  # type: ignore
+        ct.ItemCode
+    )
+    itm_title: str | None = sa.Column(  # type: ignore
+        ct.String
+    )
+    itm_is_mcq: bool = sa.Column(
+        ct.Boolean,
+        nullable=False
+    )
+    itm_standalone: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=False
+    )
+    itm_rnd: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=False
+    )
+    itm_difficulty: int | None = sa.Column(  # type: ignore
         ItemDifficulty
     )
-    itm_date: datetime.datetime = CO(
-        ct.DateTime, nullable=False, server_default=now
+    itm_date: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False,
+        server_default=now
     )
-    itm_usr: int = CO(RefUsr, nullable=False)
-    itm_visible: bool = CO(ct.Boolean, nullable=False, default=True)
-    itm_parent: int = CO(RefItem)
+    itm_usr: int = sa.Column(
+        RefUsr,
+        nullable=False
+    )
+    itm_visible: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=True
+    )
+    itm_parent: int | None = sa.Column(  # type: ignore
+        RefItem
+    )
     __table_args__ = (
-        CC(ItemType.get_constraint("itm_type")),
-        CC(ItemDifficulty.get_constraint("itm_difficulty")),
-        CC(f"not itm_is_mcq or itm_type = {types.ITEM_TYPE_EXERCISE} "
-           f"or itm_type = {types.ITEM_TYPE_PACK}"),
-        CC(f"itm_code is not null or itm_type = {types.ITEM_TYPE_CHOICE}"),
-        CC(f"itm_parent is not null or itm_type <> {types.ITEM_TYPE_CHOICE}"),
-        CC(f"itm_parent is null or itm_type = {types.ITEM_TYPE_CHOICE}"),
-        FK(["itm_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["itm_parent"], ["item.itm_id"], ondelete="CASCADE"),
-        UC("itm_code", "itm_usr")
+        CheckConstraint(
+            ItemType.get_constraint("itm_type")
+        ),
+        CheckConstraint(
+            ItemDifficulty.get_constraint("itm_difficulty")
+        ),
+        CheckConstraint(
+            f"not itm_is_mcq or itm_type = {types.ITEM_TYPE_EXERCISE} "
+            f"or itm_type = {types.ITEM_TYPE_PACK}"
+        ),
+        CheckConstraint(
+            f"itm_code is not null or itm_type = {types.ITEM_TYPE_CHOICE}"
+        ),
+        CheckConstraint(
+            f"itm_parent is not null or itm_type <> {types.ITEM_TYPE_CHOICE}"
+        ),
+        CheckConstraint(
+            f"itm_parent is null or itm_type = {types.ITEM_TYPE_CHOICE}"
+        ),
+        ForeignKeyConstraint(
+            ["itm_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["itm_parent"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
+        UniqueConstraint(
+            "itm_code",
+            "itm_usr"
+        )
     )
 
 
 class ItemRelation(Base):
     __tablename__ = "item_relation"
-    itr_id: int = CO(ct.Integer, primary_key=True)
-    itr_parent: int = CO(RefItem, nullable=False)
-    itr_child: int = CO(RefItem, nullable=False)
-    itr_order: int = CO(ct.Integer, nullable=False)
+    itr_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    itr_parent: int = sa.Column(
+        RefItem,
+        nullable=False
+    )
+    itr_child: int = sa.Column(
+        RefItem,
+        nullable=False
+    )
+    itr_order: int = sa.Column(
+        ct.Integer,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["itr_parent"], ["item.itm_id"], ondelete="CASCADE"),
-        FK(["itr_child"], ["item.itm_id"], ondelete="CASCADE"),
-        UC("itr_parent", "itr_order"),
+        ForeignKeyConstraint(
+            ["itr_parent"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["itr_child"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
+        UniqueConstraint(
+            "itr_parent",
+            "itr_order"
+        ),
     )
 
 
 
 class ItemInstance(Base):
     __tablename__ = "item_instance"
-    iti_id: int = CO(ct.Integer, primary_key=True)
-    iti_item: int = CO(RefItem, nullable=False)
-    iti_num: int = CO(ct.Integer, nullable=False)
-    iti_seed: int = CO(ct.Integer, nullable=False)
-    iti_img = CO(sa.LargeBinary)
+    iti_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    iti_item: int = sa.Column(
+        RefItem,
+        nullable=False
+    )
+    iti_num: int = sa.Column(
+        ct.Integer,
+        nullable=False
+    )
+    iti_seed: int = sa.Column(
+        ct.Integer,
+        nullable=False
+    )
+    iti_img: bytes | None = sa.Column(  # type: ignore
+        sa.LargeBinary
+    )
     __table_args__ = (
-        UC("iti_item", "iti_num"),
-        FK(["iti_item"], ["item.itm_id"], ondelete="CASCADE")
+        UniqueConstraint(
+            "iti_item",
+            "iti_num"
+        ),
+        ForeignKeyConstraint(
+            ["iti_item"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        )
     )
 
 
 class Mcq(Base):
     __tablename__ = "mcq"
-    mcq_id: int = CO(RefItem, primary_key=True)
-    mcq_mode: types.mcq_mode_t = CO(
-        McqMode, nullable=False, default=types.MCQ_MODE_EXAM
+    mcq_id: int = sa.Column(
+        RefItem,
+        primary_key=True
+    )
+    mcq_mode: types.mcq_mode_t = sa.Column(
+        McqMode,
+        nullable=False,
+        default=types.MCQ_MODE_EXAM
     )
     __table_args__ = (
-        FK(["mcq_id"], ["item.itm_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["mcq_id"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Pack(Base):
     __tablename__ = "pack"
-    pak_id: int = CO(RefItem, primary_key=True)
-    pak_spec: str = CO(ct.PackSpec, nullable=False)
+    pak_id: int = sa.Column(
+        RefItem,
+        primary_key=True
+    )
+    pak_spec: str = sa.Column(
+        ct.PackSpec,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["pak_id"], ["item.itm_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["pak_id"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Question(Base):
     __tablename__ = "question"
-    qst_id: int = CO(RefItem, primary_key=True)
-    qst_type: types.question_type_t = CO(QstType, nullable=False)
+    qst_id: int = sa.Column(
+        RefItem,
+        primary_key=True
+    )
+    qst_type: types.question_type_t = sa.Column(
+        QstType,
+        nullable=False
+    )
     __table_args__ = (
-        CC(QstType.get_constraint("qst_type")),
-        FK(["qst_id"], ["item.itm_id"], ondelete="CASCADE")
+        CheckConstraint(
+            QstType.get_constraint("qst_type")
+        ),
+        ForeignKeyConstraint(
+            ["qst_id"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        )
     )
 
 
 class Exercise(Base):
     __tablename__ = "exercise"
-    exe_id: int = CO(RefItem, primary_key=True)
+    exe_id: int = sa.Column(
+        RefItem,
+        primary_key=True
+    )
     __table_args__ = (
-        FK(["exe_id"], ["item.itm_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["exe_id"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Choice(Base):
     __tablename__ = "choice"
-    cho_id: int = CO(RefItem, primary_key=True)
-    cho_correct: bool = CO(ct.Boolean, nullable=False)
-    cho_last: bool = CO(ct.Boolean, nullable=False)
+    cho_id: int = sa.Column(
+        RefItem,
+        primary_key=True
+    )
+    cho_correct: bool = sa.Column(
+        ct.Boolean,
+        nullable=False
+    )
+    cho_last: bool = sa.Column(
+        ct.Boolean,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["cho_id"], ["item.itm_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["cho_id"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Tag(Base):
     __tablename__ = "tag"
-    tag_id: int = CO(ct.Integer, primary_key=True)
-    tag_name: str = CO(ct.String, nullable=False, unique=True)
-    tag_desc: None | str = tp.cast(None | str, CO(ct.String))
-    tag_color: None | str = tp.cast(None | str, CO(ct.Color))
+    tag_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    tag_name: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc="unique tag name"
+    )
+    tag_desc: str | None = sa.Column(  # type: ignore
+        ct.String,
+        doc="tag description (possibly empty)"
+    )
+    tag_color: str | None = sa.Column(  # type: ignore
+        ct.Color,
+        doc=r"tag color of the form \verb+#RRGGBB+ (possibly empty)"
+    )
+    __code__ = tag_name
+    __doc__ = """This table defines tags that can be associated to MCQ
+       items (e.g., questions)."""
 
 
 class ItemTag(Base):
     __tablename__ = "item_tag"
-    itg_id: int = CO(ct.Integer, primary_key=True)
-    itg_item: int = CO(RefItem, nullable=False)
-    itg_tag: int = CO(RefTag, nullable=False)
+    itg_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    itg_item: int = sa.Column(
+        RefItem,
+        nullable=False
+    )
+    itg_tag: int = sa.Column(
+        RefTag,
+        nullable=False
+    )
     __table_args__ = (
-        UC("itg_item", "itg_tag"),
-        FK(["itg_item"], ["item.itm_id"], ondelete="CASCADE"),
-        FK(["itg_tag"], ["tag.tag_id"], ondelete="CASCADE")
+        UniqueConstraint(
+            "itg_item",
+            "itg_tag"
+        ),
+        ForeignKeyConstraint(
+            ["itg_item"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["itg_tag"],
+            ["tag.tag_id"],
+            ondelete="CASCADE"
+        )
     )
 
 
 class Registration(Base):
     __tablename__ = "registration"
-    reg_id: int = CO(ct.Integer, primary_key=True)
-    reg_usr: int = CO(RefUsr, nullable=False)
-    reg_exam: int = CO(RefExam, nullable=False)
-    reg_date: datetime.datetime = CO(
-        ct.DateTime, nullable=False, server_default=now
+    reg_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    reg_usr: int = sa.Column(
+        RefUsr,
+        nullable=False
+    )
+    reg_exam: int = sa.Column(
+        RefExam,
+        nullable=False
+    )
+    reg_date: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False,
+        server_default=now
     )
     __table_args__ = (
-        UC("reg_usr", "reg_exam"),
-        FK(["reg_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["reg_exam"], ["exam.exm_id"], ondelete="CASCADE"),
+        UniqueConstraint(
+            "reg_usr",
+            "reg_exam"
+        ),
+        ForeignKeyConstraint(
+            ["reg_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["reg_exam"],
+            ["exam.exm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Submission(Base):
     __tablename__ = "submission"
-    sub_id: int = CO(ct.Integer, primary_key=True)
-    sub_date: datetime.datetime = CO(ct.DateTime, nullable=False)
+    sub_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    sub_date: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False
+    )
 
 
 class ExamSubmission(Base):
     __tablename__ = "exam_submission"
-    exs_id: int = CO(RefSubmission, primary_key=True)
-    exs_content: str = CO(ct.String, nullable=False)
-    exs_registration: int = CO(RefRegistration, nullable=False)
-    exs_date_update: datetime.datetime = CO(ct.DateTime, nullable=False)
+    exs_id: int = sa.Column(
+        RefSubmission,
+        primary_key=True
+    )
+    exs_content: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
+    exs_registration: int = sa.Column(
+        RefRegistration,
+        nullable=False
+    )
+    exs_date_update: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["exs_id"], ["submission.sub_id"], ondelete="CASCADE"),
-        FK(["exs_registration"], ["registration.reg_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["exs_id"],
+            ["submission.sub_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["exs_registration"],
+            ["registration.reg_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class ReviewSubmission(Base):
     __tablename__ = "review_submission"
-    rvs_id: int = CO(RefSubmission, primary_key=True)
-    rvs_usr: int = CO(RefUsr, nullable=False)
-    rvs_mcq: int = CO(RefItem, nullable=False)
+    rvs_id: int = sa.Column(
+        RefSubmission,
+        primary_key=True
+    )
+    rvs_usr: int = sa.Column(
+        RefUsr,
+        nullable=False
+    )
+    rvs_mcq: int = sa.Column(
+        RefItem,
+        nullable=False
+    )
     __table_args__ = (
-        FK(["rvs_id"], ["submission.sub_id"], ondelete="CASCADE"),
-        FK(["rvs_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["rvs_mcq"], ["item.itm_id"], ondelete="CASCADE"),
+        ForeignKeyConstraint(
+            ["rvs_id"],
+            ["submission.sub_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["rvs_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["rvs_mcq"],
+            ["item.itm_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Answer(Base):
     __tablename__ = "answer"
-    ans_id: int = CO(ct.Integer, primary_key=True)
-    ans_submission: int = CO(RefSubmission, nullable=False)
-    ans_instance: int = CO(RefItemInstance, nullable=False)
+    ans_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    ans_submission: int = sa.Column(
+        RefSubmission,
+        nullable=False
+    )
+    ans_instance: int = sa.Column(
+        RefItemInstance,
+        nullable=False
+    )
     __table_args__ = (
-        UC("ans_submission", "ans_instance"),
-        FK(["ans_submission"], ["submission.sub_id"], ondelete="CASCADE"),
-        FK(["ans_instance"], ["item_instance.iti_id"], ondelete="CASCADE")
+        UniqueConstraint(
+            "ans_submission",
+            "ans_instance"
+        ),
+        ForeignKeyConstraint(
+            ["ans_submission"],
+            ["submission.sub_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["ans_instance"],
+            ["item_instance.iti_id"],
+            ondelete="CASCADE"
+        )
     )
 
 
 class Grp(Base):
     __tablename__ = "grp"
-    grp_id: int = CO(ct.Integer, primary_key=True)
-    grp_name: str = CO(ct.String, nullable=False, unique=True)
-    grp_parent: int = CO(RefGrp)
-    __table_args__ = (
-        FK(["grp_parent"], ["grp.grp_id"], ondelete="CASCADE"),
-        CC("grp_parent IS NULL OR grp_parent <> grp_id"),
+    grp_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    grp_name: str = sa.Column(
+        ct.String,
+        nullable=False,
+        unique=True,
+        doc="unique group name"
+    )
+    grp_parent: int | None = sa.Column(  # type: ignore
+        RefGrp,
+        doc=r"""parent group name (possibly empty, references {\tt
+           grp.grp\_name})"""
+    )
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["grp_parent"],
+            ["grp.grp_id"],
+            ondelete="CASCADE"
+        ),
+        CheckConstraint(
+            "grp_parent IS NULL OR grp_parent <> grp_id"
+        ),
+    )
+    __code__ = grp_name
+    __doc__ = "This table defines user groups."
 
 
 class Exam(Base):
     __tablename__ = "exam"
-    exm_id: int = CO(ct.Integer, primary_key=True)
-    exm_mcq: int = CO(RefMcq, nullable=False)
-    exm_start: datetime.datetime = CO(ct.DateTime, nullable=False)
-    exm_duration: int = CO(ct.PositiveInteger, nullable=False, default=60)
+    exm_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    exm_mcq: int = sa.Column(
+        RefMcq,
+        nullable=False
+    )
+    exm_start: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False
+    )
+    exm_duration: int = sa.Column(
+        ct.PositiveInteger,
+        nullable=False,
+        default=60
+    )
     __table_args__ = (
-        FK(["exm_mcq"], ["mcq.mcq_id"], ondelete="CASCADE"),
-        CC("exm_duration > 0"),
+        ForeignKeyConstraint(
+            ["exm_mcq"],
+            ["mcq.mcq_id"],
+            ondelete="CASCADE"
+        ),
+        CheckConstraint(
+            "exm_duration > 0"
+        ),
     )
     @staticmethod
     def end_time(exam: "Exam") -> datetime.datetime:
@@ -368,62 +865,135 @@ class Exam(Base):
 
 class UsrGrp(Base):
     __tablename__ = "usr_grp"
-    ugp_id = CO(ct.Integer, primary_key=True)
-    ugp_usr: int = CO(RefUsr, nullable=False)
-    ugp_grp: int = CO(RefGrp, nullable=False)
-    ugp_right: types.usr_right_t = CO(UsrRight, nullable=False)
-    __table_args__ = (
-        UC("ugp_usr", "ugp_grp", "ugp_right"),
-        CC(UsrRight.get_constraint("ugp_right")),
-        FK(["ugp_usr"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["ugp_grp"], ["grp.grp_id"], ondelete="CASCADE"),
+    ugp_id = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
+    ugp_usr: int = sa.Column(
+        RefUsr,
+        nullable=False,
+        doc=r"user (references {\tt usr.usr\_code})"
+    )
+    ugp_grp: int = sa.Column(
+        RefGrp,
+        nullable=False,
+        doc=r"group (references {\tt grp.grp\_name})"
+    )
+    ugp_right: types.usr_right_t = sa.Column(
+        UsrRight,
+        nullable=False,
+        doc=fr"""right given to the user on the group:
+           {types.USR_RIGHT_VIEW} for view (right to view MCQ
+           submitted for that group), {types.USR_RIGHT_SUBMIT} for
+           submit (right to submit MCQ for that group)"""
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "ugp_usr",
+            "ugp_grp",
+            "ugp_right"
+        ),
+        CheckConstraint(
+            UsrRight.get_constraint("ugp_right")
+        ),
+        ForeignKeyConstraint(
+            ["ugp_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["ugp_grp"],
+            ["grp.grp_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    __doc__ = "This table defines group memberships."
 
 
 class McqGrp(Base):
     __tablename__ = "mcq_grp"
-    mgp_id: int = CO(ct.Integer, primary_key=True)
-    mgp_mcq: int = CO(RefMcq, nullable=False)
-    mgp_grp: int = CO(RefGrp, nullable=False)
+    mgp_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
+    )
+    mgp_mcq: int = sa.Column(
+        RefMcq,
+        nullable=False
+    )
+    mgp_grp: int = sa.Column(
+        RefGrp,
+        nullable=False
+    )
     __table_args__ = (
-        UC("mgp_mcq", "mgp_grp"),
-        FK(["mgp_grp"], ["grp.grp_id"], ondelete="CASCADE"),
-        FK(["mgp_mcq"], ["mcq.mcq_id"], ondelete="CASCADE"),
+        UniqueConstraint(
+            "mgp_mcq",
+            "mgp_grp"
+        ),
+        ForeignKeyConstraint(
+            ["mgp_grp"],
+            ["grp.grp_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["mgp_mcq"],
+            ["mcq.mcq_id"],
+            ondelete="CASCADE"
+        ),
     )
 
 
 class Message(Base):
     __tablename__ = "message"
-    msg_id: int = CO(ct.Integer, primary_key=True)
-    msg_title: str = CO(ct.String, nullable=False)
-    msg_code: str = CO(ct.String, nullable=False)
-    msg_date: datetime.datetime = CO(
-        ct.DateTime, nullable=False, server_default=now
+    msg_id: int = sa.Column(
+        ct.Integer,
+        primary_key=True
     )
-    msg_from: int = CO(RefUsr, nullable=False)
-    msg_to: int = CO(RefUsr, nullable=False)
-    msg_file: bytes = CO(sa.LargeBinary, nullable=False)
-    msg_filename: str = CO(ct.String, nullable=False)
+    msg_title: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
+    msg_code: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
+    msg_date: datetime.datetime = sa.Column(
+        ct.DateTime,
+        nullable=False,
+        server_default=now
+    )
+    msg_from: int = sa.Column(
+        RefUsr,
+        nullable=False
+    )
+    msg_to: int = sa.Column(
+        RefUsr,
+        nullable=False
+    )
+    msg_file: bytes = sa.Column(
+        sa.LargeBinary,
+        nullable=False
+    )
+    msg_filename: str = sa.Column(
+        ct.String,
+        nullable=False
+    )
     __table_args__ = (
-        UC("msg_from", "msg_to", "msg_code"),
-        FK(["msg_from"], ["usr.usr_id"], ondelete="CASCADE"),
-        FK(["msg_to"], ["usr.usr_id"], ondelete="CASCADE"),
+        UniqueConstraint(
+            "msg_from",
+            "msg_to",
+            "msg_code"
+        ),
+        ForeignKeyConstraint(
+            ["msg_from"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["msg_to"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
     )
-
-
-# codes used only when loading csv files
-TBL_CODES: dict[str, list[str]] = {
-    "admin": ["adm_usr", "adm_tbl"],
-    "attr": ["atr_code"],
-    "local_auth": ["loc_login"],
-    "cas_auth": ["cas_login"],
-    "grp": ["grp_name"],
-    "tag": ["tag_name"],
-    "tbl": ["tbl_name"],
-    "usr": ["usr_code"],
-    "usr_attr": ["uat_usr", "uat_attr"],
-    "usr_grp": ["ugp_usr", "ugp_grp", "ugp_right"]
-}
 
 
 # define attributes of foreign keys
@@ -488,7 +1058,7 @@ def create_listeners() -> tp.Any:
         # check uniqueness constraints of the table
         for cons in tbl.constraints:
             if (
-                    isinstance(cons, UC)
+                    isinstance(cons, UniqueConstraint)
                     and all(
                         getattr(target, col.name, None) is not None
                         for col in cons.columns

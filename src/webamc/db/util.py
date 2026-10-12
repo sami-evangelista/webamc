@@ -34,8 +34,16 @@ def get_tbl(tbl: str) -> Table:
     return struct["tbls"][tbl]["def"]
 
 
-def get_tbl_meta(tbl: str) -> DeclarativeMeta:
-    return struct["tbls"][tbl]["meta"]
+def get_tbl_meta(tbl: str | DeclarativeMeta | Table) -> DeclarativeMeta:
+    if isinstance(tbl, str):
+        return struct["tbls"][tbl]["meta"]
+    if isinstance(tbl, Table):
+        return get_tbl_meta(get_tbl_name(tbl))
+    return tbl
+
+
+def get_tbl_doc(tbl: str | DeclarativeMeta | Table) -> str | None:
+    return getattr(get_tbl_meta(tbl), "__doc__", None)
 
 
 def get_col(col: str | InstrumentedAttribute[tp.Any]) -> Column[tp.Any]:
@@ -56,13 +64,8 @@ def get_col_tbl(col: str | Column[tp.Any]) -> Table:
     return struct["cols"][col]["tbl"]
 
 
-def get_tbl_code(tbl: str | Table) -> list[Column[tp.Any]]:
-    if isinstance(tbl, Table):
-        tbl = get_tbl_name(tbl)
-    try:
-        return list(get_col(col_name) for col_name in codes.get(tbl, list()))
-    except ValueError:
-        return list()
+def get_tbl_code(tbl: str | DeclarativeMeta | Table) -> Column[tp.Any] | None:
+    return getattr(get_tbl_meta(tbl), "__code__", None)
 
 
 def get_all_tbl_names() -> list[str]:
@@ -98,13 +101,10 @@ db_struct_t = tp.TypedDict(
 
 
 struct: db_struct_t
-codes: dict[str, list[str]]
 
 
-def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
+def _init(base: tp.Any) -> None:
     global struct
-    global codes
-    codes = dict(codes_)
     struct = {
         "tbls": dict(),
         "cols": dict()
@@ -135,7 +135,7 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
 
     # perform some checks
 
-    # only one column form the primary key
+    # only one column forms the primary key
     for tbl, tbl_def in struct["tbls"].items():
         assert 1 == len(
             [col for col in tbl_def["def"].columns if col.primary_key]
@@ -149,8 +149,9 @@ def _init(base: tp.Any, codes_: dict[str, list[str]]) -> None:
 
     # a code column can only be an integer or a string
     for tbl, tbl_def in struct["tbls"].items():
-        for col in get_tbl_code(tbl):
+        col = get_tbl_code(tbl)
+        if col is not None:
             assert isinstance(col.type, (sa.String, sa.Integer))
 
 
-_init(tables.Base, tables.TBL_CODES)
+_init(tables.Base)

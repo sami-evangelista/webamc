@@ -35,6 +35,9 @@ def action(file_path: str, delimiter: str) -> None:
 
     def load_row(num: int, row: dict[str, tp.Any]) -> bool:
 
+        # save the initial row in case we have to display it on error
+        row_init = dict(row)
+
         # replace foreign keys
         ref_col: sa.Column[tp.Any]
         assert tbl is not None
@@ -46,7 +49,8 @@ def action(file_path: str, delimiter: str) -> None:
                 else:
                     ref_col = fkeys[col][0]
                     ref_tbl = util.get_col_tbl(ref_col)
-                    col_code = util.get_tbl_code(ref_tbl)[0]
+                    col_code = util.get_tbl_code(ref_tbl)
+                    assert col_code is not None
                     db_row = dbs.query(ref_col).where(col_code == val).first()
                     if db_row is None:
                         output.error(
@@ -63,16 +67,20 @@ def action(file_path: str, delimiter: str) -> None:
             output.info(f"{file_path}:{num}: inserted successfuly")
             return True
         except errors.DBDuplicateValue as ex:
+            if isinstance(ex.col, str):
+                val = row_init.get(ex.col)
+            else:
+                val = [row_init.get(c) for c in ex.col]
             msg = (
                 f"{file_path}:{num}: duplicate value for column(s) "
-                f"{ex.col}: {json.dumps(ex.val)}"
+                f"{ex.col}: {json.dumps(val)}"
             )
             output.warning(msg)
             return False
         except errors.DBInvalidValue as ex:
             msg = (
                 f"{file_path}:{num}: invalid value for column "
-                f"{ex.col}: {json.dumps(ex.val)}"
+                f"{ex.col}: {json.dumps(row_init.get(ex.col))}"
             )
             output.warning(msg)
             return False
