@@ -37,37 +37,33 @@ def data(
         values = q.get("values", dict())
         conds = [build_where(where) for where in q.get("where", list())]
         wheres = sa.and_(*conds)
-        try:
-            if typ == "delete":
-                ctx.dbs.query(tbl).where(wheres).delete()
-                rvalues.append([])
-                rrvalues.append([])
-            elif typ == "select":
-                rvalues.append([
-                    get_db_object_values(obj)
-                    for obj in ctx.dbs.query(tbl).where(wheres)
-                ])
-                rrvalues.append([])
-            elif typ == "insert":
-                new_obj = tbl_meta(**values)
-                ctx.dbs.add(new_obj)
-                rvalues.append([get_db_object_values(new_obj)])
-                rrvalues.append([])
-            elif typ == "update":
-                for row in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
-                    for k, v in values.items():
-                        setattr(row, k, v)
-                rvalues.append([dict(values.items())])
-                rrvalues.append([{
-                    col_name: www_db_util.val_fmt(
-                        ctx, db_util.get_col(col_name), val
-                    )[1]
-                    for col_name, val in values.items()
-                }])
-            ctx.dbs.commit()
-        except db_errors.DBException as ex:
-            ctx.dbs.rollback()
-            return base.wrap_errors(ex.msg())
+        if typ == "delete":
+            ctx.dbs.query(tbl).where(wheres).delete()
+            rvalues.append([])
+            rrvalues.append([])
+        elif typ == "select":
+            rvalues.append([
+                get_db_object_values(obj)
+                for obj in ctx.dbs.query(tbl).where(wheres)
+            ])
+            rrvalues.append([])
+        elif typ == "insert":
+            new_obj = tbl_meta(**values)
+            ctx.dbs.add(new_obj)
+            rvalues.append([get_db_object_values(new_obj)])
+            rrvalues.append([])
+        elif typ == "update":
+            for row in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
+                for k, v in values.items():
+                    setattr(row, k, v)
+            rvalues.append([dict(values.items())])
+            rrvalues.append([{
+                col_name: www_db_util.val_fmt(
+                    ctx, db_util.get_col(col_name), val
+                )[1]
+                for col_name, val in values.items()
+            }])
+        ctx.dbs.commit()
     result: types.json_response_t = {
         "success": True,
         "msgs": list(),

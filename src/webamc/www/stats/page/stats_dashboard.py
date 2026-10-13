@@ -197,7 +197,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         onchange="loadMcqOverview(this.value)"
     )
     select_sort = he.Select(
-        he.Option(he.Str("Par nom"), value="name_asc"),
+        he.Option(he.Str("Par nom"), value="word_asc"),
         he.Option(he.Str("Score croissant"), value="score_asc"),
         he.Option(he.Str("Score décroissant"), value="score_desc"),
         id_="sel_sort_mcq",
@@ -313,7 +313,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     select_tags_sort = he.Select(
         he.Option(he.Str("Du plus dur au plus facile"), value="score_asc"),
         he.Option(he.Str("Du plus facile au plus dur"), value="score_desc"),
-        he.Option(he.Str("Par nom (A-Z)"), value="name_asc"),
+        he.Option(he.Str("Par nom (A-Z)"), value="word_asc"),
         id_="sel_sort_tags",
         class_="box",
         onchange="renderTagsOverview()"

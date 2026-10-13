@@ -35,7 +35,7 @@ def page(
     )
     img_add = base.static_img(
         "group-add",
-        title="verb_add",
+        title="word_add",
         js="exam_register_group()"
     )
     table = he.Table(

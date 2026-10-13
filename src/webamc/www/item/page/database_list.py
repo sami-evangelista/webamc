@@ -82,26 +82,26 @@ def div_item(
 
     # <div> containing item code
     if mcq is not None:
-        label = he.Txt("name_mcq")
+        label = he.Txt("word_mcq")
         div_code_class = "item-code item-code-mcq"
     elif item.itm_type == types.ITEM_TYPE_QUESTION:
-        label = he.Txt("name_question")
+        label = he.Txt("word_question")
         div_code_class = "item-code item-code-question"
     else:
-        label = he.Txt("name_exercise")
+        label = he.Txt("word_exercise")
         div_code_class = "item-code item-code-exercise"
     buttons: list[he.Element] = list()
     if item_parent is not None and session.has_admin_right(ctx, item_parent):
         img_unlink = base.static_img(
             "unlink",
-            "verb_detach",
+            "word_detach",
             js=f"item_detach({item.itm_id}, {item_parent.itm_id});"
         )
         buttons.append(img_unlink)
     if session.has_admin_right(ctx, item):
         img_delete = base.static_img(
             "dismiss",
-            "verb_delete",
+            "word_delete",
             js=f"item_delete({item.itm_id}, {json.dumps(is_root)});"
         )
         buttons.append(img_delete)

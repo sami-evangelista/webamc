@@ -33,7 +33,6 @@ def page(
         *mcq_options,
         id_="exm_mcq"
     ).set_data("type", "integer")
-    print(tables.Exam.exm_duration.type)
     input_start = www_db_util.html_element(
         ctx, db_util.get_col(tables.Exam.exm_start), prefix=""
     )
@@ -56,12 +55,12 @@ def page(
         ),
         he.Tr(
             he.Td(he.Txt("col_desc_exm_duration")),
-            he.Td(input_duration, he.Txt("name_minutes"))
+            he.Td(input_duration, he.Txt("word_minutes"))
         ),
         class_="table-form"
     )
     a_send = base.static_img(
-        "checkmark", "verb_validate", js="exam_submit()", class_="submit"
+        "checkmark", "word_validate", js="exam_submit()", class_="submit"
     )
     result = he.Div(
         table,

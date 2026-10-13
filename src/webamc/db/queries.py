@@ -102,7 +102,7 @@ def get_active_registration(
     # getting the ongoing examd
     for row in exam_registrations:
         exam, registration = row.tuple()
-        if tables.Exam.end_time(exam) >= now:
+        if exam.end_time() >= now:
             return exam, registration
 
     return None
@@ -203,7 +203,7 @@ def get_exam_monitoring(
         return None
 
     now = datetime.datetime.now()
-    exam_end = tables.Exam.end_time(exam)
+    exam_end = exam.end_time()
 
     # global status
     global_status: str

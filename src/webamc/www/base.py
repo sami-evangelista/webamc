@@ -177,7 +177,7 @@ def page(
     # help div
     img_close_help = static_img(
         "dismiss",
-        "verb_close",
+        "word_close",
         js="base_popup_help_close()",
         id_="img-tooltip-help-close-button"
     )
@@ -489,3 +489,7 @@ def mkhelp(
     e["class"] += " help-tooltip"
     e["onclick"] = f"javascript: base_help_open('{title}', '{help_id}')"
     return result
+
+
+def field_label(e: he.Txt) -> he.Element:
+    return he.Span(e, class_="field-label")

@@ -72,7 +72,7 @@ def page(
     table = he.Table(*trs)
     a_close = base.static_img(
         "dismiss",
-        "verb_close",
+        "word_close",
         js="project_manual_association_close()",
         style="position: absolute; top: 5px; right: 5px;"
     )

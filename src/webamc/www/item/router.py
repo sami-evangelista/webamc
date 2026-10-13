@@ -3,24 +3,27 @@ from webamc.www.all import *
 
 router = fa.APIRouter()
 
-args_oper_save_pack_t = tp_ext.TypedDict("args_oper_save_pack_t", {
-    "code": str,
-    "title": str,
-    "pack": tp.Any
+args_oper_add_t = tp_ext.TypedDict("args_oper_add_t", {
+    "itm_code": str,
+    "itm_title": str,
+    "itm_type": types.item_type_t,
+    "type": tp.Literal["exe", "mcq"]
 })
 args_item_t = tp_ext.TypedDict("args_item_t", {
     "itm_id": int
 })
 
 
-@router.post("/item/oper/save")
+@router.post("/item/oper/add")
 def route_oper(
         req: fa.Request,
-        args: args_oper_save_pack_t
+        args: args_oper_add_t
 ) -> fa.Response:
-    from .oper import save
+    from .oper import add
     with context.Context(req) as ctx:
-        return save.data(ctx, args)
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
+        return add.data(ctx, args)
 
 
 @router.post("/item/oper/submit")
@@ -30,6 +33,8 @@ def route_oper_submit(
 ) -> fa.Response:
     from .oper import submit
     with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         return submit.data(ctx, zip_file)
 
 
@@ -40,6 +45,8 @@ def route_oper_recursive_deletion(
 ) -> fa.Response:
     from .oper import recursive_deletion
     with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         return recursive_deletion.data(ctx, args)
 
 
@@ -50,6 +57,8 @@ def route_page_database_list(
 ) -> fa.Response:
     from .page import database_list
     with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         return database_list.page(ctx, filters)
 
 
@@ -61,6 +70,8 @@ def route_page_database_body(
 ) -> fa.Response:
     from .page import database_body
     with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         return database_body.page(ctx, itm_id, iti_num)
 
 
@@ -71,6 +82,8 @@ def route_page_group(
 ) -> fa.Response:
     from .page import group
     with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         return fa.responses.HTMLResponse(str(group.page(ctx, grp_id)))
 
 
@@ -93,7 +106,8 @@ def route_page_main(
         }
     }
     with context.Context(req) as ctx:
-        session.check_logged_in(ctx)
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
         result = base.gen_composite_page(
             ctx, layout, sub_page, sub_page_args={"itm_id": itm_id}
         )

@@ -18,7 +18,7 @@ config.load(settings.config_file)
 #####
 
 from webamc.www.all import *
-from webamc.db import op, queries
+from webamc.db import op, queries, errors as db_errors
 from webamc.www.auth import router as router_auth
 from webamc.www.admin import router as router_admin
 from webamc.www.db import router as router_db
@@ -33,7 +33,6 @@ from webamc.www.stats import router as router_stats
 from . import index
 
 
-# This function doesn't handle correctly status_code error 500.
 async def exception_handler(
         req: fa.Request,
         exc: fa.HTTPException
@@ -61,6 +60,15 @@ app.add_middleware(  # middleware to handle server errors
     debug=config.CONFIG["debug"]
 )
 application = ASGIMiddleware(app)  # type: ignore
+
+
+@app.exception_handler(db_errors.DBException)
+async def db_exception_handler(
+        req: fa.Request,
+        exc: db_errors.DBException
+) -> fa.Response:
+    return base.wrap_errors(exc.msg())
+
 
 # include routers
 for router in [

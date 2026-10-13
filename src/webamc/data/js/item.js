@@ -201,3 +201,16 @@ const item_pack_update = function (pak_id) {
     };
     xhr_db_update('pack', [db_where], db_values);
 }
+
+
+const item_add = function () {
+    const success = function (response) {
+        const url = Constants.path_item_page_main
+              + "?sub_page=database"
+              + "&itm_id=" + response.result['itm_id']
+        ;
+        base_relocate(url);
+    };
+    const data = base_input_values('#table-add-item');
+    xhr_post_oper(Constants.path_item_oper_add, data, success);
+}

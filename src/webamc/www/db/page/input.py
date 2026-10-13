@@ -18,13 +18,13 @@ def page(
     )
     img_validate = base.static_img(
         "checkmark",
-        "verb_validate",
+        "word_validate",
         size=24,
         js=f"db_col_send_update('{tbl}', {id_}, '{col_name}', '{col_id_name}')"
     )
     img_cancel = base.static_img(
         "dismiss",
-        "verb_cancel",
+        "word_cancel",
         size=24,
         js=f"db_col_toggle({id_}, '{col_name}', '{col_id_name}')"
     )
@@ -33,5 +33,4 @@ def page(
         he.Td(img_validate, style="padding: 0px; border-style: none;"),
         he.Td(img_cancel, style="padding: 0px; border-style: none;")
     )
-    el = he.ElementList(he.Table(tr))
-    return fa.responses.HTMLResponse(str(el))
+    return fa.responses.HTMLResponse(str(he.Table(tr)))

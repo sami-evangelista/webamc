@@ -96,8 +96,8 @@ class Boolean(sa.Boolean, ColType):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val:
-            return lang.txt("name_yes")
-        return lang.txt("name_no")
+            return lang.txt("word_yes")
+        return lang.txt("word_no")
 
 
 class Integer(sa.Integer, ColType):
@@ -123,6 +123,8 @@ class ConstrainedString(String):
     len_range: tuple[None | int, None | int] = (None, None)
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
+        if val == "":
+            return None
         result = str(val)
         if cls.regexp is not None and not re.fullmatch(cls.regexp, result):
             raise ValueError

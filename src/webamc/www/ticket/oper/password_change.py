@@ -17,25 +17,20 @@ def data(
         return base.wrap_code("err_invalid_ticket")
     tkt, usr = tkt_usr
 
-    try:
-        # update password
-        select = sa.select(
-            tables.LocalAuth
-        ).where(
-            tables.LocalAuth.loc_usr == usr.usr_id
-        )
-        loc = ctx.dbs.scalars(select).first()
-        assert loc is not None
-        loc.loc_password = args["loc_password"]
+    # update password
+    select = sa.select(
+        tables.LocalAuth
+    ).where(
+        tables.LocalAuth.loc_usr == usr.usr_id
+    )
+    loc = ctx.dbs.scalars(select).first()
+    assert loc is not None
+    loc.loc_password = args["loc_password"]
 
-        # delete ticket
-        ctx.dbs.query(
-            tables.Ticket
-        ).where(
-            tables.Ticket.tkt_id == tkt.tkt_id
-        ).delete()
-        ctx.dbs.commit()
-    except db_errors.DBException as ex:
-        ctx.dbs.rollback()
-        return base.wrap_errors(ex.msg())
+    # delete ticket
+    ctx.dbs.query(
+        tables.Ticket
+    ).where(
+        tables.Ticket.tkt_id == tkt.tkt_id
+    ).delete()
     return base.wrap_code("succ_password_changed")

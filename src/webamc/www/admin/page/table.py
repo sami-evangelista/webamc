@@ -40,7 +40,7 @@ def page(
     ]
     img_add = base.static_img(
         "checkmark",
-        "verb_create",
+        "word_create",
         js=f"admin_add_row('{tbl_name}')"
     )
     tds.append(he.Td(img_add))
@@ -89,10 +89,11 @@ def page(
     r: tp.Any
     for row in query.all():
         r = row
-        def get_val(col_name: str) -> types.db_base_val_t:
-            return tp.cast(types.db_base_val_t, getattr(r, col_name))
+        def get_val(c: types.db_col_t) -> types.db_base_val_t:
+            result = getattr(r, db_util.get_col_name(c))
+            return tp.cast(types.db_base_val_t, result)
         attrs = www_db_util.get_attributes(
-            ctx, [c.name for c in cols], get_val
+            ctx, get_val, *[c.name for c in cols]
         )
         tds = [he.Td(attr) for _, attr in attrs]
         pkey_val = getattr(row, pkey.name)
@@ -100,7 +101,7 @@ def page(
             f"admin_delete_row('{tbl_name}', "
             f"'{pkey.name}', {pkey_val})"
         )
-        img = base.static_img("trash", "verb_delete", js=js)
+        img = base.static_img("trash", "word_delete", js=js)
         tds.append(he.Td(img))
         trs.append(he.Tr(*tds))
 

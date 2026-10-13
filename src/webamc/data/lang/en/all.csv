@@ -73,8 +73,8 @@ err_item_admin_empty_archive;The archive is empty.
 err_mail_file_not_found;Mail file not found.
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
-error_exam_access_denied;You are not allowed to access this exam.
-error_exam_not_found;Exam could not be found.
+err_exam_access_denied;You are not allowed to access this exam.
+err_exam_not_found;Exam could not be found.
 err_project_already_exists;A project with the same code already exists.
 err_project_amc_not_installed;AMC does not seem to be installed on the system.
 err_project_check_log_file;An error occured. Please check the log file.
@@ -97,44 +97,44 @@ info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 msg_file_list_exam;List of files associated with the exam.
 msg_no_data_exam;No data available for the exam.
-name_action;Action
-name_actions;actions
-name_archive;Archive
-name_confirmation;confirmation
-name_content;content
-name_copies;sheets
-name_dashboard;dashboard
-name_date;date
-name_details;details
-name_exam;exam
-name_exercise;exercise
-name_file;File
-name_file_name;File name
-name_groups;groups
-name_login;Login
-name_mcq;MCQ
-name_minutes;minutes
-name_mod_date;Modification date
-name_no;no
-name_page;page
-name_parameters;parameters
-name_progress;progress
-name_question;question
-name_review;review
-name_rights;rights
-name_sender;sender
-name_size;taille
-name_statement;statement
-name_status;status
-name_student;student
-name_submission;submission
-name_table;table
-name_tags;tags
-name_threshold;threshold
-name_title;title
-name_type;type
-name_view;view
-name_yes;yes
+word_action;action
+word_actions;actions
+word_archive;archive
+word_confirmation;confirmation
+word_content;content
+word_copies;sheets
+word_dashboard;dashboard
+word_date;date
+word_details;details
+word_exam;exam
+word_exercise;exercise
+word_file;File
+word_file_name;File name
+word_groups;groups
+word_login;Login
+word_mcq;MCQ
+word_minutes;minutes
+word_mod_date;Modification date
+word_no;no
+word_page;page
+word_parameters;parameters
+word_progress;progress
+word_question;question
+word_review;review
+word_rights;rights
+word_sender;sender
+word_size;taille
+word_statement;statement
+word_status;status
+word_student;student
+word_submission;submission
+word_table;table
+word_tags;tags
+word_threshold;threshold
+word_title;title
+word_type;type
+word_view;view
+word_yes;yes
 op_after;after
 op_before;before
 op_diff;different from
@@ -268,18 +268,18 @@ tbl_desc_tbl;tbl
 tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
-verb_add;add
-verb_administrate;administrate
-verb_answer;answer
-verb_cancel;cancel
-verb_close;close
-verb_create;create
-verb_delete;delete
-verb_detach;detach
-verb_filter;filter
-verb_restart;restart
-verb_send;send
-verb_start;start
-verb_update;update
-verb_validate;validate
+word_add;add
+word_administrate;administrate
+word_answer;answer
+word_cancel;cancel
+word_close;close
+word_create;create
+word_delete;delete
+word_detach;detach
+word_filter;filter
+word_restart;restart
+word_send;send
+word_start;start
+word_update;update
+word_validate;validate
 warning_exam_deletion_forbidden;Warning: this exam cannot be deleted as users have been registered for it.

@@ -169,3 +169,11 @@ class Script(Element):
         else:
             content = "\n".join(self.content)
         return f"<script>\n{content}\n</script>"
+
+
+def mktable(
+        content: tp.Iterable[tp.Iterable[Element]],
+        **attrs: tp.Any
+) -> Table:
+    trs = [Tr(*(Td(cell) for cell in row))for row in content]
+    return Table(*trs, **attrs)

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, validates
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
 from sqlalchemy import ForeignKeyConstraint, CheckConstraint, UniqueConstraint
@@ -47,8 +47,8 @@ class ItemType(ct.IntEnum):
     }
 class McqMode(ct.IntEnum):
     values = {
-        types.MCQ_MODE_EXAM: lang.txt("name_exam"),
-        types.MCQ_MODE_REVIEW: lang.txt("name_review")
+        types.MCQ_MODE_EXAM: lang.txt("word_exam"),
+        types.MCQ_MODE_REVIEW: lang.txt("word_review")
     }
 class QstType(ct.IntEnum):
     values = {
@@ -60,8 +60,8 @@ class TicketType(ct.IntEnum):
     }
 class UsrRight(ct.IntEnum):
     values = {
-        types.USR_RIGHT_VIEW: lang.txt("name_view"),
-        types.USR_RIGHT_SUBMIT: lang.txt("name_submission")
+        types.USR_RIGHT_VIEW: lang.txt("word_view"),
+        types.USR_RIGHT_SUBMIT: lang.txt("word_submission")
     }
 
 
@@ -449,7 +449,7 @@ class Admin(Base):
 
 
 class Item(Base):
-    __tablename__ = "item"
+    __tablename__ = "item"        
     itm_id: int = sa.Column(
         ct.Integer,
         primary_key=True
@@ -461,14 +461,16 @@ class Item(Base):
     itm_code: str | None = sa.Column(  # type: ignore
         ct.ItemCode,
         info={
-            "ui_visible": True
+            "ui_visible": True,
+            "check": "check_code"
         }
     )
     itm_title: str | None = sa.Column(  # type: ignore
         ct.String,
         info={
             "ui_visible": True,
-            "ui_updatable": True
+            "ui_updatable": True,
+            "check": "check_title"
         }
     )
     itm_is_mcq: bool = sa.Column(
@@ -556,6 +558,26 @@ class Item(Base):
             "itm_usr"
         )
     )
+    def check_code(self) -> None:
+        if not (
+            self.itm_code is not None
+            or self.itm_type == types.ITEM_TYPE_CHOICE
+        ):
+            raise errors.DBInvalidNullValue(
+                "item",
+                Item.itm_code.name
+            )
+    def check_title(self) -> None:
+        if not (
+            self.itm_title is not None
+            or self.itm_type not in {
+                types.ITEM_TYPE_EXERCISE, types.ITEM_TYPE_PACK
+            }
+        ):
+            raise errors.DBInvalidNullValue(
+                "item",
+                Item.itm_title.name
+            )
 
 
 class ItemRelation(Base):
@@ -1037,9 +1059,8 @@ class Exam(Base):
             "exm_duration > 0"
         ),
     )
-    @staticmethod
-    def end_time(exam: "Exam") -> datetime.datetime:
-        return exam.exm_start + datetime.timedelta(minutes=exam.exm_duration)
+    def end_time(self) -> datetime.datetime:
+        return self.exm_start + datetime.timedelta(minutes=self.exm_duration)
 
 
 class UsrGrp(Base):
@@ -1224,12 +1245,22 @@ def create_listeners() -> tp.Any:
             target: tp.Any,
             row_id: None | int
     ) -> None:
+
+        # replace "" values by None
+        for col in tbl.columns:
+            cname = col.name
+            if hasattr(target, cname) and getattr(target, cname) == "":
+                setattr(target, cname, None)
+
         tname = tbl.name
         pkey = next(c for c in tbl.columns if c.primary_key)
         for col in tbl.columns:
+            if "check" in col.info:
+                getattr(target, col.info["check"])()
+            
             cname = col.name
             val = getattr(target, cname, None)
-            null_val = val is None or val == ""
+            null_val = val is None
 
             # check non null values
             if isinstance(col.type, ct.ColType) and not null_val:
@@ -1294,15 +1325,15 @@ def create_listeners() -> tp.Any:
                         and col.server_default is None
                 ):
                     raise errors.DBInvalidNullValue(tname, cname)
-
         return result
+
     def update_listener(t):  # type: ignore
         def result(
                 mapper: Mapper[tp.Any],
                 conn: Connection,
                 target: tp.Any
         ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__
+            tbl: sa.sql.schema.Table = t.__table__            
             tname = tbl.name
             pkey = next(c for c in tbl.columns if c.primary_key)
             basic_checks(tbl, conn, target, getattr(target, pkey.name))
@@ -1321,6 +1352,5 @@ def create_listeners() -> tp.Any:
     for t in Base.__subclasses__():
         sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
         sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
-
 
 create_listeners()

@@ -21,28 +21,25 @@ def data(
         "loc_password": args["loc_password"],
         "loc_login": args["usr_code"]
     }
-    try:
-        # insert usr
-        usr = tables.Usr(
-            usr_code=str(usr_values["usr_code"]),
-            usr_eaddr=str(usr_values["usr_eaddr"]),
-            usr_fst_name=str(usr_values["usr_fst_name"]),
-            usr_name=str(usr_values["usr_name"])
-        )
-        ctx.dbs.add(usr)
-        ctx.dbs.flush()
-        ctx.dbs.refresh(usr)
+    
+    # insert usr
+    usr = tables.Usr(
+        usr_code=str(usr_values["usr_code"]),
+        usr_eaddr=str(usr_values["usr_eaddr"]),
+        usr_fst_name=str(usr_values["usr_fst_name"]),
+        usr_name=str(usr_values["usr_name"])
+    )
+    ctx.dbs.add(usr)
+    ctx.dbs.flush()
+    ctx.dbs.refresh(usr)
 
-        # insert local_auth
-        loc = tables.LocalAuth(
-            loc_enabled=bool(loc_values["loc_enabled"]),
-            loc_password=str(loc_values["loc_password"]),
-            loc_login=str(loc_values["loc_login"]),
-            loc_usr=usr.usr_id
-        )
-        ctx.dbs.add(loc)
-        ctx.dbs.commit()
-    except db_errors.DBException as ex:
-        ctx.dbs.rollback()
-        return base.wrap_errors(ex.msg())
+    # insert local_auth
+    loc = tables.LocalAuth(
+        loc_enabled=bool(loc_values["loc_enabled"]),
+        loc_password=str(loc_values["loc_password"]),
+        loc_login=str(loc_values["loc_login"]),
+        loc_usr=usr.usr_id
+    )
+    ctx.dbs.add(loc)
+
     return base.wrap_code("succ_account_created")

@@ -27,7 +27,7 @@ def page(
         )
         a_dashboard = base.static_img(
             "list",
-            "name_dashboard",
+            "word_dashboard",
             href=url
         )
 
@@ -51,14 +51,14 @@ def page(
         else:
             a_delete = base.static_img(
                 "trash",
-                "verb_delete",
+                "word_delete",
                 js=f"exam_delete({exam.exm_id}, {exam.exm_mcq})"
             )
 
         # zoom-in/zoom-out link
         a_details = base.static_img(
             "zoom-in",
-            "name_details",
+            "word_details",
             js=f"exam_toggle_details({exam.exm_id})",
             id_=f"img-exam-zoom-{exam.exm_id}"
         )

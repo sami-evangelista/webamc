@@ -4,7 +4,7 @@ action_refresh;Rafraîchir
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;utilisateur
-col_desc_atr_code;code
+col_desc_atr_code;identifiant
 col_desc_atr_desc;description
 col_desc_atr_id;#
 col_desc_cas_enabled;activé
@@ -47,7 +47,7 @@ col_desc_ugp_grp;groupe
 col_desc_ugp_id;#
 col_desc_ugp_right;droit
 col_desc_ugp_usr;utilisateur
-col_desc_usr_code;code
+col_desc_usr_code;identifiant
 col_desc_usr_eaddr;adresse électronique
 col_desc_usr_fst_name;prénom
 col_desc_usr_id;#
@@ -69,12 +69,14 @@ err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
 err_invalid_ticket;Ce ticket n'est plus vaide.
 err_io;Erreur d'entrée/sortie.
+seq_exercise_list;liste d'exercices
+seq_question_pack;pack de questions
 err_item_admin_empty_archive;L'archive est vide.
 err_mail_file_not_found;Fichier de mail non trouvé.
 err_mail_server;Impossible de se connecter au serveur de messagerie.
 err_missing_file;Un fichier est nécessaire pour pouvoir réaliser cette action.
-error_exam_access_denied;L'examen n'existe pas ou vous n'y avez pas accès.
-error_exam_not_found;Examen introuvable.
+err_exam_access_denied;L'examen n'existe pas ou vous n'y avez pas accès.
+err_exam_not_found;Examen introuvable.
 err_project_already_exists;Un projet avec le même code existe déjà.
 err_project_amc_not_installed;Impossible de trouver AMC sur le système.
 err_project_check_log_file;Une erreur est survenue. Veuillez vérifier le fichier de log.
@@ -97,45 +99,45 @@ info_please_wait;Opération en cours. Veuillez patienter.
 info_progress_saved;Progression sauvegardée.
 msg_file_list_exam;Liste des fichiers associés à l'examen.
 msg_no_data_exam;Aucune donnée disponible pour cet examen.
-name_action;Action
-name_actions;actions
-name_archive;Archive
-name_confirmation;confirmation
-name_content;contenu
-name_copies;copies
-name_dashboard;tableau de bord
-name_date;date
-name_details;détails
-name_exam;examen
-name_exercise;exercice
-name_file;Fichier
-name_file_name;Nom du fichier
-name_groups;groupes
-name_login;Login
-name_mcq;QCM
-name_minutes;minutes
-name_mod_date;Date de modification
-name_no;non
-name_page;page
-name_parameters;paramètres
-name_progress;Progression
-name_question;question
-name_review;révision
-name_rights;droits
-name_sender;expéditeur
-name_size;Taille
-name_statement;énoncé
-name_status;Statut
-name_student;Étudiant
-name_submission;soumission
-name_table;table
-name_tags;tags
-name_threshold;seuil
-name_title;titre
-name_type;type
-name_type;Type
-name_view;vue
-name_yes;oui
+word_action;Action
+word_actions;actions
+word_archive;Archive
+word_confirmation;confirmation
+word_content;contenu
+word_copies;copies
+word_dashboard;tableau de bord
+word_date;date
+word_details;détails
+word_exam;examen
+word_exercise;exercice
+word_file;Fichier
+word_file_name;Nom du fichier
+word_groups;groupes
+word_login;Login
+word_mcq;QCM
+word_minutes;minutes
+word_mod_date;Date de modification
+word_no;non
+word_page;page
+word_parameters;paramètres
+word_progress;Progression
+word_question;question
+word_review;révision
+word_rights;droits
+word_sender;expéditeur
+word_size;Taille
+word_statement;énoncé
+word_status;Statut
+word_student;Étudiant
+word_submission;soumission
+word_table;table
+word_tags;tags
+word_threshold;seuil
+word_title;titre
+word_type;type
+word_type;Type
+word_view;vue
+word_yes;oui
 op_after;après
 op_before;avant
 op_diff;différent de
@@ -268,20 +270,20 @@ tbl_desc_tbl;tbl
 tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
-verb_add;ajouter
-verb_administrate;administrer
-verb_answer;répondre
-verb_cancel;annuler
-verb_close;fermer
-verb_create;créer
-verb_delete;supprimer
-verb_detach;détacher
-verb_filter;filtrer
-verb_restart;recommencer
-verb_send;envoyer
-verb_start;démarrer
-verb_update;modifier
-verb_validate;valider
+word_add;ajouter
+word_administrate;administrer
+word_answer;répondre
+word_cancel;annuler
+word_close;fermer
+word_create;créer
+word_delete;supprimer
+word_detach;détacher
+word_filter;filtrer
+word_restart;recommencer
+word_send;envoyer
+word_start;démarrer
+word_update;modifier
+word_validate;valider
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
 seq_pack_reverse_selection;Inverser la sélection
 seq_pack_delete_box;Supprimer la boîte
@@ -292,3 +294,4 @@ seq_pack_take_by_tag;Choisir des questions selon leur(s) tag(s)
 seq_pack_take_head;Prendre un certain nombre de questions
 seq_pack_take_shuf;Mélanger aléatoirement les questions
 seq_pack_take_sort;Trier les questions
+seq_content_type;type de contenu

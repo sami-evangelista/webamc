@@ -57,7 +57,7 @@ def page(
             txt: types.txt_t,
             js: None | str = None,
             icon: types.static_img_t = "play",
-            img_txt: types.txt_t = "verb_start",
+            img_txt: types.txt_t = "word_start",
             help_id: None | types.help_t = None
     ) -> None:
         if js is None:
@@ -89,7 +89,7 @@ def page(
         )
         a = base.static_img(
             "upload",
-            "verb_send",
+            "word_send",
             js=f"project_upload_action('{action}', '{f}')",
             id_=f"img-action-{action}"
         )
@@ -125,7 +125,7 @@ def page(
     #    "clean-associations",
     #    "seq_clean_associations",
     #    js="project_clean_associations()",
-    #    img_txt="verb_delete",
+    #    img_txt="word_delete",
     #    icon="broom"
     # )
     new_action(
@@ -157,7 +157,7 @@ def page(
         "delete",
         "seq_delete_project",
         icon="trash",
-        img_txt="verb_delete"
+        img_txt="word_delete"
     )
     img, span = file_elements("log_webamc")
     tr = he.Tr(
@@ -172,7 +172,7 @@ def page(
         id_="table-action"
     )
     div_actions = he.Div(
-        he.H2(he.Txt("name_actions")),
+        he.H2(he.Txt("word_actions")),
         table_actions
     )
 
@@ -213,9 +213,9 @@ def page(
     )
     div_grps = he.Div(id_="div-grps")
     data_spec: list[tuple[types.txt_t, he.Element]] = [
-        ("name_title", input_title),
-        ("name_copies", input_copies),
-        ("name_threshold", input_threshold),
+        ("word_title", input_title),
+        ("word_copies", input_copies),
+        ("word_threshold", input_threshold),
         ("seq_latex_id", input_amc_code),
         ("seq_association_attr", select_attr),
         ("seq_association_source", div_grps)
@@ -231,13 +231,13 @@ def page(
     )
     a_submit_data = base.static_img(
         "checkmark",
-        "verb_send",
+        "word_send",
         js="project_submit_data()",
         style="position: absolute; top: 5px; right: 5px;"
     )
     span_parameters = base.mkhelp(
-        he.Span(he.Txt("name_parameters")),
-        "name_parameters",
+        he.Span(he.Txt("word_parameters")),
+        "word_parameters",
         "project_parameters"
     )
     div_data = he.Div(

@@ -48,10 +48,10 @@ def page(
     # table with all filters
     table_filters = he.Table(
         he.Tr(
-            he.Td(he.Txt("name_table")), he.Td(select_tbls)
+            he.Td(he.Txt("word_table")), he.Td(select_tbls)
         ),
         he.Tr(
-            he.Td(he.Txt("name_page")), he.Td(a_prev, select_pages, a_next)
+            he.Td(he.Txt("word_page")), he.Td(a_prev, select_pages, a_next)
         ),
         *[
             he.Tr(
@@ -70,7 +70,7 @@ def page(
     # link to filter the table
     a_filter = base.static_img(
         "checkmark",
-        "verb_filter",
+        "word_filter",
         js="admin_table_filter()",
         class_="submit"
     )

@@ -11,14 +11,14 @@ def page(ctx: context.Context) -> fa.Response:
 
         # links
         href = base.mkuri("/mcq/page/form", mcq_id=str(mcq.mcq_id))
-        a_fillin = base.static_img("edit", "verb_answer", href=href)
+        a_fillin = base.static_img("edit", "word_answer", href=href)
         links.append(a_fillin)
         if has_admin_right:
             href = base.mkuri(
                 "/item/page/main", sub_page="database", itm_id=item.itm_id
             )
             links += [
-                base.static_img("settings", "verb_administrate", href=href)
+                base.static_img("settings", "word_administrate", href=href)
             ]
         fields = [
             str(item.itm_title),

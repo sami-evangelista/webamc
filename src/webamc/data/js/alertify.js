@@ -16,10 +16,10 @@ $(document).ready(function() {
 	    setup: function(){
 		return { 
 		    buttons: [{
-			text: Lang['name_yes'],
+			text: Lang['word_yes'],
 			className: 'yes-btn'
 		    }, {
-			text: Lang['name_no'],
+			text: Lang['word_no'],
 			className: 'no-btn'
 		    }],
 		    options: {
@@ -62,10 +62,10 @@ $(document).ready(function() {
 	    setup: function(){
 		return { 
 		    buttons: [{
-			text: Lang['verb_validate'],
+			text: Lang['word_validate'],
 			className: 'yes-btn'
 		    }, {
-			text: Lang['verb_cancel'],
+			text: Lang['word_cancel'],
 			className: 'no-btn'
 		    }],
 		    options: {

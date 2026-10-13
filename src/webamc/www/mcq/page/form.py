@@ -127,7 +127,7 @@ def page(
             he.Span(he.Str(""), id_="exam-timer-text"),
             id_="exam-timer"
         )
-        d = tables.Exam.end_time(exam)
+        d = exam.end_time()
         js += f"\nvar sec_duration = 60 * {exam.exm_duration};"
         js += f"\nvar end_time = new Date({d.year}, {d.month - 1}, {d.day}, "
         js += f"{d.hour}, {d.minute});"
@@ -170,12 +170,12 @@ def page(
     ]
     if exam is None:
         btns += [
-            ("arrow-clockwise", "verb_restart", None, "mcq_reset_all()"),
-            ("checkmark", "verb_send", None, "mcq_validate()")
+            ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
+            ("checkmark", "word_send", None, "mcq_validate()")
         ]
     else:
         btns += [
-            ("checkmark", "verb_send", None, "mcq_save_answers()")
+            ("checkmark", "word_send", None, "mcq_save_answers()")
         ]
 
     side_buttons = [

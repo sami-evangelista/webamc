@@ -9,7 +9,7 @@ def page(ctx: context.Context, pcode: str = "") -> fa.Response:
         "project_new"
     )
     input_code = he.Input(name="new_project_code", id_="new_project_code")
-    a_new = base.static_img("add", "verb_add", js="project_new()")
+    a_new = base.static_img("add", "word_add", js="project_new()")
     tr = he.Tr(
         he.Td(span_new),
         he.Td(input_code),

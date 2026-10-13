@@ -22,7 +22,7 @@ def page(
     div_body_id = f"div-item-body-{item.itm_id}"
 
     # <tr> containing attributes
-    trs: list[he.Tr] = list()
+    trs: list[he.Element] = list()
 
     # select item columns to show
     cols = [
@@ -54,8 +54,8 @@ def page(
                 pass
         assert found
         trs += [
-            he.Tr(he.Td(he.Em(he.Txt(desc.col_desc(col))))),
-            he.Tr(he.Td(www_db_util.get_attribute(ctx, col, val, item.itm_id)))
+            base.field_label(he.Txt(desc.col_desc(col))),
+            www_db_util.get_attribute(ctx, col, val, item.itm_id)
         ]
 
     # <tr> containing <table> with groups (if it is an mcq)
@@ -73,8 +73,8 @@ def page(
             grp.grp_id for grp in queries.get_mcq_grps(ctx.dbs, item.itm_id)
         ]
         trs += [
-            he.Tr(he.Td(he.Em(he.Txt("name_groups")))),
-            he.Tr(he.Td(he.Div(id_=table_grps_id)))
+            base.field_label(he.Txt("word_groups")),
+            he.Div(id_=table_grps_id)
         ]
 
     # <tr> containing <table> with tags
@@ -87,8 +87,8 @@ def page(
         for tag in queries.get_item_tags(ctx.dbs, item.itm_id)
     }
     trs += [
-        he.Tr(he.Td(he.Em(he.Txt("name_tags")))),
-        he.Tr(he.Td(he.Div(id_=table_tags_id)))
+        base.field_label(he.Txt("word_tags")),
+        he.Div(id_=table_tags_id)
     ]
 
     img_instance = he.Img(
@@ -98,13 +98,13 @@ def page(
     if len(all_instances) == 1:
         if all_instances[0].iti_img is not None:
             trs += [
-                he.Tr(he.Td(he.Em(he.Txt("name_statement")))),
-                he.Tr(he.Td(img_instance))
+                base.field_label(he.Txt("word_statement")),
+                img_instance
             ]
     else:
         options = [
             he.Option(
-                he.Str(lang.txt("param_seq_instance_num") % str(i.iti_num)),
+                he.Str(lang.txt("param_seq_instance_num", str(i.iti_num))),
                 value=i.iti_num
             ).add_flag("selected", i.iti_num == iti_num)
             for i in all_instances
@@ -118,23 +118,14 @@ def page(
             onchange=onchange,
             class_="select-instance"
         )
-        trs += [
-            he.Tr(he.Td(select_instance)),
-            he.Tr(he.Td(img_instance))
-        ]
+        trs += [select_instance, img_instance]
 
     # <tr> for item content
     content = _content(ctx, item, iti_num)
-    trs += [
-        he.Tr(he.Td(he.Em(he.Txt("name_content")))),
-        he.Tr(he.Td(content))
-    ]
+    trs += [base.field_label(he.Txt("word_content")), content]
 
     # <table> containing all previous <tr>
-    table_attributes = he.Table(
-        *trs,
-        class_="table-form"
-    )
+    table_attributes = he.mktable(((tr, ) for tr in trs), class_="table-form")
 
     # <div> containing item attributes and content
     div_body = he.Div(
@@ -195,7 +186,7 @@ def _content_pack(
     )
     a_update = base.static_img(
         "edit",
-        "verb_update",
+        "word_update",
         js=f"item_pack_update({item.itm_id});"
     )
     return he.ElementList(div_pack, a_update, script)
@@ -219,14 +210,9 @@ def _content_question(
             src=base.img_src(ctx, choice.cho_id, iti_num),
             alt=str(choice.cho_id)
         )
-        tr = he.Tr(
-            he.Td(div_status),
-            he.Td(img)
-        )
-        trs.append(tr)
-    table = he.Table(*trs)
+        trs.append([div_status, img])
     result = he.Div(
-        table,
+        he.mktable(trs),
         class_="question-body-admin"
     )
     return result

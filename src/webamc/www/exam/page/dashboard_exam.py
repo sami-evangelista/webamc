@@ -13,7 +13,7 @@ def page(
     monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
 
     if not monitoring_data:
-        return fa.responses.HTMLResponse(lang.txt("error_exam_not_found"))
+        return fa.responses.HTMLResponse(lang.txt("err_exam_not_found"))
 
     # color configuration
     exam_colors = {
@@ -54,11 +54,11 @@ def page(
         tr_all.append(he.Td(input_all))
 
     tr_all.extend([
-        he.Td(he.Txt("name_login")),
-        he.Td(he.Txt("name_student")),
+        he.Td(he.Txt("word_login")),
+        he.Td(he.Txt("word_student")),
         he.Td(he.Str("Score")),  # will be put in lang later
-        he.Td(he.Txt("name_progress")),
-        he.Td(he.Txt("name_status"))
+        he.Td(he.Txt("word_progress")),
+        he.Td(he.Txt("word_status"))
     ])
     trs.append(he.Tr(*tr_all))
 
@@ -178,7 +178,7 @@ def page(
     if exam_not_start and len(monitoring_data["students"]) > 0:
         img_delete = base.static_img(
             "trash",
-            "verb_delete",
+            "word_delete",
             js="exam_delete_registrations()"
         )
         elements.append(img_delete)

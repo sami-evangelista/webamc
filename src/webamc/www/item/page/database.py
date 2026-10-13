@@ -11,9 +11,9 @@ def page(
 
     # type
     itm_types = [
-        (he.Txt("name_mcq"), "mcq"),
-        (he.Txt("name_exercise"), "exe"),
-        (he.Txt("name_question"), "qst")
+        (he.Txt("word_mcq"), "mcq"),
+        (he.Txt("word_exercise"), "exe"),
+        (he.Txt("word_question"), "qst")
     ]
     select_type = he.Select(
         *[he.Option(lbl, value=typ) for lbl, typ in itm_types],
@@ -27,7 +27,7 @@ def page(
 
     # filter button
     a_filter = base.static_img(
-        "checkmark", "verb_filter", js="item_filter()", class_="submit"
+        "checkmark", "word_filter", js="item_filter()", class_="submit"
     )
 
     # table containing all filters
@@ -42,9 +42,9 @@ def page(
         for col in db_util.get_tbl_visible_cols(tables.Item)
     ]
     table = he.Table(
-        he.Tr(he.Td(he.Txt("name_type")), he.Td(select_type)),
+        he.Tr(he.Td(he.Txt("word_type")), he.Td(select_type)),
         *trs,
-        he.Tr(he.Td(he.Txt("name_tags")), he.Td(div_tags)),
+        he.Tr(he.Td(he.Txt("word_tags")), he.Td(div_tags)),
         class_="table-form",
         id_="table-item-filters"
     )

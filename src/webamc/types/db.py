@@ -1,7 +1,14 @@
 import datetime
 import typing as tp
 import typing_extensions as tp_ext
+import sqlalchemy as sa
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 
+
+db_col_t = str | sa.Column[tp.Any] | InstrumentedAttribute[tp.Any]
+
+db_tbl_t = str | sa.Table | DeclarativeMeta
 
 db_base_val_t = (
     str | int | bool | float | datetime.date | datetime.datetime | None
@@ -44,3 +51,4 @@ db_query_t = tp_ext.TypedDict(
     },
     total=False
 )
+

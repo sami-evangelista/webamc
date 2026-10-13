@@ -7,6 +7,16 @@ def has_right_to_execute(
         ctx: context.Context,
         query: types.db_query_t
 ) -> bool:
+    def get_pkey_val() -> None | tuple[types.db_col_t, types.db_base_val_t]:
+        tbl = query["table"]
+        pkey = db_util.get_tbl_pkey(tbl)
+        pkey_name = db_util.get_col_name(pkey)
+        gen = (
+            (pkey, w["val"])
+            for w in query.get("where", dict())
+            if w["op"] == "=" and w["col"] == pkey_name
+        )
+        return next(gen, None)
     def get_col_value(
             col_name: str,
             clause: tp.Literal["where", "values"]
@@ -35,7 +45,7 @@ def has_right_to_execute(
         to_recover = {
             "exam": "exm_mcq"
         }
-        pkey_and_val = get_pkey_val(query)
+        pkey_and_val = get_pkey_val()
         if (
                 tbl in to_recover
                 and pkey_and_val is not None
@@ -45,7 +55,7 @@ def has_right_to_execute(
             row = ctx.dbs.query(
                 db_util.get_tbl(tbl)
             ).where(
-                pkey == pkey_val
+                db_util.get_col(pkey) == pkey_val
             ).first()
             if row is not None:
                 w: types.db_where_t = {
@@ -110,7 +120,7 @@ def has_right_to_execute(
 
 def get_attribute(
         ctx: context.Context,
-        col: str | sa.Column[tp.Any],
+        col: types.db_col_t,
         val: types.db_base_val_t,
         id_: int,
         values: None | types.db_map_t = None,
@@ -163,7 +173,7 @@ def get_attribute(
 
 def html_element(
         ctx: context.Context,
-        col: sa.Column[tp.Any],
+        col: types.db_col_t,
         prefix: str = "col-",
         val: None | types.db_base_val_t = None
 ) -> he.Element:
@@ -209,61 +219,45 @@ def get_filter_wheres(
     return result
 
 
-def get_pkey_val(
-        query: types.db_query_t
-) -> None | tuple[sa.Column[tp.Any], types.db_base_val_t]:
-    tbl = query["table"]
-    pkey = db_util.get_tbl_pkey(tbl)
-    pkey_name = db_util.get_col_name(pkey)
-    gen = (
-        (pkey, w["val"])
-        for w in query.get("where", dict())
-        if w["op"] == "=" and w["col"] == pkey_name
-    )
-    return next(gen, None)
-
-
 def get_col_input_type(
         ctx: context.Context,
-        col: str | sa.Column[tp.Any]
+        col: types.db_col_t
 ) -> ui.Input:
-    if isinstance(col, str):
-        col = db_util.get_col(col)
-    return tp.cast(ct.ColType, col.type).get_input(col, dbs=ctx.dbs)
+    c = db_util.get_col(col)
+    return tp.cast(ct.ColType, c.type).get_input(c, dbs=ctx.dbs)
 
 
 def val_fmt(
         ctx: context.Context,
-        col: sa.Column[tp.Any],
+        col: types.db_col_t,
         val: types.db_base_val_t
 ) -> tuple[bool, str]:
-    return tp.cast(ct.ColType, col.type).val_fmt(val, dbs=ctx.dbs)
+    c = db_util.get_col(col)
+    return tp.cast(ct.ColType, c.type).val_fmt(val, dbs=ctx.dbs)
 
 
 def get_txt_and_input(
         ctx: context.Context,
-        cols: list[str]
+        *col: types.db_col_t
 ) -> tp.Iterable[tuple[he.Element, he.Element]]:
-    for col_name in cols:
-        col = db_util.get_col(col_name)
-        yield (desc.col_txt(col_name), get_col_input_type(ctx, col).element())
+    for c in col:
+        label = base.field_label(desc.col_txt(c))
+        inpt = get_col_input_type(ctx, c).element()
+        yield (label, inpt)
 
 
 def get_attributes(
         ctx: context.Context,
-        cols: list[str],
-        get_val: tp.Callable[[str], types.db_base_val_t],
+        get_val: tp.Callable[[types.db_col_t], types.db_base_val_t],
+        *col: types.db_col_t,
         updatable: bool = True
-) -> tp.Iterable[tuple[he.Element, he.Element]]:
-    if cols != list():
-        pkey = db_util.get_tbl_pkey(db_util.get_col_tbl(cols[0]))
-        pkey_val = tp.cast(int, get_val(pkey.name))
-        yield from (
-            (
-                desc.col_txt(col),
-                get_attribute(
-                    ctx, col, get_val(col), pkey_val, updatable=updatable
-                )
-            )
-            for col in cols
-        )
+) -> tp.Generator[tuple[he.Element, he.Element]]:
+    pkey: None | types.db_col_t = None
+    val: int
+    for c in col:
+        if pkey is None:
+            pkey = db_util.get_tbl_pkey(db_util.get_col_tbl(c))
+            val = tp.cast(int, get_val(pkey.name))
+        a = get_attribute(ctx, c, get_val(c), val, updatable=updatable)
+        l = base.field_label(desc.col_txt(c))
+        yield (l, a)
