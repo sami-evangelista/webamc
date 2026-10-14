@@ -20,20 +20,20 @@ col_desc_grp_parent;parent
 col_desc_itm_code;identifiant
 col_desc_itm_date;date de création
 col_desc_itm_difficulty;difficulté
+col_desc_itm_mcq_mode;mode
+col_desc_itm_pack_spec;pack
+col_desc_itm_qst_standalone;autonome
+col_desc_itm_qst_type;type de question
 col_desc_itm_rnd;aléatoire
 col_desc_itm_title;titre
 col_desc_itm_type;type
 col_desc_itm_usr;utilisateur
 col_desc_itm_visible;visible
-col_desc_itm_qst_type;type de question
 col_desc_loc_enabled;activé
 col_desc_loc_id;#
 col_desc_loc_login;login
 col_desc_loc_password;mot de passe
 col_desc_loc_usr;utilisateur
-col_desc_itm_mcq_mode;mode
-col_desc_itm_pack_spec;pack
-col_desc_itm_qst_standalone;autonome
 col_desc_tag_color;couleur
 col_desc_tag_desc;description
 col_desc_tag_id;#
@@ -267,8 +267,8 @@ word_exercise;exercice
 word_file;Fichier
 word_file_name;Nom du fichier
 word_filter;filtrer
-word_help;aide
 word_groups;groupes
+word_help;aide
 word_login;Login
 word_mcq;QCM
 word_minutes;minutes
