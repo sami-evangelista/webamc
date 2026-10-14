@@ -75,13 +75,12 @@ def div_item(
         item_parent: None | tables.Item
 ) -> he.Element:
 
-    mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
     div_code_id = f"div-item-code-{item.itm_id}"
     div_body_id = f"div-item-body-{item.itm_id}"
     is_root = item_parent is None
 
     # <div> containing item code
-    if mcq is not None:
+    if item.itm_is_mcq:
         label = he.Txt("word_mcq")
         div_code_class = "item-code item-code-mcq"
     elif item.itm_type == types.ITEM_TYPE_QUESTION:

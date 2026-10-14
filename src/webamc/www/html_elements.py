@@ -20,7 +20,7 @@ class Element:
             f" {k}=\"{v}\"" for k, v in self.attrs.items()
         )
         if self.flags != set():
-            result += " ".join(self.flags)
+            result += " " + " ".join(self.flags)
         if self.data != dict():
             result += " " + " ".join(
                 f"data-{k}=\"{v}\"" for k, v in self.data.items()

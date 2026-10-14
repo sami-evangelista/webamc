@@ -126,11 +126,11 @@ def get_attribute(
         values: None | types.db_map_t = None,
         updatable: bool = True
 ) -> he.Element:
-    if isinstance(col, str):
-        col = db_util.get_col(col)
     tbl = db_util.get_col_tbl(col)
+    col_name = db_util.get_col_name(col)
     tbl_name = db_util.get_tbl_name(tbl)
     pkey = db_util.get_tbl_pkey(tbl)
+    pkey_name = db_util.get_col_name(pkey)
     updatable = updatable and db_util.is_col_updatable(col)
     if updatable:
         where: list[types.db_where_t] = list()
@@ -152,20 +152,18 @@ def get_attribute(
     if not updatable:
         return element_val
 
-    div_id = f"div-{col.name}-{id_}"
-    js = f"db_col_show_input({id_}, '{col.name}', '{pkey.name}')"
+    div_id = f"div-{col_name}-{id_}"
+    js = f"db_col_show_input({id_}, '{col_name}', '{pkey_name}')"
     a_id = f"{div_id}-link"
-    div_val_id = f"{div_id}-val"
     a = he.A(
-        he.Div(element_val, id_=div_val_id),
+        he.Div(element_val, id_=f"{div_id}-val"),
         href=f"javascript:{js}",
         id_=a_id
     )
-    div_input_id = f"{div_id}-input"
     div_input = he.Div(
         he.Empty(),
         style="display: none;",
-        id_=div_input_id
+        id_=f"{div_id}-input"
     )
     result = he.Div(a, div_input)
     return result

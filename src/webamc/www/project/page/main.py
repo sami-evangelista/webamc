@@ -5,8 +5,8 @@ from webamc import project
 def page(ctx: context.Context, pcode: str = "") -> fa.Response:
     span_new = base.mkhelp(
         he.Span(he.Txt("seq_new_project")),
-        "seq_new_project",
-        "project_new"
+        "project",
+        section="help-project-new"
     )
     input_code = he.Input(name="new_project_code", id_="new_project_code")
     a_new = base.static_img("add", "word_add", js="project_new()")
@@ -45,4 +45,9 @@ def page(ctx: context.Context, pcode: str = "") -> fa.Response:
     div_project = he.Div(id_="div-project")
     js = he.Script("project_load_project()")
     elements = he.ElementList(div_form, div_project, js)
-    return base.page(ctx, "page_title_project_main", elements)
+    return base.page(
+        ctx,
+        "page_title_project_main",
+        elements,
+        help_page="project"
+    )

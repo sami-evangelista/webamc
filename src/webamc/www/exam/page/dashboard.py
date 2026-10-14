@@ -9,7 +9,6 @@ def page(
         **kwargs: tp.Unpack[router.args_page_exam_t]
 ) -> he.Element:
     def format_exam(
-            mcq: tables.Mcq,
             item: tables.Item,
             exam: tables.Exam
     ) -> str:
@@ -21,8 +20,8 @@ def page(
     exm_id = kwargs.get("exm_id")
     select_exams = he.Select(
         he.Option(he.Str(lang.txt("seq_select_an_exam")), value=""),
-        *[he.Option(he.Str(format_exam(mcq, item, exam)), value=exam.exm_id)
-          for mcq, item, exam in exams],
+        *[he.Option(he.Str(format_exam(item, exam)), value=exam.exm_id)
+          for item, exam in exams],
         id_="exm_id",
         onchange="exam_dashboard_select()"
     )
@@ -52,7 +51,7 @@ def page(
 
     # check if an exam id has been passed trough the url
     script: he.Element = he.Empty()
-    if any(exam.exm_id == exm_id for _, _, exam in exams):
+    if any(exam.exm_id == exm_id for _, exam in exams):
         js = f"$('#exm_id').val({exm_id});"
         js += "\nexam_dashboard_select();"
         script = he.Script(js)

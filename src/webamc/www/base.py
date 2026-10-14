@@ -132,7 +132,8 @@ def page(
         ctx: context.Context,
         title: str | types.txt_t,
         body: he.Element,
-        side_buttons: None | list[he.Element] = None
+        side_buttons: None | list[he.Element] = None,
+        help_page: None | types.help_t = None
 ) -> fa.Response:
 
     # menu (none if not connected)
@@ -174,7 +175,7 @@ def page(
         )
         body = he.ElementList(div_sidebar, div_mainpanel)
 
-    # help div
+    # help div and help button
     img_close_help = static_img(
         "dismiss",
         "word_close",
@@ -183,10 +184,18 @@ def page(
     )
     div_tooltip_help = he.Div(
         img_close_help,
-        he.Div(id_="div-tooltip-help-title"),
         he.Div(id_="div-tooltip-help-body"),
         id_="div-tooltip-help"
     )
+    if help_page is None:
+        img_help: he.Element = he.Empty()
+    else:
+        img_help = static_img(
+            "help",
+            "word_help",
+            id_="img-main-help",
+            js=f"base_help_open('{help_page}')"
+        )
 
     # head and body
     head = he.Head(
@@ -197,6 +206,7 @@ def page(
         he.H1(he.Str(title)),
         div_menu,
         div_tooltip_help,
+        img_help,
         body
     )
     h = he.Html(head, body, lang="en")
@@ -482,12 +492,16 @@ def help_page(help_id: types.help_t) -> fa.Response:
 
 def mkhelp(
         e: he.Element,
-        title: types.txt_t,
-        help_id: types.help_t
+        help_page: types.help_t,
+        section: str | None = None
 ) -> he.Element:
     result = e
+    if section is None:
+        js_args = f"('{help_page}', null)"
+    else:
+        js_args = f"('{help_page}', '{section}')"
     e["class"] += " help-tooltip"
-    e["onclick"] = f"javascript: base_help_open('{title}', '{help_id}')"
+    e["onclick"] = f"javascript: base_help_open{js_args}"
     return result
 
 

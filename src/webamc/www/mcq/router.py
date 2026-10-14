@@ -4,9 +4,9 @@ from webamc.www.all import *
 router = fa.APIRouter()
 
 args_mcq_result_t = tp_ext.TypedDict("args_mcq_result_t", {
-    "mcq_id": int,
-    "mcq_choices": dict[int, bool],
-    "mcq_questions": dict[int, dict[int, bool]]
+    "itm_id": int,
+    "choices": dict[int, bool],
+    "questions": dict[int, dict[int, bool]]
 })
 
 

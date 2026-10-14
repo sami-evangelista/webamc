@@ -5,6 +5,7 @@ from webamc.www import session
 
 def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
 
+    """
     current_usr_id = session.usr_id(ctx)
     elements: list[he.Element] = []
 
@@ -373,5 +374,6 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         style_=dashboard_style
     )
     elements.append(dashboard_root)
-
     return base.page(ctx, "page_title_stats", he.ElementList(*elements))
+"""
+    return base.page(ctx, "page_title_stats", he.Empty())

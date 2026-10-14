@@ -21,11 +21,11 @@ amc_mdata_t = tp.TypedDict(
         "itm_code": str,
         "itm_difficulty": int,
         "itm_rnd": bool,
-        "itm_standalone": bool,
         "itm_tags": list[str],
         "itm_title": str,
         "itm_visible": bool,
-        "itm_instances": int
+        "itm_instances": int,
+        "itm_qst_standalone": bool
     },
     total=False
 )
@@ -51,14 +51,14 @@ item_t = tp.TypedDict(
         "itm_difficulty": int,
         "itm_is_mcq": bool,
         "itm_rnd": bool,
-        "itm_standalone": bool,
         "itm_title": str,
         "itm_type": types.item_type_t,
         "itm_usr": int,
         "itm_visible": bool,
+        "itm_pack_spec": str,
         "itm_parent": int,
-        "pak_spec": str,
-        "qst_type": types.question_type_t,
+        "itm_qst_standalone": bool,
+        "itm_qst_type": types.question_type_t,
         "instances": list[instance_t],
         "order": int,
         "parent": int
@@ -228,7 +228,7 @@ def parse_amc_mdata(
                 elif mdata == "RND":
                     result["itm_rnd"] = bool(int(val))
                 elif mdata == "STANDALONE":
-                    result["itm_standalone"] = bool(int(val))
+                    result["itm_qst_standalone"] = bool(int(val))
                 elif mdata == "VISIBLE":
                     result["itm_visible"] = bool(int(val))
             except ValueError:
@@ -524,7 +524,7 @@ def _compile_question(
         item = _ctx_new_item(input_tex)
         item["itm_code"] = qst["itm_code"]
         item["itm_type"] = types.ITEM_TYPE_QUESTION
-        item["qst_type"] = qst["qst_type"]
+        item["itm_qst_type"] = qst["qst_type"]
         item["instances"] = list()
 
         _ctx_push_item(item)
@@ -696,7 +696,7 @@ def _compile_dir_traversal(
                 item["itm_type"] = types.ITEM_TYPE_EXERCISE
             else:
                 item["itm_type"] = types.ITEM_TYPE_PACK
-                item["pak_spec"] = pack
+                item["itm_pack_spec"] = pack
 
             png_file = _generate_png_path()
             item["instances"] = [{

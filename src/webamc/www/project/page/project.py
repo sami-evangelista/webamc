@@ -42,14 +42,14 @@ def page(
     def label_action(
             action: proj.action_t,
             txt: types.txt_t,
-            help_id: None | types.help_t
+            help_section: str | None
     ) -> he.Element:
         result = he.Span(
             he.Txt(txt),
             id_=f"label-action-{action}"
         )
-        if help_id is not None:
-            base.mkhelp(result, txt, help_id)
+        if help_section is not None:
+            base.mkhelp(result, "project", section=help_section)
         return result
 
     def new_action(
@@ -58,7 +58,7 @@ def page(
             js: None | str = None,
             icon: types.static_img_t = "play",
             img_txt: types.txt_t = "word_start",
-            help_id: None | types.help_t = None
+            help_section: str | None = None
     ) -> None:
         if js is None:
             js = f"project_action('{action}');"
@@ -70,7 +70,7 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(label_action(action, txt, help_id)),
+            he.Td(label_action(action, txt, help_section)),
             he.Td()
         )
         trs.append(tr)
@@ -80,7 +80,7 @@ def page(
             action: proj.action_t,
             f: proj.file_t,
             txt: types.txt_t,
-            help_id: None | types.help_t = None
+            help_section: None | str = None
     ) -> None:
         input_file = he.Input(
             type_="file",
@@ -95,7 +95,7 @@ def page(
         )
         tr = he.Tr(
             he.Td(a),
-            he.Td(label_action(action, txt, help_id)),
+            he.Td(label_action(action, txt, help_section)),
             he.Td(input_file)
         )
         trs.append(tr)
@@ -106,7 +106,7 @@ def page(
         "upload_source",
         "source",
         "seq_upload_latex_archive",
-        help_id="project_action_upload_source"
+        help_section="help-project-action-upload"
     )
     new_action(
         "compile",
@@ -237,8 +237,8 @@ def page(
     )
     span_parameters = base.mkhelp(
         he.Span(he.Txt("word_parameters")),
-        "word_parameters",
-        "project_parameters"
+        "project",
+        section="help-project-parameters"
     )
     div_data = he.Div(
         he.H2(span_parameters),

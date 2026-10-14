@@ -32,8 +32,9 @@ static_img_t = tp.Literal[
     "exam",
     "group",
     "group-add",
-    "inbox",
+    "help",
     "home",
+    "inbox",
     "list",
     "mail",
     "mcq",
@@ -170,9 +171,7 @@ exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
 
 help_t = tp.Literal[
     "item_submit",
-    "project_action_upload_source",
-    "project_new",
-    "project_parameters"
+    "project"
 ]
 
 

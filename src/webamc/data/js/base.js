@@ -112,8 +112,11 @@ const base_input_values = function (selector) {
 	}
 	result[name] = val;
     };
-    $(selector).find('input,select,textarea').each(add_arg);
-    $(selector).each(add_arg);
+    const types_inspected = 'input,select,textarea';
+    $(selector).find(types_inspected).each(add_arg);
+    if($(selector).is(types_inspected)) {
+        $(selector).each(add_arg);
+    }
     return result;
 }
 
@@ -190,19 +193,24 @@ const base_submit_file = function (id_file, url, div_submit_result) {
 }
 
 
-const base_help_open = function (txt, help) {
+const base_help_open = function (help, section) {
     const url = Constants.path_help + '?help_id=' + help;
     const success = function (response) {
-        $('#div-tooltip-help-title').html(Lang[txt]);
         $('#div-tooltip-help-body').html(response);
         $('#div-tooltip-help').hide().fadeIn(base_anim_delay);
+        if(section != null) {
+            if($('#' + section).length == 0) {
+                console.log("help section " + section + " not found !");
+            } else {
+                location.hash = '#' + section;
+            }
+        }
     };
     xhr_get(url, success);
 }
 
 
 const base_popup_help_close = function () {
-    $('#div-tooltip-help-title').html();
     $('#div-tooltip-help-body').html();
     $('#div-tooltip-help').fadeOut(base_anim_delay);
 }

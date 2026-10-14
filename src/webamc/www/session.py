@@ -80,7 +80,7 @@ def has_admin_right(ctx: context.Context, item: tables.Item) -> bool:
 
 def get_viewable_mcqs(
         ctx: context.Context
-) -> list[tuple[tables.Mcq, tables.Item, tables.Usr]]:
+) -> list[tuple[tables.Item, tables.Usr]]:
     check_logged_in(ctx)
     return queries.get_viewable_mcqs(
         ctx.dbs, usr_id(ctx), set(usr_view_groups(ctx).keys())
@@ -89,20 +89,19 @@ def get_viewable_mcqs(
 
 def active_registration(
         ctx: context.Context
-) -> None | tuple[tables.Registration, tables.Exam, tables.Mcq]:
+) -> None | tuple[tables.Registration, tables.Exam]:
     check_logged_in(ctx)
+    # TODO: move to queries
     liste = ctx.req.session.get("reg_id")
     reg_id = liste[0] if liste is not None else None
     if reg_id is None:
         return None
     row = ctx.dbs.query(
         tables.Registration,
-        tables.Exam,
-        tables.Mcq
+        tables.Exam
     ).where(
         (tables.Registration.reg_id == int(reg_id))
         & (tables.Registration.reg_exam == tables.Exam.exm_id)
-        & (tables.Exam.exm_mcq == tables.Mcq.mcq_id)
     ).first()
     assert row is not None
     return row.tuple()
@@ -180,7 +179,7 @@ def check_active_registration(ctx: context.Context) -> None:
 
 def check_can_view_mcq(ctx: context.Context, mcq_id: int) -> None:
     check_logged_in(ctx)
-    if not any(mcq.mcq_id == mcq_id for mcq, _, _ in get_viewable_mcqs(ctx)):
+    if not any(item.itm_id == mcq_id for item, _ in get_viewable_mcqs(ctx)):
         raise fa.HTTPException(status_code=403)
 
 

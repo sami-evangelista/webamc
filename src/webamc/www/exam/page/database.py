@@ -14,7 +14,7 @@ def page(
         return he.Txt("info_no_exam_available")
 
     elements: list[he.Element] = []
-    for mcq, item, exam in exams:
+    for item, exam in exams:
         has_registrations = any(
             queries.get_exam_registrations(ctx.dbs, exam.exm_id)
         )
@@ -79,7 +79,7 @@ def page(
                 he.Br(),
                 www_db_util.get_attribute(
                     ctx, attr, getattr(exam, attr), exam.exm_id,
-                    values={"exm_mcq": mcq.mcq_id}
+                    values={"exm_mcq": item.itm_id}
                 )
             )
             for attr in ["exm_start", "exm_duration"]

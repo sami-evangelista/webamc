@@ -39,7 +39,6 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             return None
 
         item["itm_usr"] = usr_id
-        is_mcq = item.setdefault("itm_is_mcq", False)
 
         # duplicate detection
         if itm_code is not None:
@@ -75,11 +74,6 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             )
             dbs.add(db_item_relation)
 
-        # if it is an mcq we insert an mcq and records
-        if is_mcq:
-            mcq = tables.Mcq(mcq_id=result)
-            dbs.add(mcq)
-
         # if it is not a choice we insert item_tag records
         if item["itm_type"] != types.ITEM_TYPE_CHOICE:
             for tag in item.get("tags", list()):
@@ -96,25 +90,12 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
                 dbs.add(item_tag)
                 output.info(info)
 
-        # insert in the appropriate item sub-table
-        val: dict[str, tp.Any] = dict()
-        desc, tbl, prefix = {
-            types.ITEM_TYPE_CHOICE: ("choice", tables.Choice, "cho_"),
-            types.ITEM_TYPE_EXERCISE: ("exercise", tables.Exercise, "exe_"),
-            types.ITEM_TYPE_QUESTION: ("question", tables.Question, "qst_"),
-            types.ITEM_TYPE_PACK: ("pack", tables.Pack, "pak_")
+        desc = {
+            types.ITEM_TYPE_CHOICE: "choice",
+            types.ITEM_TYPE_EXERCISE: "exercise",
+            types.ITEM_TYPE_QUESTION: "question",
+            types.ITEM_TYPE_PACK: "pack"
         }[item["itm_type"]]
-        val = {
-            prefix + "id": result,
-            **sub_dict(prefix)
-        }
-        if is_mcq:
-            desc = "mcq"
-        if itm_code is not None:
-            desc += " " + itm_code
-        info = f"{tex_file}: new {desc}"
-        dbs.add(tbl(**val))
-        output.info(info)
 
         # inserting instance from JSON in database
         for inst in item.get("instances", list()):

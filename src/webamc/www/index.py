@@ -5,12 +5,12 @@ from webamc.util import fmt
 
 def page(ctx: context.Context) -> fa.Response:
     trs: list[he.Element] = list()
-    for mcq, item, usr in session.get_viewable_mcqs(ctx):
+    for item, usr in session.get_viewable_mcqs(ctx):
         links: list[he.Element] = list()
         has_admin_right = session.has_admin_right(ctx, item)
 
         # links
-        href = base.mkuri("/mcq/page/form", mcq_id=str(mcq.mcq_id))
+        href = base.mkuri("/mcq/page/form", mcq_id=str(item.itm_id))
         a_fillin = base.static_img("edit", "word_answer", href=href)
         links.append(a_fillin)
         if has_admin_right:

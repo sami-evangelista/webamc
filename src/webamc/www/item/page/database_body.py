@@ -1,5 +1,7 @@
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+
 from webamc.www.all import *
-from webamc.db import tables, desc, queries
+from webamc.db import tables, desc, queries, util as db_util
 from webamc.www.db import util as www_db_util
 from . import database_list
 
@@ -15,7 +17,6 @@ def page(
         raise fa.HTTPException(status_code=403)
 
     item = queries.get_item(ctx.dbs, itm_id)
-    mcq = queries.get_item_mcq(ctx.dbs, item.itm_id)
     all_instances = queries.get_instances(ctx.dbs, item.itm_id)
 
     table_tags_id = f"table-item-tags-{item.itm_id}"
@@ -25,41 +26,28 @@ def page(
     trs: list[he.Element] = list()
 
     # select item columns to show
-    cols = [
-        "itm_title",
-        "itm_date",
-        "itm_visible"
+    cols: list[InstrumentedAttribute[tp.Any]] = [
+        tables.Item.itm_code,
+        tables.Item.itm_title,
+        tables.Item.itm_date,
+        tables.Item.itm_visible
     ]
-    cols += {
-        types.ITEM_TYPE_PACK: [
-        ],
-        types.ITEM_TYPE_EXERCISE: [
-            "itm_rnd"
-        ],
-        types.ITEM_TYPE_QUESTION: [
-            "itm_standalone",
-            "itm_rnd",
-            "itm_difficulty"
-        ]
-    }[item.itm_type]
-    if mcq is not None:
-        cols.append("mcq_mode")
-    for col in cols:
-        found = False
-        for row in [item, mcq]:
-            try:
-                val = getattr(row, col)
-                found = True
-            except AttributeError:
-                pass
-        assert found
-        trs += [
-            base.field_label(he.Txt(desc.col_desc(col))),
-            www_db_util.get_attribute(ctx, col, val, item.itm_id)
-        ]
+    if item.itm_is_mcq:
+        cols.append(tables.Item.itm_mcq_mode)
+    if item.itm_type in {types.ITEM_TYPE_EXERCISE, types.ITEM_TYPE_QUESTION}:
+        cols.append(tables.Item.itm_rnd)
+    if item.itm_type == types.ITEM_TYPE_QUESTION:
+        cols.append(tables.Item.itm_difficulty)
+        cols.append(tables.Item.itm_qst_type)
+        cols.append(tables.Item.itm_qst_standalone)
+    def get_val(col: types.db_col_t) -> types.db_base_val_t:
+        return getattr(item, db_util.get_col_name(col))  # type: ignore
+    for label, inpt in www_db_util.get_attributes(ctx, get_val, *cols):
+        trs.append(label)
+        trs.append(inpt)
 
     # <tr> containing <table> with groups (if it is an mcq)
-    if mcq is None:
+    if not item.itm_is_mcq:
         table_grps_id = None
         grps = None
         init_grps = None
@@ -122,7 +110,9 @@ def page(
 
     # <tr> for item content
     content = _content(ctx, item, iti_num)
-    trs += [base.field_label(he.Txt("word_content")), content]
+    trs += [
+        base.field_label(he.Txt("word_content")), content
+    ]
 
     # <table> containing all previous <tr>
     table_attributes = he.mktable(((tr, ) for tr in trs), class_="table-form")
@@ -160,28 +150,28 @@ def _content(
         return _content_question(ctx, item, iti_num)
     if item.itm_type == types.ITEM_TYPE_PACK:
         return _content_pack(ctx, item)
-    return he.Div()
+    return he.Empty()
 
 
 def _content_exercise(
         ctx: context.Context,
         item: tables.Item
 ) -> he.Element:
-    return he.ElementList(*[
+    result = he.ElementList(*[
         database_list.div_item(ctx, item_child, item)
         for item_child in queries.get_children(ctx.dbs, item.itm_id)
     ])
+    return result
 
 
 def _content_pack(
         ctx: context.Context,
         item: tables.Item
 ) -> he.Element:
-    pack = queries.get_pack(ctx.dbs, item.itm_id)
     id_div_pack = f"div-pack-{item.itm_id}"
     div_pack = he.Div(id_=id_div_pack)
     script = he.Script(
-        f"var init = {json.dumps(pack.pak_spec)};"
+        f"var init = {json.dumps(item.itm_pack_spec)};"
         f"item_pack_load({item.itm_id}, {json.dumps(id_div_pack)}, init);"
     )
     a_update = base.static_img(
@@ -189,7 +179,9 @@ def _content_pack(
         "word_update",
         js=f"item_pack_update({item.itm_id});"
     )
-    return he.ElementList(div_pack, a_update, script)
+    content = he.ElementList(div_pack, a_update, script)
+    return content
+
 
 def _content_question(
         ctx: context.Context,
@@ -198,8 +190,9 @@ def _content_question(
 ) -> he.Element:
     img: str | he.Element
     trs = list()
-    for choice in queries.get_question_choices(ctx.dbs, item.itm_id):
-        if choice.cho_correct:
+    chos = queries.get_children(ctx.dbs, item.itm_id, types.ITEM_TYPE_CHOICE)
+    for cho in chos:
+        if cho.itm_cho_correct:
             class_box = "correct"
         else:
             class_box = "wrong"
@@ -207,12 +200,20 @@ def _content_question(
             class_=f"status-box status-box-answer status-{class_box}"
         )
         img = he.Img(
-            src=base.img_src(ctx, choice.cho_id, iti_num),
-            alt=str(choice.cho_id)
+            src=base.img_src(ctx, cho.itm_id, iti_num),
+            alt=str(cho.itm_id)
         )
         trs.append([div_status, img])
-    result = he.Div(
+    div_choices = he.Div(
         he.mktable(trs),
         class_="question-body-admin"
     )
-    return result
+
+    """
+    qst = queries.get_question(ctx.dbs, item.itm_id)
+    trs += [
+        base.field_label(he.Txt(desc.col_desc())),
+        www_db_util.get_attribute(ctx, col, qst.qst_standalone, item.itm_id)
+    ]
+    """
+    return div_choices

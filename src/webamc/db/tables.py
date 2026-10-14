@@ -28,8 +28,6 @@ class RefItemInstance(ct.ForeignKey):
     pass
 class RefTag(ct.ForeignKey):
     pass
-class RefMcq(ct.ForeignKey):
-    pass
 class RefExam(ct.ForeignKey):
     pass
 class RefRegistration(ct.ForeignKey):
@@ -52,7 +50,8 @@ class McqMode(ct.IntEnum):
     }
 class QstType(ct.IntEnum):
     values = {
-        t: str(t) for t in types.literal_type_values(types.question_type_t)
+        types.QUESTION_TYPE_SINGLE: lang.txt("seq_qst_type_single"),
+        types.QUESTION_TYPE_MULTI: lang.txt("seq_qst_type_multi")
     }
 class TicketType(ct.IntEnum):
     values = {
@@ -244,6 +243,7 @@ class Ticket(Base):
             "tkt_type",
             "tkt_usr"
         ),
+        # user is null => it is an account creation ticket
         CheckConstraint(
             f"tkt_type = {types.TICKET_ACCOUNT_CREATION} "
             "or tkt_usr is not null"
@@ -462,6 +462,7 @@ class Item(Base):
         ct.ItemCode,
         info={
             "ui_visible": True,
+            "ui_updatable": True,
             "check": "check_code"
         }
     )
@@ -475,16 +476,8 @@ class Item(Base):
     )
     itm_is_mcq: bool = sa.Column(
         ct.Boolean,
-        nullable=False
-    )
-    itm_standalone: bool = sa.Column(
-        ct.Boolean,
         nullable=False,
-        default=False,
-        info={
-            "ui_visible": True,
-            "ui_updatable": True
-        }
+        default=False
     )
     itm_rnd: bool = sa.Column(
         ct.Boolean,
@@ -523,6 +516,42 @@ class Item(Base):
     itm_parent: int | None = sa.Column(  # type: ignore
         RefItem
     )
+    itm_pack_spec: str | None = sa.Column(  # type: ignore
+        ct.PackSpec
+    )
+    itm_qst_type: types.question_type_t = sa.Column(
+        QstType,
+        default=types.QUESTION_TYPE_SINGLE,
+        nullable=False
+    )
+    itm_qst_standalone: bool = sa.Column(
+        ct.Boolean,
+        default=False,
+        nullable=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    itm_cho_correct: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=False
+    )
+    itm_cho_last: bool = sa.Column(
+        ct.Boolean,
+        nullable=False,
+        default=False
+    )
+    itm_mcq_mode: types.mcq_mode_t = sa.Column(
+        McqMode,
+        nullable=False,
+        default=types.MCQ_MODE_EXAM,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
     __table_args__ = (
         CheckConstraint(
             ItemType.get_constraint("itm_type")
@@ -531,11 +560,23 @@ class Item(Base):
             ItemDifficulty.get_constraint("itm_difficulty")
         ),
         CheckConstraint(
-            f"not itm_is_mcq or itm_type = {types.ITEM_TYPE_EXERCISE} "
+            QstType.get_constraint("itm_qst_type")
+        ),
+        # it is a pack => pack spec is not null
+        CheckConstraint(
+            f"itm_type <> {types.ITEM_TYPE_PACK} "
+            "or itm_pack_spec is not null"
+        ),
+        # it is an mcq => it is a pack or an exercise
+        CheckConstraint(
+            "not itm_is_mcq "
+            f"or itm_type = {types.ITEM_TYPE_EXERCISE} "
             f"or itm_type = {types.ITEM_TYPE_PACK}"
         ),
+        # no code => it is a choice
         CheckConstraint(
-            f"itm_code is not null or itm_type = {types.ITEM_TYPE_CHOICE}"
+            "itm_code is not null "
+            f"or itm_type = {types.ITEM_TYPE_CHOICE}"
         ),
         CheckConstraint(
             f"itm_parent is not null or itm_type <> {types.ITEM_TYPE_CHOICE}"
@@ -648,109 +689,6 @@ class ItemInstance(Base):
             ["item.itm_id"],
             ondelete="CASCADE"
         )
-    )
-
-
-class Mcq(Base):
-    __tablename__ = "mcq"
-    mcq_id: int = sa.Column(
-        RefItem,
-        primary_key=True
-    )
-    mcq_mode: types.mcq_mode_t = sa.Column(
-        McqMode,
-        nullable=False,
-        default=types.MCQ_MODE_EXAM,
-        info={
-            "ui_visible": True,
-            "ui_updatable": True
-        }
-    )
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["mcq_id"],
-            ["item.itm_id"],
-            ondelete="CASCADE"
-        ),
-    )
-
-
-class Pack(Base):
-    __tablename__ = "pack"
-    pak_id: int = sa.Column(
-        RefItem,
-        primary_key=True
-    )
-    pak_spec: str = sa.Column(
-        ct.PackSpec,
-        nullable=False
-    )
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["pak_id"],
-            ["item.itm_id"],
-            ondelete="CASCADE"
-        ),
-    )
-
-
-class Question(Base):
-    __tablename__ = "question"
-    qst_id: int = sa.Column(
-        RefItem,
-        primary_key=True
-    )
-    qst_type: types.question_type_t = sa.Column(
-        QstType,
-        nullable=False
-    )
-    __table_args__ = (
-        CheckConstraint(
-            QstType.get_constraint("qst_type")
-        ),
-        ForeignKeyConstraint(
-            ["qst_id"],
-            ["item.itm_id"],
-            ondelete="CASCADE"
-        )
-    )
-
-
-class Exercise(Base):
-    __tablename__ = "exercise"
-    exe_id: int = sa.Column(
-        RefItem,
-        primary_key=True
-    )
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["exe_id"],
-            ["item.itm_id"],
-            ondelete="CASCADE"
-        ),
-    )
-
-
-class Choice(Base):
-    __tablename__ = "choice"
-    cho_id: int = sa.Column(
-        RefItem,
-        primary_key=True
-    )
-    cho_correct: bool = sa.Column(
-        ct.Boolean,
-        nullable=False
-    )
-    cho_last: bool = sa.Column(
-        ct.Boolean,
-        nullable=False
-    )
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["cho_id"],
-            ["item.itm_id"],
-            ondelete="CASCADE"
-        ),
     )
 
 
@@ -1025,7 +963,7 @@ class Exam(Base):
         primary_key=True
     )
     exm_mcq: int = sa.Column(
-        RefMcq,
+        RefItem,
         nullable=False,
         info={
             "ui_visible": True,
@@ -1052,7 +990,7 @@ class Exam(Base):
     __table_args__ = (
         ForeignKeyConstraint(
             ["exm_mcq"],
-            ["mcq.mcq_id"],
+            ["item.itm_id"],
             ondelete="CASCADE"
         ),
         CheckConstraint(
@@ -1132,7 +1070,7 @@ class McqGrp(Base):
         primary_key=True
     )
     mgp_mcq: int = sa.Column(
-        RefMcq,
+        RefItem,
         nullable=False
     )
     mgp_grp: int = sa.Column(
@@ -1151,7 +1089,7 @@ class McqGrp(Base):
         ),
         ForeignKeyConstraint(
             ["mgp_mcq"],
-            ["mcq.mcq_id"],
+            ["item.itm_id"],
             ondelete="CASCADE"
         ),
     )
@@ -1226,8 +1164,6 @@ RefItem.col = Item.itm_id
 RefItem.fmt = lambda item: str(item.itm_code)
 RefTag.col = Tag.tag_id
 RefTag.fmt = lambda tag: str(tag.tag_name)
-RefMcq.col = Mcq.mcq_id
-RefMcq.fmt = lambda mcq: str(mcq.mcq_id)
 RefExam.col = Exam.exm_id
 RefExam.fmt = lambda exam: str(exam.exm_id)
 RefRegistration.col = Registration.reg_id

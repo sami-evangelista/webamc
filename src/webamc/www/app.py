@@ -132,7 +132,7 @@ async def route_index(req: fa.Request) -> fa.Response:
         # active exam => redirect to the mcq page
         registration = session.active_registration(ctx)
         if registration is not None:
-            _, _, mcq = registration
-            url = base.mkuri("/mcq/page/form", mcq_id=mcq.mcq_id)
+            _, exam = registration
+            url = base.mkuri("/mcq/page/form", mcq_id=exam.exm_mcq)
             return fa.responses.RedirectResponse(url)
         return index.page(ctx)

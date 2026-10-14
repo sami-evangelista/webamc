@@ -10,21 +10,20 @@ def page(
 ) -> he.Element:
     usr_id = session.usr_id(ctx)
     query = ctx.dbs.query(
-        tables.Mcq,
         tables.Item
     ).where(
-        (tables.Item.itm_id == tables.Mcq.mcq_id)
+        tables.Item.itm_is_mcq
         & (tables.Item.itm_usr == usr_id)
-        & (tables.Mcq.mcq_mode == types.MCQ_MODE_EXAM)
+        & (tables.Item.itm_mcq_mode == types.MCQ_MODE_EXAM)
     ).order_by(
         tables.Item.itm_title
     )
     mcq_options = [
         he.Option(
-            he.Str(str(row.tuple()[1].itm_title)),
-            value=str(row.tuple()[1].itm_id)
+            he.Str(str(item.itm_title)),
+            value=str(item.itm_id)
         )
-        for row in query
+        for item in query
     ]
     if mcq_options == list():
         return he.P(he.Txt("info_no_mcq_available"))

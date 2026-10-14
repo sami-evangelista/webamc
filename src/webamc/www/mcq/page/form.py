@@ -37,27 +37,24 @@ _mcq_content_t = tp.Union[_mcq_content_question_t, _mcq_content_exercise_t]
 
 def page(
         ctx: context.Context,
-        mcq_id: int,
+        itm_id: int,
         iti_num: int | None = None
 ) -> fa.Response:
 
     session.check_logged_in(ctx)
 
-    # get the mcq and the corresponding item
-    mcq_item = queries.get_mcq(ctx.dbs, mcq_id)
-    if mcq_item is None:
-        raise fa.HTTPException(status_code=404)
-    mcq, item = mcq_item
+    # get item
+    item = queries.get_item(ctx.dbs, itm_id)
 
     # if an exam registration is active
     active_registration = session.active_registration(ctx)
     exam: tables.Exam | None = None
     registration: tables.Registration | None = None
     if active_registration is None:
-        session.check_can_view_mcq(ctx, mcq_id)
+        session.check_can_view_mcq(ctx, itm_id)
     else:
-        registration, exam, mcq = active_registration
-        if exam.exm_mcq != mcq_id:
+        registration, exam = active_registration
+        if exam.exm_mcq != itm_id:
             raise fa.HTTPException(status_code=403)
 
     selected_instance = None
@@ -68,7 +65,6 @@ def page(
     # setup and generate the content
     content, choices = _setup(
         ctx,
-        mcq,
         item,
         exam,
         registration,
@@ -137,9 +133,9 @@ def page(
 
     # hidden input containing mcq-id
     hidden_id = he.Input(
-        id_="mcq_id",
+        id_="itm_id",
         type_="hidden",
-        value=mcq.mcq_id
+        value=item.itm_id
     )
     elements.append(hidden_id)
 
@@ -258,7 +254,6 @@ def _gen_mcq_content(
 
 def _setup(
         ctx: context.Context,
-        mcq: tables.Mcq,
         item: tables.Item,
         exam: None | tables.Exam,
         registration: None | tables.Registration,
@@ -283,7 +278,7 @@ def _setup(
     if exam_sub is not None:
         content = tp.cast(_mcq_content_t, json.loads(exam_sub.exs_content))
         choices = [
-            c.cho_id
+            c.itm_id
             for c in queries.get_submission_choices(ctx.dbs, exam_sub.exs_id)
         ]
     else:
@@ -310,11 +305,9 @@ def _form_question(
         iti_num: int | None,
         form_ctx: _form_ctx_t
 ) -> he.Element:
+
     form_ctx["qst_id"] = item.itm_id
     form_ctx["qst_num"] += 1
-
-    # getting question from database
-    qst = queries.get_question(ctx.dbs, item.itm_id)
 
     box_status = he.Div(
         id_=f"qst_{item.itm_id}_status",
@@ -331,25 +324,25 @@ def _form_question(
     tbl_status = he.Table(he.Tr(he.Td(box_status), he.Td(lbl_status)))
 
     # generate choices
-    cho_list = list(queries.get_question_choices(ctx.dbs, item.itm_id))
+    cho_list = list(queries.get_children(ctx.dbs, item.itm_id))
     form_ctx["content"][form_ctx["exe_id"]][form_ctx["qst_id"]] = [
-        int(cho.cho_id) for cho in cho_list
+        int(cho.itm_id) for cho in cho_list
     ]
 
     if item.itm_rnd:
-        cho_list_first = [cho for cho in cho_list if not cho.cho_last]
-        cho_list_last = [cho for cho in cho_list if cho.cho_last]
+        cho_list_first = [cho for cho in cho_list if not cho.itm_cho_last]
+        cho_list_last = [cho for cho in cho_list if cho.itm_cho_last]
         random.shuffle(cho_list_first)
         random.shuffle(cho_list_last)
         cho_list = cho_list_first + cho_list_last
 
-    tbl_rows: list[he.Tr] = list()
+    trs: list[list[he.Element]] = list()
     for cho in cho_list:
-        img_file_path = base.img_src(ctx, cho.cho_id, iti_num)
+        img_file_path = base.img_src(ctx, cho.itm_id, iti_num)
 
-        box_id = f"cho_{cho.cho_id}"
+        box_id = f"cho_{cho.itm_id}"
         box_name = f"cho_{item.itm_id}"
-        if qst.qst_type == types.QUESTION_TYPE_MULTI:
+        if item.itm_qst_type == types.QUESTION_TYPE_MULTI:
             box_type = "checkbox"
         else:
             box_type = "radio"
@@ -363,21 +356,15 @@ def _form_question(
         img = he.Label(
             he.Img(
                 src=img_file_path,
-                alt=f"cho-{cho.cho_id}"
+                alt=f"cho-{cho.itm_id}"
             ), for_=box_id
         )
 
         result_box = he.Div(
-            id_=f"cho_{cho.cho_id}_status",
+            id_=f"cho_{cho.itm_id}_status",
             class_="status-box status-box-choice"
         )
-        tbl_rows.append(
-            he.Tr(
-                he.Td(result_box),
-                he.Td(box),
-                he.Td(img)
-            )
-        )
+        trs.append([result_box, box, img])
 
     div_body = he.Div(
         he.Img(
@@ -388,7 +375,7 @@ def _form_question(
             ),
             alt=f"qst-{item.itm_id}"
         ),
-        he.Table(*tbl_rows),
+        he.mktable(trs),
         id_=f"qst_{item.itm_id}_body",
         class_="question-body"
     )

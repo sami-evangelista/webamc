@@ -17,11 +17,11 @@ col_desc_exm_start;start
 col_desc_grp_id;#
 col_desc_grp_name;name
 col_desc_grp_parent;parent
+col_desc_itm_pack_spec;pack
 col_desc_itm_code;identifier
 col_desc_itm_date;creation date
 col_desc_itm_difficulty;difficulty
 col_desc_itm_rnd;random
-col_desc_itm_standalone;standalone
 col_desc_itm_title;title
 col_desc_itm_type;type
 col_desc_itm_usr;user
@@ -31,8 +31,8 @@ col_desc_loc_id;#
 col_desc_loc_login;login
 col_desc_loc_password;password
 col_desc_loc_usr;user
-col_desc_mcq_mode;mode
-col_desc_pak_spec;pack
+col_desc_itm_mcq_mode;mode
+col_desc_itm_qst_standalone;standalone
 col_desc_tag_color;color
 col_desc_tag_desc;description
 col_desc_tag_id;#
@@ -60,6 +60,8 @@ err_data_required;A parameter is required to perform this action.
 err_db_invalid_request;Invalid request.
 err_db_invalid_values;Invalid values.
 err;Error.
+err_exam_access_denied;You are not allowed to access this exam.
+err_exam_not_found;Exam could not be found.
 err_file_required;A file is required to perform this action.
 err_http_403;403 Error - Unauthorized access !!!
 err_http_404;404 Error - File not found !!!
@@ -73,8 +75,6 @@ err_item_admin_empty_archive;The archive is empty.
 err_mail_file_not_found;Mail file not found.
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
-err_exam_access_denied;You are not allowed to access this exam.
-err_exam_not_found;Exam could not be found.
 err_project_already_exists;A project with the same code already exists.
 err_project_amc_not_installed;AMC does not seem to be installed on the system.
 err_project_check_log_file;An error occured. Please check the log file.
@@ -85,6 +85,8 @@ err_project_missing_or_invalid_parameter;Parameter missing or invalid.
 err_project_not_a_zip_file;This does not look like a zip file.
 err_unknown_eaddr;Unknown email address.
 err_wrong_credentials;Wrong credentials.
+word_help;help
+col_desc_itm_qst_type;question type
 header_authentication_account_creation;Account creation
 header_authentication_cas;Authentication by a server
 header_authentication_local;Local authentication
@@ -97,44 +99,6 @@ info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 msg_file_list_exam;List of files associated with the exam.
 msg_no_data_exam;No data available for the exam.
-word_action;action
-word_actions;actions
-word_archive;archive
-word_confirmation;confirmation
-word_content;content
-word_copies;sheets
-word_dashboard;dashboard
-word_date;date
-word_details;details
-word_exam;exam
-word_exercise;exercise
-word_file;File
-word_file_name;File name
-word_groups;groups
-word_login;Login
-word_mcq;MCQ
-word_minutes;minutes
-word_mod_date;Modification date
-word_no;no
-word_page;page
-word_parameters;parameters
-word_progress;progress
-word_question;question
-word_review;review
-word_rights;rights
-word_sender;sender
-word_size;taille
-word_statement;statement
-word_status;status
-word_student;student
-word_submission;submission
-word_table;table
-word_tags;tags
-word_threshold;threshold
-word_title;title
-word_type;type
-word_view;view
-word_yes;yes
 op_after;after
 op_before;before
 op_diff;different from
@@ -268,18 +232,70 @@ tbl_desc_tbl;tbl
 tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
+warning_exam_deletion_forbidden;Warning: this exam cannot be deleted as users have been registered for it.
+word_action;action
+word_actions;actions
 word_add;add
 word_administrate;administrate
 word_answer;answer
+word_archive;archive
 word_cancel;cancel
 word_close;close
+word_confirmation;confirmation
+word_content;content
+word_copies;sheets
 word_create;create
+word_dashboard;dashboard
+word_date;date
 word_delete;delete
 word_detach;detach
+word_details;details
+word_exam;exam
+word_exercise;exercise
+word_file;File
+word_file_name;File name
 word_filter;filter
+word_groups;groups
+word_login;Login
+word_mcq;MCQ
+word_minutes;minutes
+word_mod_date;Modification date
+word_no;no
+word_page;page
+word_parameters;parameters
+word_progress;progress
+word_question;question
 word_restart;restart
+word_review;review
+word_rights;rights
+word_sender;sender
 word_send;send
+word_size;taille
 word_start;start
+word_statement;statement
+word_status;status
+word_student;student
+word_submission;submission
+word_table;table
+word_tags;tags
+word_threshold;threshold
+word_title;title
+word_type;type
 word_update;update
 word_validate;validate
-warning_exam_deletion_forbidden;Warning: this exam cannot be deleted as users have been registered for it.
+word_view;view
+word_yes;yes
+seq_pack_delete_all_box;Delete the box and its content
+seq_pack_delete_box;Delete the box
+seq_pack_reverse_selection;Reverse selection
+seq_pack_take_all;Take all questions
+seq_pack_take_by_difficulty;Select questions based on their level of difficulty.
+seq_pack_take_by_tag;Select questions based on their tag(s)
+seq_pack_take_head;Take a certain number of questions 
+seq_pack_take_shuf;Randomize the order of the questions
+seq_pack_take_sort;Sort questions
+seq_qst_type_single;one choice
+seq_content_type;content type
+seq_exercise_list;exercise list
+seq_qst_type_multi;several choices
+seq_question_pack;question pack

@@ -24,7 +24,7 @@ def get_viewable_mcqs(
         dbs: Session,
         usr_id: int,
         grp_ids: set[int]
-) -> list[tuple[tables.Mcq, tables.Item, tables.Usr]]:
+) -> list[tuple[tables.Item, tables.Usr]]:
     """Return the list of MCQs the user identified by usr_id can view.
 
     grp_ids is the set of group ids the user has view access on.
@@ -35,19 +35,18 @@ def get_viewable_mcqs(
 
     """
     query = dbs.query(
-        tables.Mcq,
         tables.Item,
         tables.Usr
     ).where(
-        (tables.Mcq.mcq_id == tables.Item.itm_id)
+        tables.Item.itm_is_mcq
         & (tables.Item.itm_usr == tables.Usr.usr_id)
         & (
             (tables.Item.itm_usr == usr_id)  # (1)
             | (
-                (tables.Mcq.mcq_mode == types.MCQ_MODE_REVIEW)  # (2.1)
+                (tables.Item.itm_mcq_mode == types.MCQ_MODE_REVIEW)  # (2.1)
                 & (tables.Item.itm_visible)  # (2.2)
                 & (
-                    tables.Mcq.mcq_id.in_(
+                    tables.Item.itm_id.in_(
                         dbs.query(
                             tables.McqGrp.mgp_mcq
                         ).where(
@@ -61,26 +60,6 @@ def get_viewable_mcqs(
         tables.Item.itm_title
     )
     return [row.tuple() for row in query]
-
-
-def get_question(
-        dbs: Session,
-        qst_id: int
-) -> tables.Question:
-    result = dbs.query(tables.Question).where(
-        tables.Question.qst_id == qst_id
-    ).first()
-    assert result is not None
-    return result
-
-
-def get_pack(
-        dbs: Session,
-        pak_id: int
-) -> tables.Pack:
-    result = dbs.query(tables.Pack).where(tables.Pack.pak_id == pak_id).first()
-    assert result is not None
-    return result
 
 
 def get_active_registration(
@@ -144,14 +123,12 @@ def get_grps_usrs(
 def get_usr_exams(
         dbs: Session,
         usr_id: int
-) -> list[tuple[tables.Mcq, tables.Item, tables.Exam]]:
+) -> list[tuple[tables.Item, tables.Exam]]:
     query = dbs.query(
-        tables.Mcq,
         tables.Item,
         tables.Exam
     ).where(
-        (tables.Exam.exm_mcq == tables.Mcq.mcq_id)
-        & (tables.Exam.exm_mcq == tables.Item.itm_id)
+        (tables.Exam.exm_mcq == tables.Item.itm_id)
         & (tables.Item.itm_usr == usr_id)
     ).order_by(
         tables.Exam.exm_start.desc()
@@ -325,9 +302,9 @@ def gen_pack_questions(
                 tables.Item
             ).where(
                 tables.Item.itm_visible
-                & (tables.Item.itm_id == tables.Question.qst_id)
+                & (tables.Item.itm_type == types.ITEM_TYPE_QUESTION)
+                & (tables.Item.itm_qst_standalone)
                 & (tables.Item.itm_usr == usr_id)
-                & (tables.Item.itm_standalone)
                 & (tables.Item.itm_id.not_in(not_in))
             )
         all_op: types.pack_spec_t = {"op": "all"}
@@ -369,30 +346,35 @@ def gen_pack_questions(
             )
         return result
     assert item.itm_type == types.ITEM_TYPE_PACK
-    pack = get_pack(dbs, item.itm_id)
-    spec = json.loads(pack.pak_spec)
+    assert item.itm_pack_spec is not None
+    spec = json.loads(item.itm_pack_spec)
     return traverse(spec).all()
 
 
 def get_submission_choices(
         dbs: Session,
         sub_id: int
-) -> list[tables.Choice]:
+) -> list[tables.Item]:
     return dbs.query(
-        tables.Choice
+        tables.Item
     ).join(
         tables.ItemInstance,
-        tables.ItemInstance.iti_item == tables.Choice.cho_id
+        tables.ItemInstance.iti_item == tables.Item.itm_id
     ).join(
         tables.Answer,
         tables.Answer.ans_instance == tables.ItemInstance.iti_id
     ).where(
-        tables.Answer.ans_submission == sub_id
+        (tables.Answer.ans_submission == sub_id)
+        & (tables.Item.itm_type == types.ITEM_TYPE_CHOICE)
     ).all()
 
 
-def get_children(dbs: Session, itm_id: int) -> list[tables.Item]:
-    return dbs.query(
+def get_children(
+        dbs: Session,
+        itm_id: int,
+        child_type: None | types.item_type_t = None
+) -> list[tables.Item]:
+    result = dbs.query(
         tables.Item
     ).where(
         (tables.ItemRelation.itr_parent == itm_id)
@@ -400,6 +382,9 @@ def get_children(dbs: Session, itm_id: int) -> list[tables.Item]:
     ).order_by(
         tables.ItemRelation.itr_order
     ).all()
+    if child_type is not None:
+        assert all(it.itm_type == child_type for it in result)
+    return result
 
 
 def get_item(dbs: Session, itm_id: int) -> tables.Item:
@@ -408,29 +393,14 @@ def get_item(dbs: Session, itm_id: int) -> tables.Item:
     return result
 
 
-def get_item_mcq(dbs: Session, itm_id: int) -> None | tables.Mcq:
-    return dbs.query(tables.Mcq).where(tables.Mcq.mcq_id == itm_id).first()
-
-
-def get_mcq_grps(dbs: Session, mcq_id: int) -> list[tables.Grp]:
+def get_mcq_grps(dbs: Session, itm_id: int) -> list[tables.Grp]:
     return dbs.query(
         tables.Grp
     ).where(
-        (tables.McqGrp.mgp_mcq == mcq_id)
+        (tables.McqGrp.mgp_mcq == itm_id)
         & (tables.McqGrp.mgp_grp == tables.Grp.grp_id)
     ).order_by(
         tables.Grp.grp_name
-    ).all()
-
-
-def get_question_choices(dbs: Session, qst_id: int) -> list[tables.Choice]:
-    return dbs.query(
-        tables.Choice
-    ).where(
-        (tables.ItemRelation.itr_parent == qst_id)
-        & (tables.ItemRelation.itr_child == tables.Choice.cho_id)
-    ).order_by(
-        tables.ItemRelation.itr_order
     ).all()
 
 
@@ -504,22 +474,6 @@ def get_item_tags(dbs: Session, itm_id: int) -> list[tables.Tag]:
     ).order_by(
         tables.Tag.tag_name
     ).all()
-
-
-def get_mcq(
-        dbs: Session,
-        mcq_id: int
-) -> None | tuple[tables.Mcq, tables.Item]:
-    result = dbs.query(
-        tables.Mcq,
-        tables.Item
-    ).where(
-        (tables.Mcq.mcq_id == mcq_id)
-        & (tables.Mcq.mcq_id == tables.Item.itm_id)
-    ).first()
-    if result is None:
-        return None
-    return result.tuple()
 
 
 def get_tbl(dbs: Session, tbl_id: int) -> None | tables.Tbl:
@@ -652,7 +606,7 @@ def get_student_detailed_scores(
     return result
     """
 
-def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Question]:
+def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Item]:
     return list()
 """
     direct_items = dbs.query(tables.Item.itm_id).filter(

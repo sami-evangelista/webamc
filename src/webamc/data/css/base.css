@@ -303,23 +303,23 @@ input,select {
     text-justify: inter-word;
 }
 #img-tooltip-help-close-button {
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
     position: absolute;
 }
-#div-tooltip-help-title {
-    font-weight: bold;
-    font-size: large; 
-    padding-bottom: 20px;
-}
 #div-tooltip-help-body {
-    max-height: 400px;
     overflow-y: auto;
+    max-height: 500px;
+    padding-right: 10px;
 }
-
 .help-tooltip {
     border-bottom: 3px dotted black;
     cursor: help;
+}
+#img-main-help {
+    position: fixed;
+    top: 10px;
+    right: 10px;
 }
 
 .tag-color-box {

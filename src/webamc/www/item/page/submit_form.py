@@ -22,7 +22,6 @@ def page(
     p_zip_file = he.P(
         base.mkhelp(
             he.Span(he.Txt("seq_zip_file")),
-            "seq_zip_file",
             "item_submit"
         ),
         input_zip

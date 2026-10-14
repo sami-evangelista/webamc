@@ -38,16 +38,16 @@ const mcq_set_status = function (html_id, status = null) {
 
 const mcq_collect_answers = function () {
     const result = {
-        'mcq_id': parseInt($('#mcq_id').val()),
-	'mcq_choices': {},
-	'mcq_questions': {}
+        'itm_id': parseInt($('#itm_id').val()),
+	'choices': {},
+	'questions': {}
     };
     for(let qst_id in mcq_qst_content) {
-	result['mcq_questions'][qst_id] = {};
+	result['questions'][qst_id] = {};
         for(const cho_id of mcq_qst_content[qst_id]) {
             const checked = $('#cho_' + cho_id).is(':checked');
-            result['mcq_choices'][cho_id] = checked;
-	    result['mcq_questions'][qst_id][cho_id] = checked;
+            result['choices'][cho_id] = checked;
+	    result['questions'][qst_id][cho_id] = checked;
 	}
     }
     return result;
@@ -73,7 +73,7 @@ const mcq_post_form = function () {
     };
     const data = mcq_collect_answers();
     const url = Constants.path_mcq_oper_correction
-          + '?mcq_id=' + data['mcq_id'];
+          + '?itm_id=' + data['itm_id'];
     xhr_post_oper(url, data, success);
 }
 

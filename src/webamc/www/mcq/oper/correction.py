@@ -9,8 +9,8 @@ def data(
         mcq_result: router.args_mcq_result_t
 ) -> fa.Response:
 
-    mcq_id = mcq_result["mcq_id"]
-    session.check_can_view_mcq(ctx, mcq_id)
+    itm_id = mcq_result["itm_id"]
+    session.check_can_view_mcq(ctx, itm_id)
 
     usr_id = session.usr_id(ctx)
 
@@ -24,13 +24,13 @@ def data(
     rvs = tables.ReviewSubmission(
         rvs_id=sub.sub_id,
         rvs_usr=usr_id,
-        rvs_mcq=mcq_id
+        rvs_mcq=itm_id
     )
     ctx.dbs.add(rvs)
     ctx.dbs.flush()
 
     # save selected answers for each question
-    for qst_id, qst_choices in mcq_result.get("mcq_questions", {}).items():
+    for qst_id, qst_choices in mcq_result.get("questions", {}).items():
         qst_id_int = int(qst_id)
 
         # get default instance (num 1) or fallback to first available
@@ -78,26 +78,20 @@ def data(
         "cho": dict(),
         "qst": dict()
     }
-    for cho_id, cho_checked in mcq_result["mcq_choices"].items():
+    for cho_id, cho_checked in mcq_result["choices"].items():
         row = ctx.dbs.query(
-            tables.Choice,
+            tables.Item,
             tables.ItemRelation
         ).where(
-            (tables.Choice.cho_id == int(cho_id))
-            & (tables.Choice.cho_id == tables.ItemRelation.itr_child)
+            (tables.Item.itm_id == int(cho_id))
+            & (tables.Item.itm_id == tables.ItemRelation.itr_child)
         ).first()
         assert row is not None
         choice, relation = row.tuple()
-        cho_correct = bool(choice.cho_correct)
         qst_id = relation.itr_parent
-        correct = cho_checked == cho_correct
+        correct = cho_checked == choice.itm_cho_correct
         corr["qst"].setdefault(qst_id, True)
         corr["cho"][cho_id] = correct
         corr["qst"][qst_id] = corr["qst"][qst_id] and correct
 
-    response = {
-        "success": True,
-        "msgs": list(),
-        "result": corr
-    }
-    return fa.responses.JSONResponse(response)
+    return base.wrap_code("succ", result=corr)

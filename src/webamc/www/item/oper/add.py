@@ -9,37 +9,26 @@ def data(ctx: context.Context, args: router.args_oper_add_t) -> fa.Response:
     itm_code = args["itm_code"]
     itm_title = args["itm_title"]
 
+    if itm_type == types.ITEM_TYPE_PACK:
+        itm_pack_spec = ""
+    else:
+        itm_pack_spec = json.dumps({"op": "all"})
+
     # insert into item
     item = tables.Item(
         itm_code=itm_code,
         itm_title=itm_title,
-        itm_standalone=True,
         itm_type=itm_type,
         itm_rnd=False,
         itm_difficulty=None,
         itm_usr=session.usr_id(ctx),
         itm_visible=True,
-        itm_is_mcq=itm_is_mcq
+        itm_is_mcq=itm_is_mcq,
+        itm_pack_spec=itm_pack_spec
     )
     ctx.dbs.add(item)
     ctx.dbs.flush()
     ctx.dbs.refresh(item)
-
-    # insert into pack or exercise
-    if itm_type == types.ITEM_TYPE_PACK:
-        pak_spec: types.pack_spec_t = {"op": "all"}
-        pack = tables.Pack(
-            pak_id=item.itm_id,
-            pak_spec=json.dumps(pak_spec)
-        )
-        ctx.dbs.add(pack)
-    elif itm_type == types.ITEM_TYPE_EXERCISE:
-        exe = tables.Exercise(
-            exe_id=item.itm_id
-        )
-        ctx.dbs.add(exe)
-    else:
-        assert False
 
     # insert into instance
     inst = tables.ItemInstance(
@@ -48,12 +37,5 @@ def data(ctx: context.Context, args: router.args_oper_add_t) -> fa.Response:
         iti_seed=0
     )
     ctx.dbs.add(inst)
-
-    # insert into mcq
-    if itm_is_mcq:
-        mcq = tables.Mcq(
-            mcq_id=item.itm_id
-        )
-        ctx.dbs.add(mcq)
 
     return base.wrap_code("succ", result={"itm_id": item.itm_id})

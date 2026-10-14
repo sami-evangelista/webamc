@@ -29,8 +29,8 @@ def data(
     content_tree = json.loads(exam_sub.exs_content)
     itm_to_itinum = {}
 
-    # private function to map all the answers
-    # it's save the question id with the instance num in a dict
+    # private function to map all the answers. it saves the question
+    # id with the instance num in a dict
     def map_instances(node: dict[str, tp.Any]) -> None:
         if "iti_num" in node:
             itm_to_itinum[node["itm_id"]] = node["iti_num"]
@@ -41,7 +41,7 @@ def data(
     map_instances(content_tree)
 
     # insert new answers
-    for qst_id, qst_choices in mcq_result["mcq_questions"].items():
+    for qst_id, qst_choices in mcq_result["questions"].items():
         # get the instance num with the question id
         iti_num = itm_to_itinum.get(qst_id, 1)
 

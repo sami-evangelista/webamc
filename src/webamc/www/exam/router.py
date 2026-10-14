@@ -21,13 +21,13 @@ args_oper_register_group_t = tp_ext.TypedDict("args_oper_register_group_t", {
 def _get_exam(
         ctx: context.Context,
         exm_id: int
-) -> tuple[tables.Mcq, tables.Item, tables.Exam]:
+) -> tuple[tables.Item, tables.Exam]:
     result = next(
-        (mcq_item_exam
-         for mcq_item_exam in queries.get_usr_exams(
+        (item_exam
+         for item_exam in queries.get_usr_exams(
                  ctx.dbs, session.usr_id(ctx)
          )
-         if mcq_item_exam[2].exm_id == exm_id), None
+         if item_exam[1].exm_id == exm_id), None
     )
     if result is None:
         raise fa.HTTPException(status_code=403)

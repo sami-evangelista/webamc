@@ -17,7 +17,7 @@ def data(
         raise fa.HTTPException(status_code=422)
     if args["grp_id"] not in session.usr_submit_groups(ctx):
         raise fa.HTTPException(status_code=403)
-    _, _, exam = router._get_exam(ctx, args["exm_id"])
+    _, exam = router._get_exam(ctx, args["exm_id"])
     grps = queries.get_grp_tree(ctx.dbs, args["grp_id"])
     usrs = set(
         usr.usr_id
@@ -40,11 +40,11 @@ def data(
             reg_exam=exam.exm_id
         )
         ctx.dbs.add(reg)
-    return fa.responses.JSONResponse({
+
+    txt = lang.txt("param_seq_registrations_done", str(len(usrs - usrs_prev)))
+    response = {
         "success": True,
-        "msgs": [
-            lang.txt("param_seq_registrations_done")
-            % str(len(usrs - usrs_prev))
-        ],
+        "msgs": [txt],
         "result": None
-    })
+    }
+    return fa.responses.JSONResponse(response)
