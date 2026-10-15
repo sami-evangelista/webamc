@@ -93,16 +93,32 @@ def route_page_main(
         sub_page: None | str = None,
         itm_id: None | int = None
 ) -> fa.Response:
-    from .page import database, submit_form, add, groups
+    from .page import database, submit, add, groups
     layout: base.page_layout_t = {
         "title": "page_title_item",
         "path": "/item/page/main",
         "default": "database",
         "sub_pages": {
-            "database": (False, "database", database.page),
-            "submit_form": (False, "upload", submit_form.page),
-            "add": (True, "add", add.page),
-            "groups": (False, "group", groups.page)
+            "database": {
+                "dev": False,
+                "img": "database",
+                "gen": database.page
+            },
+            "submit": {
+                "dev": False,
+                "img": "upload",
+                "gen": submit.page
+            },
+            "add": {
+                "dev": True,
+                "img": "add",
+                "gen": add.page
+            },
+            "groups": {
+                "dev": False,
+                "img": "group",
+                "gen": groups.page
+            }
         }
     }
     with context.Context(req) as ctx:

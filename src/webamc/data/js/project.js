@@ -1,28 +1,6 @@
-var project_computing = false;
-var project_wait_modal = null;
 var project_groups = null;
 var project_usr_groups = {};
 var project_status = {};
-
-
-const project_start_computation = function () {
-    project_computing = true;
-    project_wait_modal = alertify
-        .alert(Lang['info_please_wait'])
-        .set('modal', true)
-        .set('closable', false)
-        .set('frameless', true);
-    project_wait_modal.elements.dialog.classList.add('please_wait');
-}
-
-
-const project_end_computation = function () {
-    project_computing = false
-    if(project_wait_modal) {
-        project_wait_modal.close();
-        project_wait_modal = null;
-    }
-}
 
 
 const project_highlight_errors = function (ids) {
@@ -154,41 +132,40 @@ const project_load_project = function () {
 
 const project_upload_action = function (action, file_id) {
     const file_content = $('#' + file_id).prop('files')[0];
-    if(project_computing
-       || !project_check_doable(action)
-       || !file_content) {
+    if(!(project_check_doable(action) && file_content)) {
         return;
     }
-    const project_code = $('#project_code').val();
-    const form_data = new FormData();
-    const url = Constants.path_project_oper_upload;
-    const success = function(response) {
-        base_report(response.msgs, response.success);
-        project_init();
-    }
-    project_start_computation();
-    form_data.append('action', action);
-    form_data.append('file_content', file_content);
-    form_data.append('project_code', project_code);
-    const query = {
-        url: url,
-        type: 'POST',
-        data: form_data,
-        processData: false,
-        contentType: false,
-	error: xhr_error,
-	success: success,
-        complete: project_end_computation
+    const comp = async function() {
+        const project_code = $('#project_code').val();
+        const form_data = new FormData();
+        const url = Constants.path_project_oper_upload;
+        const success = function(response) {
+            base_report(response.msgs, response.success);
+            project_init();
+        }
+        form_data.append('action', action);
+        form_data.append('file_content', file_content);
+        form_data.append('project_code', project_code);
+        const query = {
+            url: url,
+            type: 'POST',
+            data: form_data,
+	    success: success,
+	    error: xhr_error,
+            contentType: false,
+            processData: false
+        };
+        await $.ajax(query);
     };
-    $.ajax(query);
+    base_launch_computation(comp);
 }
 
 
 const project_action = function (action, params = null) {
-    if(project_computing || !project_check_doable(action)) {
+    if(!project_check_doable(action)) {
         return;
     }
-    const go  = function () {
+    const comp = async function () {
         const url = Constants.path_project_oper_action;
         const data = {
             'action': action,
@@ -210,11 +187,22 @@ const project_action = function (action, params = null) {
                 data['action_params'][key] = val;
             }
         }
-        project_start_computation();
-        xhr_post(url, success, data, 'json', project_end_computation);
+        const query = {
+            url: url,
+            type: 'POST',
+            data: JSON.stringify(data),
+            success: success,
+	    error: xhr_error,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json'
+        };
+        await $.ajax(query);
     };
-    const txt = 'qst_confirmation_project_' + action;
-    if(txt in Lang && project_status.warning[action]) {
+    const go = function () {
+        base_launch_computation(comp);
+    };
+    if(project_status.warning[action]) {
+        const txt = 'qst_confirmation_project_' + action;
         base_ask_confirmation(Lang[txt], go);
     } else {
         go();

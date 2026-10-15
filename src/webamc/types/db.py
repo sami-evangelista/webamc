@@ -51,4 +51,3 @@ db_query_t = tp_ext.TypedDict(
     },
     total=False
 )
-

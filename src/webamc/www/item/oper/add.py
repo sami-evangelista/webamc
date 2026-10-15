@@ -1,6 +1,6 @@
 from webamc.www.all import *
 from webamc.www.item import router
-from webamc.db import tables, errors as db_errors
+from webamc.db import tables
 
 
 def data(ctx: context.Context, args: router.args_oper_add_t) -> fa.Response:

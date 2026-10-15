@@ -106,11 +106,11 @@ op_gt;greater than
 op_like;contains
 op_lt;less than
 op_notlike;does not contain
-page_title_administration;administration
-page_title_administration_database;database
-page_title_administration_submit_form;submission
-page_title_authentication_account_creation;account creation
-page_title_authentication;authentication
+page_title_admin;administration
+page_title_admin_database;database
+page_title_admin_submit;submission
+page_title_auth_account_creation;account creation
+page_title_auth;authentication
 page_title_eaddr_change;Email address change
 page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
@@ -122,13 +122,12 @@ page_title_item_add;creation
 page_title_item_database;database
 page_title_item_groups;groups
 page_title_item;Online MCQ
-page_title_item_submit_form;submission
+page_title_item_submit;submission
 page_title_password_change;password change
 page_title_profile_group;group membership
 page_title_profile_personal_data;personal data
 page_title_profile;profile
 page_title_project;AMC projects
-page_title_project_main;AMC projects
 page_title_signout;signout
 page_title_stats;statistics
 page_title_ticket_error;ticket error
@@ -151,7 +150,7 @@ qst_confirmation_mcq_form;Do you confirm the submission of your answers ?
 qst_confirmation_project_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
 qst_confirmation_project_clean_associations;Do you confirm the deletion of the association sheet/student ?
 qst_confirmation_project_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
-qst_confirmation_project_deletion;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
+qst_confirmation_project_delete;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_restart_mcq;Would you like to restart the MCQ ?
 seq_administrate_this_mcq;administrate this MCQ
 seq_analyse_answer_sheets;analyse answer sheets

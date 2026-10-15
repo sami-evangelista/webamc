@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables, queries
+from webamc.db import tables
 from webamc.www.db import util as www_db_util
 
 

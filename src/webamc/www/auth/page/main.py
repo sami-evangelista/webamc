@@ -93,6 +93,6 @@ def page(ctx: context.Context) -> fa.Response:
 
     return base.page(
         ctx,
-        "page_title_authentication",
+        "page_title_auth",
         he.ElementList(*elements)
     )

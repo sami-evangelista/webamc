@@ -208,12 +208,4 @@ def _content_question(
         he.mktable(trs),
         class_="question-body-admin"
     )
-
-    """
-    qst = queries.get_question(ctx.dbs, item.itm_id)
-    trs += [
-        base.field_label(he.Txt(desc.col_desc())),
-        www_db_util.get_attribute(ctx, col, qst.qst_standalone, item.itm_id)
-    ]
-    """
     return div_choices

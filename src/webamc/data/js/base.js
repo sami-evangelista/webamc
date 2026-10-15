@@ -1,5 +1,7 @@
 const base_anim_delay = 400;
 const base_tooltip_time = 3;
+var base_computing = false;
+var base_wait_modal = null;
 
 
 const base_img_src = function (file_name) {
@@ -66,7 +68,7 @@ const base_input_values = function (selector) {
     const result = {};
     const add_arg = function () {
         const str_to_number = function (val, parser) {
-            var result = parser(val);
+            let result = parser(val);
             if(isNaN(result)) {
                 result = null;
                 $(this).val('');
@@ -77,7 +79,7 @@ const base_input_values = function (selector) {
 	if(name == null) {
 	    return;
 	}
-	var val;
+	let val;
 
         // get the element value
         if($(this).is('[type="checkbox"]')) {
@@ -140,8 +142,10 @@ $(document).ready(function() {
 
 const base_submit_file = function (id_file, url, div_submit_result) {
     const content = $('#' + id_file).prop('files')[0];
-    if(content) {
-        const form_data = new FormData();
+    if(!content) {
+        return;
+    }
+    const computation = async function() { 
         const success = function (result) {
             if(!result.success) {
                 base_report_errors(result.msgs);
@@ -179,8 +183,9 @@ const base_submit_file = function (id_file, url, div_submit_result) {
                 $('#' + div_submit_result).html(html);
             }
         }
+        const form_data = new FormData();
         form_data.append(id_file, content);
-        $.ajax({
+        await $.ajax({
             url: url,
             type: 'POST',
             data: form_data,
@@ -189,7 +194,8 @@ const base_submit_file = function (id_file, url, div_submit_result) {
 	    error: xhr_error,
 	    success: success
         });
-    }
+    };
+    base_launch_computation(computation);
 }
 
 
@@ -213,4 +219,25 @@ const base_help_open = function (help, section) {
 const base_popup_help_close = function () {
     $('#div-tooltip-help-body').html();
     $('#div-tooltip-help').fadeOut(base_anim_delay);
+}
+
+
+const base_launch_computation = async function (comp) {
+    if(base_computing) {
+        return;
+    }
+    let future = comp();
+    base_computing = true;
+    base_wait_modal = alertify
+        .alert(Lang['info_please_wait'])
+        .set('modal', true)
+        .set('closable', false)
+        .set('frameless', true);
+    base_wait_modal.elements.dialog.classList.add('please_wait');
+    await future;
+    base_computing = false;
+    if(base_wait_modal) {
+        base_wait_modal.close();
+        base_wait_modal = null;
+    }
 }

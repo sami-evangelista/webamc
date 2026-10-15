@@ -12,11 +12,14 @@ from . import html_elements as he, session, context, mtype
 sub_page_generator_t = tp.Callable[
     tp.Concatenate[context.Context, ...], he.Element
 ]
-sub_page_spec_t = tuple[
-    bool,
-    types.static_img_t,
-    sub_page_generator_t
-]
+sub_page_spec_t = tp_ext.TypedDict(
+    "sub_page_spec_t",
+    {
+        "dev": bool,
+        "img": types.static_img_t,
+        "gen": sub_page_generator_t
+    }
+)
 page_layout_t = tp_ext.TypedDict(
     "page_layout_t",
     {
@@ -26,6 +29,7 @@ page_layout_t = tp_ext.TypedDict(
         "sub_pages": dict[str, sub_page_spec_t]
     }
 )
+page_title_t = str | types.txt_t
 menu_item_t = tuple[
     tp.Callable[[context.Context], bool],
     bool,
@@ -78,7 +82,7 @@ menu_items: list[menu_item_t] = [
     (session.is_admin,
      False,
      "settings",
-     "page_title_administration",
+     "page_title_admin",
      "/admin/page/main"),
     (lambda ctx: True,
      True,
@@ -130,10 +134,9 @@ def base_head() -> he.Element:
 
 def page(
         ctx: context.Context,
-        title: str | types.txt_t,
+        title: page_title_t | tuple[page_title_t, ...],
         body: he.Element,
-        side_buttons: None | list[he.Element] = None,
-        help_page: None | types.help_t = None
+        side_buttons: None | list[he.Element] = None
 ) -> fa.Response:
 
     # menu (none if not connected)
@@ -155,9 +158,15 @@ def page(
         )
 
     # head information
-    if title in types.literal_type_values(types.txt_t):
-        title = fmt.fmt_title(lang.txt(tp.cast(types.txt_t, title)))
-    etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title}"))
+    if not isinstance(title, tuple):
+        title = (title, )
+    title_str = " / ".join(
+        fmt.fmt_title(lang.txt(tp.cast(types.txt_t, t)))
+        if t in types.literal_type_values(types.txt_t)
+        else t
+        for t in title
+    )
+    etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title_str}"))
 
     # if side buttons are given, divide the page with a sidebar and a
     # mainpanel
@@ -175,7 +184,10 @@ def page(
         )
         body = he.ElementList(div_sidebar, div_mainpanel)
 
-    # help div and help button
+    # help div and help button. we check if there is an help page for
+    # this page. the page title text is in the form
+    # page_title_XXX. there is an help page if XXX belongs to the
+    # literal type types.help_t values
     img_close_help = static_img(
         "dismiss",
         "word_close",
@@ -187,15 +199,18 @@ def page(
         he.Div(id_="div-tooltip-help-body"),
         id_="div-tooltip-help"
     )
-    if help_page is None:
-        img_help: he.Element = he.Empty()
-    else:
-        img_help = static_img(
-            "help",
-            "word_help",
-            id_="img-main-help",
-            js=f"base_help_open('{help_page}')"
-        )
+    img_help: he.Element = he.Empty()
+    for t in title:
+        if t in types.literal_type_values(types.txt_t):
+            help_id = t.removeprefix("page_title_")
+            if help_id in types.literal_type_values(types.help_t):
+                img_help = static_img(
+                    "help",
+                    "word_help",
+                    id_="img-main-help",
+                    js=f"base_help_open('{help_id}')"
+                )
+                break
 
     # head and body
     head = he.Head(
@@ -203,7 +218,7 @@ def page(
         base_head()
     )
     body = he.Body(
-        he.H1(he.Str(title)),
+        he.H1(he.Str(title_str)),
         div_menu,
         div_tooltip_help,
         img_help,
@@ -347,29 +362,28 @@ def gen_composite_page(
             types.txt_t, layout["title"] + "_" + sub_page.replace("-", "_")
         )
     body: he.Element
-    title = fmt.fmt_title(lang.txt(layout["title"]))
+    title: page_title_t | tuple[page_title_t, page_title_t] = layout["title"]
     if sub_page is None:
         sub_page = layout["default"]
     if sub_page not in layout["sub_pages"]:
         body = he.Empty()
     else:
-        dev, img, fun = layout["sub_pages"][sub_page]
-        if dev and not config.CONFIG["dev"]:
+        sub_page_spec = layout["sub_pages"][sub_page]
+        if sub_page_spec["dev"] and not config.CONFIG["dev"]:
             body = he.Empty()
         else:
-            sub_title = fmt.fmt_title(lang.txt(sub_page_title(sub_page)))
-            title = f"{title} / {sub_title}"
+            title = (layout["title"], sub_page_title(sub_page))
             if sub_page_args is None:
                 sub_page_args = dict()
-            body = fun(ctx, **sub_page_args)
+            body = sub_page_spec["gen"](ctx, **sub_page_args)
     side_buttons = [
         static_img(
-            img,
+            sub_page_spec["img"],
             sub_page_title(sub_page),
             mkuri(layout["path"], sub_page=sub_page)
         )
-        for sub_page, (dev, img, _) in layout["sub_pages"].items()
-        if not (dev and not config.CONFIG["dev"])
+        for sub_page, sub_page_spec in layout["sub_pages"].items()
+        if not (sub_page_spec["dev"] and not config.CONFIG["dev"])
     ]
     return page(
         ctx,
@@ -472,34 +486,30 @@ def static_file(file_name: str) -> fa.Response:
 
 
 def help_page(help_id: types.help_t) -> fa.Response:
-    path = resources.files("webamc") / "data" / "help" / config.CONFIG["lang"]
-    for p in [
-            path / f"{help_id}.html",
-            path / f"{help_id}.htm",
-            path / help_id
-    ]:
-        try:
-            with (
-                    resources.as_file(p) as resource,
-                    open(resource, encoding="utf-8") as fd
-            ):
-                return fa.responses.HTMLResponse(fd.read())
-        except FileNotFoundError:
-            continue
-    result = fa.responses.HTMLResponse(str(page_error_body(404)))
-    return result
+    t = resources.files("webamc") / "data" / "help" / config.CONFIG["lang"]
+    path = Path(str(t))
+    candidates = [
+        path / f"{help_id}.html",
+        path / f"{help_id}.htm",
+        path / help_id
+    ]
+    try:
+        p = next(p for p in candidates if p.is_file())
+        return fa.responses.HTMLResponse(p.read_text())
+    except StopIteration:
+        return fa.responses.HTMLResponse(str(page_error_body(404)))
 
 
 def mkhelp(
         e: he.Element,
-        help_page: types.help_t,
+        help_id: types.help_t,
         section: str | None = None
 ) -> he.Element:
     result = e
     if section is None:
-        js_args = f"('{help_page}', null)"
+        js_args = f"('{help_id}', null)"
     else:
-        js_args = f"('{help_page}', '{section}')"
+        js_args = f"('{help_id}', '{section}')"
     e["class"] += " help-tooltip"
     e["onclick"] = f"javascript: base_help_open{js_args}"
     return result

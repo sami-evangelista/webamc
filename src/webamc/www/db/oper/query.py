@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 
 from webamc.www.all import *
-from webamc.db import util as db_util, errors as db_errors
+from webamc.db import util as db_util
 from webamc.www.db import util as www_db_util, router
 
 
@@ -38,7 +38,8 @@ def data(
         conds = [build_where(where) for where in q.get("where", list())]
         wheres = sa.and_(*conds)
         if typ == "delete":
-            ctx.dbs.query(tbl).where(wheres).delete()
+            for o in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
+                ctx.dbs.delete(o)
             rvalues.append([])
             rrvalues.append([])
         elif typ == "select":
@@ -53,9 +54,9 @@ def data(
             rvalues.append([get_db_object_values(new_obj)])
             rrvalues.append([])
         elif typ == "update":
-            for row in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
+            for o in ctx.dbs.scalars(sa.select(tbl_meta).where(wheres)):
                 for k, v in values.items():
-                    setattr(row, k, v)
+                    setattr(o, k, v)
             rvalues.append([dict(values.items())])
             rrvalues.append([{
                 col_name: www_db_util.val_fmt(

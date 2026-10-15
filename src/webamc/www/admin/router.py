@@ -42,12 +42,20 @@ def route_page_main(
 ) -> fa.Response:
     from .page import submit_form, database
     layout: base.page_layout_t = {
-        "title": "page_title_administration",
+        "title": "page_title_admin",
         "path": "/admin/page/main",
         "default": "database",
         "sub_pages": {
-            "database": (False, "database", database.page),
-            "submit_form": (False, "upload", submit_form.page)
+            "database": {
+                "dev": False,
+                "img": "database",
+                "gen": database.page
+            },
+            "submit": {
+                "dev": False,
+                "img": "upload",
+                "gen": submit_form.page
+            }
         }
     }
     with context.Context(req) as ctx:

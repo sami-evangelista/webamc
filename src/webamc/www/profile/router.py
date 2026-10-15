@@ -15,8 +15,16 @@ def route_profile_page(
         "path": "/profile/page/main",
         "default": "personal_data",
         "sub_pages": {
-            "personal_data": (True, "person", personal_data.page),
-            "group": (True, "group", groups.page)
+            "personal_data": {
+                "dev": True,
+                "img": "person",
+                "gen": personal_data.page
+            },
+            "group":  {
+                "dev": True,
+                "img": "group",
+                "gen": groups.page
+            }
         }
     }
     with context.Context(req) as ctx:

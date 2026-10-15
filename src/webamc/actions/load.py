@@ -20,10 +20,10 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
                 if key.startswith(prefix)
             }
 
-        if "parent" in item:
-            if item["parent"] not in num_map:
+        if "itr_parent" in item:
+            if item["itr_parent"] not in num_map:
                 return None
-            item["parent"] = num_map[item["parent"]]
+            item["itr_parent"] = num_map[item["itr_parent"]]
 
         tex_file = item.get("tex_file")
 
@@ -52,12 +52,6 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
                 output.warning(f"{tex_file}: duplicate item {itm_code}")
                 return None
 
-        # if it is a choice we set its to itm_parent so that the
-        # choice is automatically deleted when the question is
-        if item["itm_type"] == types.ITEM_TYPE_CHOICE:
-            assert "parent" in item
-            item["itm_parent"] = item["parent"]
-
         # new item
         db_item = tables.Item(**sub_dict("itm_"))
         dbs.add(db_item)
@@ -66,11 +60,11 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
         result = int(db_item.itm_id)
 
         # insertion in item_relation
-        if "parent" in item:
+        if "itr_parent" in item:
             db_item_relation = tables.ItemRelation(
                 itr_child=result,
-                itr_parent=item["parent"],
-                itr_order=item["order"]
+                itr_parent=item["itr_parent"],
+                itr_order=item["itr_order"]
             )
             dbs.add(db_item_relation)
 

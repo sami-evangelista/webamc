@@ -1,7 +1,9 @@
-from sqlalchemy.orm import declarative_base, validates
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
-from sqlalchemy import ForeignKeyConstraint, CheckConstraint, UniqueConstraint
+from sqlalchemy import (
+    delete, ForeignKeyConstraint, CheckConstraint, UniqueConstraint
+)
 
 from webamc.all import *
 from . import col_types as ct, errors
@@ -449,7 +451,7 @@ class Admin(Base):
 
 
 class Item(Base):
-    __tablename__ = "item"        
+    __tablename__ = "item"
     itm_id: int = sa.Column(
         ct.Integer,
         primary_key=True
@@ -513,9 +515,6 @@ class Item(Base):
         RefUsr,
         nullable=False
     )
-    itm_parent: int | None = sa.Column(  # type: ignore
-        RefItem
-    )
     itm_pack_spec: str | None = sa.Column(  # type: ignore
         ct.PackSpec
     )
@@ -578,20 +577,9 @@ class Item(Base):
             "itm_code is not null "
             f"or itm_type = {types.ITEM_TYPE_CHOICE}"
         ),
-        CheckConstraint(
-            f"itm_parent is not null or itm_type <> {types.ITEM_TYPE_CHOICE}"
-        ),
-        CheckConstraint(
-            f"itm_parent is null or itm_type = {types.ITEM_TYPE_CHOICE}"
-        ),
         ForeignKeyConstraint(
             ["itm_usr"],
             ["usr.usr_id"],
-            ondelete="CASCADE"
-        ),
-        ForeignKeyConstraint(
-            ["itm_parent"],
-            ["item.itm_id"],
             ondelete="CASCADE"
         ),
         UniqueConstraint(
@@ -1174,6 +1162,22 @@ RefItemInstance.fmt = lambda iti: str(iti.iti_id)
 
 def create_listeners() -> tp.Any:
 
+    def on_delete_item(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: Item
+    ) -> None:
+        # when we delete a question we delete all choices in it
+        if target.itm_type == types.ITEM_TYPE_QUESTION:
+            conn.execute(
+                delete(
+                    Item
+                ).where(
+                    (ItemRelation.itr_parent == target.itm_id)
+                    & (ItemRelation.itr_child == Item.itm_id)
+                )
+            )
+
     # checks performed during or insert or update
     def basic_checks(
             tbl: sa.sql.schema.Table,
@@ -1193,7 +1197,7 @@ def create_listeners() -> tp.Any:
         for col in tbl.columns:
             if "check" in col.info:
                 getattr(target, col.info["check"])()
-            
+
             cname = col.name
             val = getattr(target, cname, None)
             null_val = val is None
@@ -1269,7 +1273,7 @@ def create_listeners() -> tp.Any:
                 conn: Connection,
                 target: tp.Any
         ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__            
+            tbl: sa.sql.schema.Table = t.__table__
             tname = tbl.name
             pkey = next(c for c in tbl.columns if c.primary_key)
             basic_checks(tbl, conn, target, getattr(target, pkey.name))
@@ -1288,5 +1292,6 @@ def create_listeners() -> tp.Any:
     for t in Base.__subclasses__():
         sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
         sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
+    sa.event.listen(Item, "before_delete", on_delete_item)
 
 create_listeners()

@@ -76,9 +76,21 @@ def route_exam_page(
         "path": "/exam/page/main",
         "default": "database",
         "sub_pages": {
-            "database": (True, "database", database.page),
-            "creation": (True, "add", creation.page),
-            "dashboard": (True, "list", dashboard.page)
+            "database": {
+                "dev": True,
+                "img": "database",
+                "gen": database.page
+            },
+            "creation": {
+                "dev": True,
+                "img": "add",
+                "gen": creation.page
+            },
+            "dashboard": {
+                "dev": True,
+                "img": "list",
+                "gen": dashboard.page
+            }
         }
     }
     with context.Context(req) as ctx:

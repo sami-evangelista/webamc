@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import queries, desc, tables, errors as db_errors
+from webamc.db import queries, desc, tables
 from webamc.www.db.util import get_txt_and_input
 
 
@@ -34,13 +34,13 @@ def _page_password_change(
     input_confirm = he.Input(type_="password", id_="loc_password_confirm")
     desc_usr_code = desc.col_desc("usr_code")
     trs = [
-        he.Txt(desc_usr_code),
+        base.field_label(he.Txt(desc_usr_code)),
         he.Str(usr.usr_code)
     ]
     for txt, inpt in get_txt_and_input(ctx, tables.LocalAuth.loc_password):
         trs += [txt, inpt]
     trs += [
-        he.Txt("word_confirmation"),
+        base.field_label(he.Txt("word_confirmation")),
         input_confirm
     ]
     table = he.mktable(

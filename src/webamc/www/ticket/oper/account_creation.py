@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables, errors as db_errors
+from webamc.db import tables
 from webamc.www.ticket import router
 
 
@@ -10,24 +10,12 @@ def data(
     if not config.CONFIG["auth_account_creation_enabled"]:
         raise fa.HTTPException(status_code=403)
 
-    usr_values: types.db_map_t = {
-        "usr_code": args["usr_code"],
-        "usr_eaddr": args["usr_eaddr"],
-        "usr_fst_name": args["usr_fst_name"],
-        "usr_name": args["usr_name"]
-    }
-    loc_values: types.db_map_t = {
-        "loc_enabled": True,
-        "loc_password": args["loc_password"],
-        "loc_login": args["usr_code"]
-    }
-    
     # insert usr
     usr = tables.Usr(
-        usr_code=str(usr_values["usr_code"]),
-        usr_eaddr=str(usr_values["usr_eaddr"]),
-        usr_fst_name=str(usr_values["usr_fst_name"]),
-        usr_name=str(usr_values["usr_name"])
+        usr_code=str(args["usr_code"]),
+        usr_eaddr=str(args["usr_eaddr"]),
+        usr_fst_name=str(args["usr_fst_name"]),
+        usr_name=str(args["usr_name"])
     )
     ctx.dbs.add(usr)
     ctx.dbs.flush()
@@ -35,9 +23,9 @@ def data(
 
     # insert local_auth
     loc = tables.LocalAuth(
-        loc_enabled=bool(loc_values["loc_enabled"]),
-        loc_password=str(loc_values["loc_password"]),
-        loc_login=str(loc_values["loc_login"]),
+        loc_enabled=bool(True),
+        loc_password=str(args["loc_password"]),
+        loc_login=str(args["usr_code"]),
         loc_usr=usr.usr_id
     )
     ctx.dbs.add(loc)

@@ -313,7 +313,7 @@ def gen_pack_questions(
         rev: bool = spec.get("rev", False)
         result = traverse(content)
         if oper == "shuf":
-            o = sa.func.random()  # pylint: disable=not-callable
+            o = sa.func.random()
             return result.order_by(o)
         if oper == "head":
             return result.limit(int(arg))

@@ -47,7 +47,6 @@ def page(ctx: context.Context, pcode: str = "") -> fa.Response:
     elements = he.ElementList(div_form, div_project, js)
     return base.page(
         ctx,
-        "page_title_project_main",
-        elements,
-        help_page="project"
+        "page_title_project",
+        elements
     )

@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables, queries, errors as db_errors
+from webamc.db import tables, queries
 from webamc.www.ticket import router
 
 

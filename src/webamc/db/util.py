@@ -3,7 +3,7 @@ from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from webamc.all import *
-from . import tables, col_types as ct
+from . import tables
 
 
 def get_tbl(t: types.db_tbl_t) -> Table:

@@ -19,14 +19,11 @@ def page(
         js=js,
         class_="submit"
     )
-    p_zip_file = he.P(
-        base.mkhelp(
-            he.Span(he.Txt("seq_zip_file")),
-            "item_submit"
-        ),
-        input_zip
-    )
-    div_file = he.Div(p_zip_file, a_submit, class_="box")
+    trs: list[list[he.Element]] = [
+        [he.Txt("seq_zip_file"), input_zip]
+    ]
+    table = he.mktable(trs, class_="table-form")
+    div_file = he.Div(table, a_submit, class_="box")
     div_result = he.Div(id_="div-submit-result")
     result = he.ElementList(div_file, div_result)
     return result

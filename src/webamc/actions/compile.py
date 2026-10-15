@@ -45,8 +45,8 @@ item_t = tp.TypedDict(
         "num": int,
         "tags": list[str],
         "tex_file": str,
-        "cho_correct": bool,
-        "cho_last": bool,
+        "itm_cho_correct": bool,
+        "itm_cho_last": bool,
         "itm_code": str,
         "itm_difficulty": int,
         "itm_is_mcq": bool,
@@ -56,12 +56,11 @@ item_t = tp.TypedDict(
         "itm_usr": int,
         "itm_visible": bool,
         "itm_pack_spec": str,
-        "itm_parent": int,
         "itm_qst_standalone": bool,
         "itm_qst_type": types.question_type_t,
         "instances": list[instance_t],
-        "order": int,
-        "parent": int
+        "itr_order": int,
+        "itr_parent": int
     },
     total=False
 )
@@ -174,8 +173,8 @@ def _ctx_new_item(input_tex: Path, read_mdata: bool = True) -> item_t:
     item["num"] = CTX["num"]
     try:
         code, parent, order = CTX["stack"].pop()
-        item["parent"] = parent
-        item["order"] = order + 1
+        item["itr_parent"] = parent
+        item["itr_order"] = order + 1
         CTX["stack"].append((code, parent, order + 1))
     except IndexError:
         pass
@@ -535,8 +534,8 @@ def _compile_question(
         for num, (correct, last, cho_tex) in enumerate(iterator):
             cho_item = _ctx_new_item(input_tex, False)
             cho_item["itm_type"] = types.ITEM_TYPE_CHOICE
-            cho_item["cho_correct"] = correct
-            cho_item["cho_last"] = last
+            cho_item["itm_cho_correct"] = correct
+            cho_item["itm_cho_last"] = last
             cho_item["instances"] = list()
             choices_templates.append((cho_item, cho_tex, num))
 
