@@ -50,7 +50,7 @@ const admin_table_filter = function () {
 
 const admin_table_change = function () {
     const url = Constants.path_admin_page_main
-          + '?sub_page=database'
+          + '?sub_page=admin_database'
           + '&tbl_id=' + $('#tbl').val();
     base_relocate(url);
 }

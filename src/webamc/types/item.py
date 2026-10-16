@@ -29,6 +29,10 @@ TICKET_PASSWORD_CHANGE: ticket_type_t = 0
 TICKET_EADDR_CHANGE: ticket_type_t = 1
 TICKET_ACCOUNT_CREATION: ticket_type_t = 2
 
+submission_type_t = tp.Literal[0, 1]
+SUBMISSION_TYPE_EXAM: submission_type_t = 0
+SUBMISSION_TYPE_REVIEW: ticket_type_t = 1
+
 pack_op_t = tp.Literal[
     "all",
     "by-difficulty",

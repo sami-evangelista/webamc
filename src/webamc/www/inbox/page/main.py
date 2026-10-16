@@ -28,4 +28,4 @@ def page(ctx: context.Context) -> fa.Response:
         cols: list[types.txt_t] = ["word_title", "word_sender", "word_date"]
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
         elem = he.Table(*trs, class_="solid-table")
-    return base.page(ctx, "page_title_inbox", elem)
+    return base.page(ctx, "inbox", elem)

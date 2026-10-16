@@ -23,10 +23,9 @@ sub_page_spec_t = tp_ext.TypedDict(
 page_layout_t = tp_ext.TypedDict(
     "page_layout_t",
     {
-        "title": types.txt_t,
-        "path": types.path_t,
-        "default": str,
-        "sub_pages": dict[str, sub_page_spec_t]
+        "page": types.page_t,
+        "default": types.sub_page_t,
+        "sub_pages": dict[types.sub_page_t, sub_page_spec_t]
     }
 )
 page_title_t = str | types.txt_t
@@ -52,7 +51,7 @@ menu_items: list[menu_item_t] = [
     (lambda ctx: True,
      False,
      "signout",
-     "page_title_signout",
+     "word_disconnection",
      "/auth/oper/logout"),
     (session.ne_inbox,
      True,
@@ -134,10 +133,21 @@ def base_head() -> he.Element:
 
 def page(
         ctx: context.Context,
-        title: page_title_t | tuple[page_title_t, ...],
+        pg: types.page_t,
         body: he.Element,
+        title: None | str = None,
+        sub_page: None | types.sub_page_t = None,
         side_buttons: None | list[he.Element] = None
 ) -> fa.Response:
+
+    # set the page title
+    if title is None:
+        title = fmt.fmt_title(lang.txt(types.page_to_txt(pg)))
+        if sub_page is not None:
+            title += (
+                " / " +
+                fmt.fmt_title(lang.txt(types.sub_page_to_txt(sub_page)))
+            )
 
     # menu (none if not connected)
     if not session.is_logged_in(ctx):
@@ -156,17 +166,6 @@ def page(
             he.Div(id_="menu-btn", class_="menu"),
             he.Div(div_name, *imgs, id_="menu-content", class_="menu")
         )
-
-    # head information
-    if not isinstance(title, tuple):
-        title = (title, )
-    title_str = " / ".join(
-        fmt.fmt_title(lang.txt(tp.cast(types.txt_t, t)))
-        if t in types.literal_type_values(types.txt_t)
-        else t
-        for t in title
-    )
-    etitle = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title_str}"))
 
     # if side buttons are given, divide the page with a sidebar and a
     # mainpanel
@@ -199,26 +198,29 @@ def page(
         he.Div(id_="div-tooltip-help-body"),
         id_="div-tooltip-help"
     )
-    img_help: he.Element = he.Empty()
-    for t in title:
-        if t in types.literal_type_values(types.txt_t):
-            help_id = t.removeprefix("page_title_")
-            if help_id in types.literal_type_values(types.help_t):
-                img_help = static_img(
-                    "help",
-                    "word_help",
-                    id_="img-main-help",
-                    js=f"base_help_open('{help_id}')"
-                )
-                break
+    help_id: None | types.help_t = None
+    if sub_page in types.literal_type_values(types.help_t):
+        help_id = tp.cast(types.help_t, sub_page)
+    elif page in types.literal_type_values(types.help_t):
+        help_id = tp.cast(types.help_t, page)
+    if help_id is None:
+        img_help: he.Element = he.Empty()
+    else:
+        img_help = static_img(
+            "help",
+            "word_help",
+            id_="img-main-help",
+            js=f"base_help_open('{help_id}')"
+        )
 
     # head and body
+    title_head = he.Title(he.Str(f"{config.CONFIG['service_name']} - {title}"))
     head = he.Head(
-        etitle,
+        title_head,
         base_head()
     )
     body = he.Body(
-        he.H1(he.Str(title_str)),
+        he.H1(he.Str(title)),
         div_menu,
         div_tooltip_help,
         img_help,
@@ -243,16 +245,23 @@ def page_error(code: int) -> fa.Response:
     return result
 
 
-def mkuri(path: types.path_t, **kwargs: tp.Any) -> str:
+def mkuri(
+        path: types.path_t,
+        sub_page: types.sub_page_t | None = None,
+        **kwargs: tp.Any
+) -> str:
     result = config.CONFIG["root_path"] + path
-    if kwargs != dict():
+    args = dict(kwargs)
+    if sub_page is not None:
+        args["sub_page"] = sub_page
+    if args != dict():
         result = (
             result
             + "?"
             + "&".join(
                 (urllib.parse.quote(str(key))
                  + "=" + urllib.parse.quote(str(val)))
-                for key, val in kwargs.items()
+                for key, val in args.items()
             )
         )
     return result
@@ -354,15 +363,10 @@ def generic_load_file(
 def gen_composite_page(
         ctx: context.Context,
         layout: page_layout_t,
-        sub_page: str | None = None,
+        sub_page: types.sub_page_t | None = None,
         sub_page_args: None | dict[str, tp.Any] = None
 ) -> fa.Response:
-    def sub_page_title(sub_page: str) -> types.txt_t:
-        return tp.cast(
-            types.txt_t, layout["title"] + "_" + sub_page.replace("-", "_")
-        )
     body: he.Element
-    title: page_title_t | tuple[page_title_t, page_title_t] = layout["title"]
     if sub_page is None:
         sub_page = layout["default"]
     if sub_page not in layout["sub_pages"]:
@@ -372,24 +376,27 @@ def gen_composite_page(
         if sub_page_spec["dev"] and not config.CONFIG["dev"]:
             body = he.Empty()
         else:
-            title = (layout["title"], sub_page_title(sub_page))
             if sub_page_args is None:
                 sub_page_args = dict()
             body = sub_page_spec["gen"](ctx, **sub_page_args)
+    path = tp.cast(
+        types.path_t, f"/{layout['page']}/page/main"
+    )
     side_buttons = [
         static_img(
             sub_page_spec["img"],
-            sub_page_title(sub_page),
-            mkuri(layout["path"], sub_page=sub_page)
+            types.sub_page_to_txt(sub_page),
+            mkuri(path, sub_page=sub_page)
         )
         for sub_page, sub_page_spec in layout["sub_pages"].items()
         if not (sub_page_spec["dev"] and not config.CONFIG["dev"])
     ]
     return page(
         ctx,
-        title,
+        layout["page"],
         body,
-        side_buttons=side_buttons
+        side_buttons=side_buttons,
+        sub_page=sub_page
     )
 
 

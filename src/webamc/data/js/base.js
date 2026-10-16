@@ -123,6 +123,11 @@ const base_input_values = function (selector) {
 }
 
 
+const base_input_value = function(id) {
+    return base_input_values('#' + id)[id];
+}
+
+
 $(document).ready(function() {
     $('#menu-btn').hover(
 	function () {

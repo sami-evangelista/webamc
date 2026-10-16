@@ -109,9 +109,9 @@ op_notlike;does not contain
 page_title_admin;administration
 page_title_admin_database;database
 page_title_admin_submit;submission
-page_title_auth_account_creation;account creation
+page_title_ticket_account_creation;account creation
 page_title_auth;authentication
-page_title_eaddr_change;Email address change
+page_title_ticket_eaddr_change;Email address change
 page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
 page_title_exam_database;database
@@ -123,12 +123,10 @@ page_title_item_database;database
 page_title_item_groups;groups
 page_title_item;Online MCQ
 page_title_item_submit;submission
-page_title_password_change;password change
-page_title_profile_group;group membership
-page_title_profile_personal_data;personal data
+page_title_ticket_password_change;password change
 page_title_profile;profile
 page_title_project;AMC projects
-page_title_signout;signout
+word_disconnection;signout
 page_title_stats;statistics
 page_title_ticket_error;ticket error
 param_err_invalid_duplicate_value;%s: duplicate value
@@ -152,6 +150,7 @@ qst_confirmation_project_clean_associations;Do you confirm the deletion of the a
 qst_confirmation_project_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
 qst_confirmation_project_delete;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_restart_mcq;Would you like to restart the MCQ ?
+seq_add_an_item;add an item
 seq_administrate_this_mcq;administrate this MCQ
 seq_analyse_answer_sheets;analyse answer sheets
 seq_associate_automatic;associate students and sheets (automatic)
@@ -172,6 +171,7 @@ seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;information message(s)
 seq_latex_id;student ID in latex file
 seq_manual_association;manual association
+seq_my_groups;my groups
 seq_new_project;new project
 seq_new_row;new row
 seq_no_name;no image file

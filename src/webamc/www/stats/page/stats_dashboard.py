@@ -376,4 +376,4 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
     elements.append(dashboard_root)
     return base.page(ctx, "page_title_stats", he.ElementList(*elements))
 """
-    return base.page(ctx, "page_title_stats", he.Empty())
+    return base.page(ctx, "stats", he.Empty())

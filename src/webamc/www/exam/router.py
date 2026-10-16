@@ -67,26 +67,25 @@ def route_page_dashboard_exam(
 @router.get("/exam/page/main")
 def route_exam_page(
         req: fa.Request,
-        sub_page: None | str = None,
+        sub_page: None | types.sub_page_t = None,
         exm_id: None | int = None
 ) -> fa.Response:
     from .page import creation, database, dashboard
     layout: base.page_layout_t = {
-        "title": "page_title_exam",
-        "path": "/exam/page/main",
-        "default": "database",
+        "page": "exam",
+        "default": "exam_database",
         "sub_pages": {
-            "database": {
+            "exam_database": {
                 "dev": True,
                 "img": "database",
                 "gen": database.page
             },
-            "creation": {
+            "exam_creation": {
                 "dev": True,
                 "img": "add",
                 "gen": creation.page
             },
-            "dashboard": {
+            "exam_dashboard": {
                 "dev": True,
                 "img": "list",
                 "gen": dashboard.page

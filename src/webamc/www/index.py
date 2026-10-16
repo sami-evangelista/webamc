@@ -15,7 +15,9 @@ def page(ctx: context.Context) -> fa.Response:
         links.append(a_fillin)
         if has_admin_right:
             href = base.mkuri(
-                "/item/page/main", sub_page="database", itm_id=item.itm_id
+                "/item/page/main",
+                sub_page="item_database",
+                itm_id=item.itm_id
             )
             links += [
                 base.static_img("settings", "word_administrate", href=href)
@@ -38,4 +40,4 @@ def page(ctx: context.Context) -> fa.Response:
         gd = desc.col_desc
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(gd(c))) for c in cols])))
         body = he.Table(*trs, class_="solid-table")
-    return base.page(ctx, "page_title_index", body)
+    return base.page(ctx, "index", body)

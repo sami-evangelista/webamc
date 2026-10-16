@@ -11,8 +11,8 @@ def route_inbox_page_msg(req: fa.Request, msg_id: int) -> fa.Response:
         return msg.page(ctx, msg_id)
 
 
-@router.get("/inbox/page/list")
-def route_inbox_page_list(req: fa.Request) -> fa.Response:
-    from .page import list as lst
+@router.get("/inbox/page/main")
+def route_inbox_page_main(req: fa.Request) -> fa.Response:
+    from .page import main
     with context.Context(req) as ctx:
-        return lst.page(ctx)
+        return main.page(ctx)

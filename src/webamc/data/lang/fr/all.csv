@@ -109,9 +109,9 @@ op_notlike;ne contient pas
 page_title_admin;administration
 page_title_admin_database;base de données
 page_title_admin_submit;soumission
-page_title_auth_account_creation;création d'un compte
+page_title_ticket_account_creation;création d'un compte
 page_title_auth;authentification
-page_title_eaddr_change;changement d'adresse électronique
+page_title_ticket_eaddr_change;changement d'adresse électronique
 page_title_exam_creation;création
 page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
@@ -123,12 +123,10 @@ page_title_item_database;base de données
 page_title_item_groups;groupes
 page_title_item;QCM en ligne
 page_title_item_submit;soumission
-page_title_password_change;changement de mot de passe
-page_title_profile_group;groupes
-page_title_profile_personal_data;informations personnelles
+page_title_ticket_password_change;changement de mot de passe
 page_title_profile;profil
 page_title_project;QCM papier
-page_title_signout;déconnexion
+word_disconnection;déconnexion
 page_title_stats;statistiques
 page_title_ticket_error;erreur de ticket
 param_err_invalid_duplicate_value;%s: valeur en double
@@ -152,6 +150,7 @@ qst_confirmation_project_clean_associations;Confirmez-vous la suppression des as
 qst_confirmation_project_compile;Confirmez-vous la génération du sujet ? Ceci supprimera tous les documents de travail actuel. Annulez si vous avez déjà imprimé les sujets.
 qst_confirmation_project_delete;Ce projet ainsi que tous les fichiers qui lui sont associés seront supprimés. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
 qst_confirmation_restart_mcq;Voulez vous recommencer ce QCM ?
+seq_add_an_item;ajouter un élément
 seq_administrate_this_mcq;administrer ce QCM
 seq_analyse_answer_sheets;analyser les copies scannées
 seq_associate_automatic;associer étudiantes et copies (mode automatique)
@@ -172,6 +171,7 @@ seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;message(s) d'information
 seq_latex_id;identifiant étudiant dans le code latex
 seq_manual_association;association manuelle
+seq_my_groups;mes groupes
 seq_new_project;nouveau projet
 seq_new_row;nouvelle ligne
 seq_no_name;pas de fichier d'image

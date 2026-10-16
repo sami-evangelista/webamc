@@ -206,11 +206,23 @@ const item_pack_update = function (pak_id) {
 const item_add = function () {
     const success = function (response) {
         const url = Constants.path_item_page_main
-              + "?sub_page=database"
+              + "?sub_page=item_database"
               + "&itm_id=" + response.result['itm_id']
         ;
         base_relocate(url);
     };
     const data = base_input_values('#table-add-item');
     xhr_post_oper(Constants.path_item_oper_add, data, success);
+}
+
+
+const item_admin_add_child = function (itm_id) {
+    const select_id = 'select-add-child-' + itm_id;
+    const data = {
+        'itr_parent': itm_id,
+        'itr_child': base_input_value(select_id)
+    };
+    const success = function () {
+    };
+    xhr_post_oper(Constants.path_item_oper_add_child, data, success);
 }

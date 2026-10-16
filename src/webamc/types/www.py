@@ -14,7 +14,6 @@ json_response_t = tp_ext.TypedDict(
         "result": None | tp.Any | db_query_result_t
     }
 )
-
 static_img_t = tp.Literal[
     "add",
     "arrow-clockwise",
@@ -55,7 +54,6 @@ static_img_t = tp.Literal[
     "zoom-in",
     "zoom-out"
 ]
-
 path_t = tp.Literal[
     "/",
     "/admin/oper/submit",
@@ -81,6 +79,7 @@ path_t = tp.Literal[
     "/item/page/main",
     "/item/oper/recursive-deletion",
     "/item/oper/add",
+    "/item/oper/add-child",
     "/item/oper/submit",
     "/mcq/page/form",
     "/mcq/oper/correction",
@@ -105,14 +104,12 @@ path_t = tp.Literal[
     "/ticket/oper/password-change",
     "/stats/page/dashboard",
 ]
-
 mail_file_t = tp.Literal[
     "account-creation",
     "eaddr-change",
     "password-change",
     "project-notification-mail"
 ]
-
 oper_code_t = tp.Literal[
     "err",
     "err_action_required",
@@ -149,7 +146,6 @@ oper_code_t = tp.Literal[
     "succ_ticket_eaddr_change_sent",
     "succ_ticket_password_change_sent"
 ]
-
 student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
     "reg_id": int,
     "usr_login": str,
@@ -161,19 +157,53 @@ student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
     "total_questions": int,
     "score": float
 })
-
 exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
     "exam_status": str,
     "exam_start": datetime.datetime,
     "exam_end": datetime.datetime,
     "students": list[student_monitoring_t]
 })
-
 help_t = tp.Literal[
     "item_submit",
     "project"
+]
+page_t = tp.Literal[
+    "admin",
+    "auth",
+    "exam",
+    "inbox",
+    "index",
+    "item",
+    "mcq",
+    "profile",
+    "project",
+    "stats",
+    "ticket"
+]
+sub_page_t = tp.Literal[
+    "admin_database",
+    "admin_submit",
+    "exam_creation",
+    "exam_dashboard",
+    "exam_database",
+    "item_add",
+    "item_database",
+    "item_groups",
+    "item_submit",
+    "ticket_account_creation",
+    "ticket_eaddr_change",
+    "ticket_error",
+    "ticket_password_change"
 ]
 
 
 def oper_code_to_txt(c: oper_code_t) -> txt_t:
     return tp.cast(txt_t, c)
+
+
+def page_to_txt(page: page_t) -> txt_t:
+    return tp.cast(txt_t, f"page_title_{page}")
+
+
+def sub_page_to_txt(sub: sub_page_t) -> txt_t:
+    return tp.cast(txt_t, f"page_title_{sub}")

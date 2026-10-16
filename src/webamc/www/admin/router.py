@@ -37,21 +37,20 @@ def route_page_table(
 @router.get("/admin/page/main")
 def route_page_main(
         req: fa.Request,
-        sub_page: None | str = None,
+        sub_page: None | types.sub_page_t = None,
         tbl_id: int | None = None
 ) -> fa.Response:
     from .page import submit_form, database
     layout: base.page_layout_t = {
-        "title": "page_title_admin",
-        "path": "/admin/page/main",
-        "default": "database",
+        "page": "admin",
+        "default": "admin_database",
         "sub_pages": {
-            "database": {
+            "admin_database": {
                 "dev": False,
                 "img": "database",
                 "gen": database.page
             },
-            "submit": {
+            "admin_submit": {
                 "dev": False,
                 "img": "upload",
                 "gen": submit_form.page

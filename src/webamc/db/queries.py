@@ -353,7 +353,7 @@ def gen_pack_questions(
 
 def get_submission_choices(
         dbs: Session,
-        sub_id: int
+        sub: tables.Submission
 ) -> list[tables.Item]:
     return dbs.query(
         tables.Item
@@ -364,7 +364,7 @@ def get_submission_choices(
         tables.Answer,
         tables.Answer.ans_instance == tables.ItemInstance.iti_id
     ).where(
-        (tables.Answer.ans_submission == sub_id)
+        (tables.Answer.ans_submission == sub.sub_id)
         & (tables.Item.itm_type == types.ITEM_TYPE_CHOICE)
     ).all()
 
@@ -658,3 +658,40 @@ def has_messages(dbs: Session, usr_id: int) -> bool:
     ).where(
         tables.Message.msg_to == usr_id
     ).first() is not None
+
+
+def get_registration_submission(
+        dbs: Session,
+        reg: tables.Registration
+) -> tables.Submission | None:
+    result = dbs.query(
+        tables.Submission
+    ).where(
+        (tables.Submission.sub_exm_registration == reg.reg_id)
+        & (tables.Submission.sub_type == types.SUBMISSION_TYPE_EXAM)
+    ).first()
+    return result
+
+
+def get_item_instance(
+        dbs: Session,
+        itm_id: int,
+        iti_num: int
+) -> None | tables.ItemInstance:
+    return dbs.query(
+        tables.ItemInstance
+    ).where(
+        (tables.ItemInstance.iti_item == itm_id)
+        & (tables.ItemInstance.iti_num == tables.ItemInstance.iti_num)
+    ).first()
+
+
+def get_usr_items(
+        dbs: Session,
+        usr_id: int
+) -> list[tables.Item]:
+    return dbs.query(
+        tables.Item
+    ).where(
+        tables.Item.itm_usr == usr_id
+    ).all()

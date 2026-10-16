@@ -14,7 +14,7 @@ def page(
     ).first()
     if tkt is None:
         body = he.Txt("err_invalid_ticket")
-        return base.page(ctx, "page_title_ticket_error", body)
+        return base.page(ctx, "ticket", body, sub_page="ticket_error")
     if tkt.tkt_type == types.TICKET_ACCOUNT_CREATION:
         return _page_account_creation(ctx, tkt)
     if tkt.tkt_type == types.TICKET_PASSWORD_CHANGE:
@@ -59,7 +59,7 @@ def _page_password_change(
         img,
         class_="box"
     )
-    return base.page(ctx, "page_title_password_change", div)
+    return base.page(ctx, "ticket", div, sub_page="ticket_password_change")
 
 
 def _page_eaddr_change(
@@ -87,7 +87,7 @@ def _page_eaddr_change(
     ).delete()
 
     msg = he.Txt("succ_eaddr_changed")
-    return base.page(ctx, "page_title_eaddr_change", msg)
+    return base.page(ctx, "ticket", msg, sub_page="ticket_eaddr_change")
 
 
 def _page_account_creation(
@@ -125,4 +125,4 @@ def _page_account_creation(
         id_="table-account-creation",
         class_="box"
     )
-    return base.page(ctx, "page_title_authentication_account_creation", div)
+    return base.page(ctx, "ticket", div, sub_page="ticket_account_creation")

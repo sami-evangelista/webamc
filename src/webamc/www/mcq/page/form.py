@@ -179,7 +179,13 @@ def page(
         for (img, title, title_args, js) in btns
     ]
 
-    return base.page(ctx, str(item.itm_title), body, side_buttons=side_buttons)
+    return base.page(
+        ctx,
+        "mcq",
+        body,
+        title=str(item.itm_title),
+        side_buttons=side_buttons
+    )
 
 
 def _gen_mcq_content(
@@ -270,29 +276,23 @@ def _setup(
     # content. this guarantees that question packs always contain the
     # same questions and that questions/exercices always appear in the
     # same order
-    exam_sub = ctx.dbs.query(
-        tables.ExamSubmission
-    ).where(
-        tables.ExamSubmission.exs_registration == registration.reg_id
-    ).first()
-    if exam_sub is not None:
-        content = tp.cast(_mcq_content_t, json.loads(exam_sub.exs_content))
+    sub = queries.get_registration_submission(ctx.dbs, registration)
+    if sub is not None:
+        assert sub.sub_exm_content is not None
+        content = tp.cast(_mcq_content_t, json.loads(sub.sub_exm_content))
         choices = [
             c.itm_id
-            for c in queries.get_submission_choices(ctx.dbs, exam_sub.exs_id)
+            for c in queries.get_submission_choices(ctx.dbs, sub)
         ]
     else:
         content = _gen_mcq_content(ctx, item, instance_num)
         choices = list()
-        sub = tables.Submission(sub_date=datetime.datetime.now())
-        ctx.dbs.add(sub)
-        ctx.dbs.flush()
-        ctx.dbs.refresh(sub)
-        exs = tables.ExamSubmission(
-            exs_id=sub.sub_id,
-            exs_content=json.dumps(content),
-            exs_registration=registration.reg_id,
-            exs_date_update=datetime.datetime.now()
+        exs = tables.Submission(
+            sub_type=types.SUBMISSION_TYPE_EXAM,
+            sub_date=datetime.datetime.now(),
+            sub_exm_content=json.dumps(content),
+            sub_exm_registration=registration.reg_id,
+            sub_exm_date_update=datetime.datetime.now()
         )
         ctx.dbs.add(exs)
     result = (content, choices)

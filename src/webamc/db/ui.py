@@ -15,7 +15,7 @@ class Input:
     def element_cmp(self) -> he.Element:
         name = self.col.name + "-cmp"
         result = he.Select(
-            he.Option(),
+            he.Option(he.Str("-"), value=""),
             he.Option(he.Txt("op_eq"), value="="),
             he.Option(he.Txt("op_diff"), value="!="),
             name=name,
@@ -186,6 +186,6 @@ class Select(Input):
             for k, v in self.options.items()
         ]
         if self.col.nullable:
-            options.insert(0, he.Option(value=""))
+            options.insert(0, he.Option(he.Str("-"), value=""))
         result = self._init_element(he.Select(*options), **kwargs)
         return result

@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import tables
+from webamc.db import tables, queries
 from webamc.www.mcq import router
 
 
@@ -12,21 +12,21 @@ def data(
     active_registration = session.active_registration(ctx)
     assert active_registration is not None
     registration = active_registration[0]
-    exam_sub = ctx.dbs.query(tables.ExamSubmission).where(
-        (tables.ExamSubmission.exs_registration == registration.reg_id)
-    ).scalar()
+    sub = queries.get_registration_submission(ctx.dbs, registration)
+    assert sub is not None
+    assert sub.sub_exm_content is not None
 
     # set submission update to now and delete old answers
-    exam_sub.exs_date_update = datetime.datetime.now()
+    sub.sub_exm_date_update = datetime.datetime.now()
     ctx.dbs.query(
         tables.Answer
     ).where(
-        tables.Answer.ans_submission == exam_sub.exs_id
+        tables.Answer.ans_submission == sub.sub_id
     ).delete()
     ctx.dbs.flush()
 
     # reading the content of exam
-    content_tree = json.loads(exam_sub.exs_content)
+    content_tree = json.loads(sub.sub_exm_content)
     itm_to_itinum = {}
 
     # private function to map all the answers. it saves the question
@@ -42,37 +42,33 @@ def data(
 
     # insert new answers
     for qst_id, qst_choices in mcq_result["questions"].items():
+
         # get the instance num with the question id
         iti_num = itm_to_itinum.get(qst_id, 1)
 
         # finding the instance id with the question id and instance num
-        qst_instance = ctx.dbs.query(tables.ItemInstance).filter_by(
-            iti_item=qst_id, iti_num=iti_num
-        ).first()
-
-        if qst_instance:
+        qst_instance = queries.get_item_instance(
+            ctx.dbs,
+            qst_id,
+            iti_num
+        )
+        if qst_instance is not None:
             ans = tables.Answer(
-                ans_submission=exam_sub.exs_id,
+                ans_submission=sub.sub_id,
                 ans_instance=qst_instance.iti_id
             )
             ctx.dbs.add(ans)
-
         for cho_id, cho_chosen in qst_choices.items():
             if cho_chosen:
-                cho_instance = ctx.dbs.query(tables.ItemInstance).filter_by(
-                    iti_item=cho_id, iti_num=iti_num
-                ).first()
-
-                if cho_instance:
+                cho_instance = queries.get_item_instance(
+                    ctx.dbs,
+                    cho_id,
+                    iti_num
+                )
+                if cho_instance is not None:
                     ans = tables.Answer(
-                        ans_submission=exam_sub.exs_id,
+                        ans_submission=sub.sub_id,
                         ans_instance=cho_instance.iti_id
                     )
                     ctx.dbs.add(ans)
-
-    response = {
-        "success": True,
-        "msgs": list(),
-        "result": None
-    }
-    return fa.responses.JSONResponse(response)
+    return base.wrap_code("succ")

@@ -64,6 +64,10 @@ class UsrRight(ct.IntEnum):
         types.USR_RIGHT_VIEW: lang.txt("word_view"),
         types.USR_RIGHT_SUBMIT: lang.txt("word_submission")
     }
+class SubmissionType(ct.IntEnum):
+    values = {
+        t: str(t) for t in types.literal_type_values(types.submission_type_t)
+    }
 
 
 class Usr(Base):
@@ -642,6 +646,10 @@ class ItemRelation(Base):
             "itr_parent",
             "itr_order"
         ),
+        UniqueConstraint(
+            "itr_parent",
+            "itr_child"
+        )
     )
 
 
@@ -797,74 +805,56 @@ class Submission(Base):
         ct.Integer,
         primary_key=True
     )
+    sub_type: int = sa.Column(
+        SubmissionType,
+        nullable=False
+    )
     sub_date: datetime.datetime = sa.Column(
         ct.DateTime,
         nullable=False
     )
-
-
-class ExamSubmission(Base):
-    __tablename__ = "exam_submission"
-    exs_id: int = sa.Column(
-        RefSubmission,
-        primary_key=True
+    sub_exm_content: str | None = sa.Column(  # type: ignore
+        ct.String
     )
-    exs_content: str = sa.Column(
-        ct.String,
-        nullable=False
+    sub_exm_registration: int | None = sa.Column(  # type: ignore
+        RefRegistration
     )
-    exs_registration: int = sa.Column(
-        RefRegistration,
-        nullable=False
+    sub_exm_date_update: datetime.datetime | None = sa.Column(  # type: ignore
+        ct.DateTime
     )
-    exs_date_update: datetime.datetime = sa.Column(
-        ct.DateTime,
-        nullable=False
+    sub_rev_usr: int | None = sa.Column(  # type: ignore
+        RefUsr
+    )
+    sub_rev_mcq: int | None = sa.Column(  # type: ignore
+        RefItem
     )
     __table_args__ = (
         ForeignKeyConstraint(
-            ["exs_id"],
-            ["submission.sub_id"],
-            ondelete="CASCADE"
-        ),
-        ForeignKeyConstraint(
-            ["exs_registration"],
+            ["sub_exm_registration"],
             ["registration.reg_id"],
             ondelete="CASCADE"
         ),
-    )
-
-
-class ReviewSubmission(Base):
-    __tablename__ = "review_submission"
-    rvs_id: int = sa.Column(
-        RefSubmission,
-        primary_key=True
-    )
-    rvs_usr: int = sa.Column(
-        RefUsr,
-        nullable=False
-    )
-    rvs_mcq: int = sa.Column(
-        RefItem,
-        nullable=False
-    )
-    __table_args__ = (
         ForeignKeyConstraint(
-            ["rvs_id"],
-            ["submission.sub_id"],
-            ondelete="CASCADE"
-        ),
-        ForeignKeyConstraint(
-            ["rvs_usr"],
+            ["sub_rev_usr"],
             ["usr.usr_id"],
             ondelete="CASCADE"
         ),
         ForeignKeyConstraint(
-            ["rvs_mcq"],
+            ["sub_rev_mcq"],
             ["item.itm_id"],
             ondelete="CASCADE"
         ),
+        CheckConstraint(
+            f"sub_type <> {types.SUBMISSION_TYPE_EXAM} "
+            "or (sub_exm_content is not null "
+            "and sub_exm_registration is not null "
+            "and sub_exm_date_update is not null)"
+        ),
+        CheckConstraint(
+            f"sub_type <> {types.SUBMISSION_TYPE_REVIEW} "
+            "or (sub_rev_usr is not null "
+            "and sub_rev_mcq is not null)"
+        )
     )
 
 

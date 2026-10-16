@@ -37,9 +37,9 @@ def route_page_main(
         req: fa.Request,
         ticket: str
 ) -> fa.Response:
-    from .page import ticket as ticket_page
+    from .page import main
     with context.Context(req) as ctx:
-        return ticket_page.page(ctx, ticket)
+        return main.page(ctx, ticket)
 
 
 @router.post("/ticket/oper/send")

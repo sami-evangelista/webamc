@@ -1,7 +1,7 @@
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from webamc.www.all import *
-from webamc.db import tables, desc, queries, util as db_util
+from webamc.db import tables, queries, util as db_util
 from webamc.www.db import util as www_db_util
 from . import database_list
 
@@ -20,7 +20,6 @@ def page(
     all_instances = queries.get_instances(ctx.dbs, item.itm_id)
 
     table_tags_id = f"table-item-tags-{item.itm_id}"
-    div_body_id = f"div-item-body-{item.itm_id}"
 
     # <tr> containing attributes
     trs: list[he.Element] = list()
@@ -109,19 +108,56 @@ def page(
         trs += [select_instance, img_instance]
 
     # <tr> for item content
-    content = _content(ctx, item, iti_num)
-    trs += [
-        base.field_label(he.Txt("word_content")), content
-    ]
+    children: None | list[tables.Item] = None
+    trs.append(base.field_label(he.Txt("word_content")))
+    if item.itm_type == types.ITEM_TYPE_EXERCISE:
+
+        # select containing elements that can be added to the exercise
+        def option_str(item: tables.Item) -> str:
+            assert item.itm_code is not None
+            if item.itm_type == types.ITEM_TYPE_QUESTION:
+                return (
+                    lang.txt("word_question").title()
+                    + " [" + item.itm_code + "]"
+                )
+            if item.itm_type == types.ITEM_TYPE_EXERCISE:
+                return (
+                    lang.txt("word_exercise").title()
+                    + " [" + item.itm_code + "]"
+                )
+            assert False
+        options = [he.Option(he.Txt("seq_add_an_item"), value="")]
+        children = queries.get_children(ctx.dbs, item.itm_id)
+        if not item.itm_is_mcq:
+            ok_types = {types.ITEM_TYPE_QUESTION}
+        else:
+            if children == list():
+                ok_types = {types.ITEM_TYPE_EXERCISE, types.ITEM_TYPE_QUESTION}
+            else:
+                ok_types = {children[0].itm_type}
+        excluded_items = set(c.itm_id for c in children)
+        candidate_items = sorted(
+            (option_str(item), item.itm_id)
+            for item in queries.get_usr_items(ctx.dbs, session.usr_id(ctx))
+            if item.itm_type in ok_types
+            and not item.itm_is_mcq
+            and item.itm_id not in excluded_items
+        )
+        options += [
+            he.Option(he.Str(opt), value=str(val))
+            for (opt, val) in candidate_items
+        ]
+        select_add = he.Select(
+            *options,
+            id_=f"select-add-child-{item.itm_id}",
+            onchange=f"item_admin_add_child({item.itm_id})"
+        ).set_data("type", "integer")
+        trs.append(select_add)
+    content = _content(ctx, item, iti_num, children)
+    trs.append(content)
 
     # <table> containing all previous <tr>
     table_attributes = he.mktable(((tr, ) for tr in trs), class_="table-form")
-
-    # <div> containing item attributes and content
-    div_body = he.Div(
-        table_attributes,
-        id_=div_body_id
-    )
 
     # script initialising the item
     d = json.dumps
@@ -133,7 +169,7 @@ def page(
 
     # prepare result
     result = he.ElementList(
-        div_body,
+        table_attributes,
         script
     )
     return fa.responses.HTMLResponse(str(result))
@@ -142,12 +178,13 @@ def page(
 def _content(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int
+        iti_num: int,
+        children: list[tables.Item] | None
 ) -> he.Element:
     if item.itm_type == types.ITEM_TYPE_EXERCISE:
-        return _content_exercise(ctx, item)
+        return _content_exercise(ctx, item, children)
     if item.itm_type == types.ITEM_TYPE_QUESTION:
-        return _content_question(ctx, item, iti_num)
+        return _content_question(ctx, item, iti_num, children)
     if item.itm_type == types.ITEM_TYPE_PACK:
         return _content_pack(ctx, item)
     return he.Empty()
@@ -155,11 +192,14 @@ def _content(
 
 def _content_exercise(
         ctx: context.Context,
-        item: tables.Item
+        item: tables.Item,
+        children: list[tables.Item] | None
 ) -> he.Element:
+    if children is None:
+        children = queries.get_children(ctx.dbs, item.itm_id)
     result = he.ElementList(*[
         database_list.div_item(ctx, item_child, item)
-        for item_child in queries.get_children(ctx.dbs, item.itm_id)
+        for item_child in children
     ])
     return result
 
@@ -186,12 +226,18 @@ def _content_pack(
 def _content_question(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int
+        iti_num: int,
+        children: list[tables.Item] | None
 ) -> he.Element:
     img: str | he.Element
     trs = list()
-    chos = queries.get_children(ctx.dbs, item.itm_id, types.ITEM_TYPE_CHOICE)
-    for cho in chos:
+    if children is None:
+        children = queries.get_children(
+            ctx.dbs,
+            item.itm_id,
+            types.ITEM_TYPE_CHOICE
+        )
+    for cho in children:
         if cho.itm_cho_correct:
             class_box = "correct"
         else:

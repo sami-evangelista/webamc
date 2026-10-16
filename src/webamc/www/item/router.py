@@ -9,13 +9,17 @@ args_oper_add_t = tp_ext.TypedDict("args_oper_add_t", {
     "itm_type": types.item_type_t,
     "type": tp.Literal["exe", "mcq"]
 })
+args_oper_add_child_t = tp_ext.TypedDict("args_oper_add_child_t", {
+    "itr_parent": int,
+    "itr_child": int
+})
 args_item_t = tp_ext.TypedDict("args_item_t", {
     "itm_id": int
 })
 
 
 @router.post("/item/oper/add")
-def route_oper(
+def route_oper_add(
         req: fa.Request,
         args: args_oper_add_t
 ) -> fa.Response:
@@ -24,6 +28,18 @@ def route_oper(
         if not session.has_submission_right(ctx):
             raise fa.HTTPException(status_code=403)
         return add.data(ctx, args)
+
+
+@router.post("/item/oper/add-child")
+def route_oper_add_child(
+        req: fa.Request,
+        args: args_oper_add_child_t
+) -> fa.Response:
+    from .oper import add_child
+    with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
+        return add_child.data(ctx, args)
 
 
 @router.post("/item/oper/submit")
@@ -90,31 +106,30 @@ def route_page_group(
 @router.get("/item/page/main")
 def route_page_main(
         req: fa.Request,
-        sub_page: None | str = None,
+        sub_page: None | types.sub_page_t = None,
         itm_id: None | int = None
 ) -> fa.Response:
     from .page import database, submit, add, groups
     layout: base.page_layout_t = {
-        "title": "page_title_item",
-        "path": "/item/page/main",
-        "default": "database",
+        "page": "item",
+        "default": "item_database",
         "sub_pages": {
-            "database": {
+            "item_database": {
                 "dev": False,
                 "img": "database",
                 "gen": database.page
             },
-            "submit": {
+            "item_submit": {
                 "dev": False,
                 "img": "upload",
                 "gen": submit.page
             },
-            "add": {
+            "item_add": {
                 "dev": True,
                 "img": "add",
                 "gen": add.page
             },
-            "groups": {
+            "item_groups": {
                 "dev": False,
                 "img": "group",
                 "gen": groups.page

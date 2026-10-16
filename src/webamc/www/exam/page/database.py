@@ -22,7 +22,7 @@ def page(
         # link to the exam dashboard
         url = base.mkuri(
             "/exam/page/main",
-            sub_page="dashboard",
+            sub_page="exam_dashboard",
             exm_id=exam.exm_id
         )
         a_dashboard = base.static_img(
@@ -36,7 +36,9 @@ def page(
             "mcq",
             "seq_administrate_this_mcq",
             href=base.mkuri(
-                "/item/page/main", sub_page="database", itm_id=item.itm_id
+                "/item/page/main",
+                sub_page="item_database",
+                itm_id=item.itm_id
             )
         )
 

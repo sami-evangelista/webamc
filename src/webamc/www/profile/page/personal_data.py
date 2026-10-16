@@ -25,7 +25,9 @@ def page(ctx: context.Context) -> he.Element:
     input_eaddr = www_db_util.get_col_input_type(ctx, "usr_eaddr").element()
     input_eaddr["placeholder"] = lang.txt("seq_enter_new_eaddr")
     a_send = base.static_img(
-        "mail", "word_send", js="profile_send_eaddr_change()"
+        "mail",
+        "word_send",
+        js="profile_send_eaddr_change()"
     )
     trs.append(he.Tr(he.Td(input_eaddr), he.Td(a_send)))
     result = he.Table(*trs, class_="table-form")
