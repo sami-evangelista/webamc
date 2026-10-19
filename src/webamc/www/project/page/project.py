@@ -201,16 +201,15 @@ def page(
         size="10"
     )
     options_attr = [
-        he.Option(he.Str(""), value="")
-    ] + [
         he.Option(he.Str(a.atr_desc), value=a.atr_id)
-        for a in sorted(ctx.dbs.query(tables.Attr), key=lambda a: a.atr_desc)
+        for a in ctx.dbs.query(tables.Attr)
     ]
     select_attr = he.Select(
         *options_attr,
         name="assoc_attr",
         id_="assoc_attr"
-    )
+    ).sort()
+    select_attr.insert(0, he.Option(he.Str("-"), value=""))
     div_grps = he.Div(id_="div-grps")
     data_spec: list[tuple[types.txt_t, he.Element]] = [
         ("word_title", input_title),

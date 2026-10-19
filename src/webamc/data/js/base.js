@@ -1,5 +1,5 @@
 const base_anim_delay = 400;
-const base_tooltip_time = 3;
+const base_tooltip_time = 5;
 var base_computing = false;
 var base_wait_modal = null;
 

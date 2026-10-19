@@ -2,7 +2,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
 from sqlalchemy import (
-    delete, ForeignKeyConstraint, CheckConstraint, UniqueConstraint
+    select, delete, ForeignKeyConstraint, CheckConstraint, UniqueConstraint
 )
 
 from webamc.all import *
@@ -1159,14 +1159,40 @@ def create_listeners() -> tp.Any:
     ) -> None:
         # when we delete a question we delete all choices in it
         if target.itm_type == types.ITEM_TYPE_QUESTION:
-            conn.execute(
-                delete(
-                    Item
-                ).where(
-                    (ItemRelation.itr_parent == target.itm_id)
-                    & (ItemRelation.itr_child == Item.itm_id)
-                )
+            query = delete(
+                Item
+            ).where(
+                (ItemRelation.itr_parent == target.itm_id)
+                & (ItemRelation.itr_child == Item.itm_id)
             )
+            conn.execute(query)
+
+    def on_insert_item_relation(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: ItemRelation
+    ) -> None:
+        # when we insert in ItemRelation we make sure that we still
+        # have a tree, this requires to perform a graph search
+        todo = [target.itr_child, target.itr_parent]
+        done: set[int] = set(todo)
+        while todo != list():
+            item = todo[0]
+            todo = todo[1:]
+            query = select(
+                ItemRelation.itr_parent
+            ).where(
+                ItemRelation.itr_child == item
+            )
+            for parent in conn.scalars(query):
+                if parent in done:
+                    query_parent = select(Item).where(Item.itm_id == parent)
+                    item_parent = conn.execute(query_parent).first()
+                    assert item_parent is not None
+                    assert item_parent.itm_code is not None
+                    raise errors.DBItemRelationInvalid(item_parent.itm_code)
+                todo.append(parent)
+                done.add(parent)
 
     # checks performed during or insert or update
     def basic_checks(
@@ -1283,5 +1309,6 @@ def create_listeners() -> tp.Any:
         sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
         sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
     sa.event.listen(Item, "before_delete", on_delete_item)
+    sa.event.listen(ItemRelation, "before_insert", on_insert_item_relation)
 
 create_listeners()

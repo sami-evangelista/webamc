@@ -109,10 +109,7 @@ op_notlike;does not contain
 page_title_admin;administration
 page_title_admin_database;database
 page_title_admin_submit;submission
-page_title_ticket;ticket
-page_title_ticket_account_creation;account creation
 page_title_auth;authentication
-page_title_ticket_eaddr_change;Email address change
 page_title_exam_creation;creation
 page_title_exam_dashboard;dashboard
 page_title_exam_database;database
@@ -124,13 +121,16 @@ page_title_item_database;database
 page_title_item_groups;groups
 page_title_item;Online MCQ
 page_title_item_submit;submission
-page_title_ticket_password_change;password change
 page_title_profile;profile
 page_title_project;AMC projects
-word_disconnection;signout
 page_title_stats;statistics
+page_title_ticket_account_creation;account creation
+page_title_ticket_eaddr_change;Email address change
 page_title_ticket_error;ticket error
+page_title_ticket_password_change;password change
+page_title_ticket;ticket
 param_err_invalid_duplicate_value;%s: duplicate value
+param_err_invalid_item_relation;This insertion is impossible as this item would appear then twice in the MCQ/exercise %s.
 param_err_invalid_null_value;%s: value expected
 param_err_invalid_value;%s: invalid value
 param_seq_instance_num;instance %s
@@ -263,6 +263,7 @@ word_date;date
 word_delete;delete
 word_detach;detach
 word_details;details
+word_disconnection;signout
 word_exam;exam
 word_exercise;exercise
 word_file;File

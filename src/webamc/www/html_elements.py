@@ -40,6 +40,10 @@ class Element:
         for child in e:
             self.children.append(child)
 
+    def insert(self, i: int, e: "Element") -> "Element":
+        self.children.insert(i, e)
+        return self
+
     def set_attr(self, attr: str, value: str, check: bool = True) -> "Element":
         if check:
             self.attrs[self._fix_attr(attr)] = value
@@ -109,7 +113,11 @@ class P(Element):
 class Pre(Element):
     pass
 class Select(Element):
-    pass
+    def sort(self) -> "Element":
+        if not all(isinstance(c, Option) for c in self.children):
+            return self
+        self.children = sorted(self.children, key=lambda c: str(c.children[0]))
+        return self
 class Textarea(Element):
     pass
 class Span(Element):

@@ -33,7 +33,7 @@ def page(ctx: context.Context, pcode: str = "") -> fa.Response:
             name="project_code",
             id_="project_code",
             onchange="project_load_project()"
-        )
+        ).sort()
         tr = he.Tr(
             he.Td(he.Txt("seq_select_a_project")),
             he.Td(select_projects),

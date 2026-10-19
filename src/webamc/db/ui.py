@@ -62,8 +62,6 @@ class Password(Input):
             **kwargs: tp.Any
     ) -> he.Element:
         result = he.Input(type_="password")
-        if value is not None:
-            result["value"] = str(value)
         return self._init_element(result, **kwargs)
 
 
@@ -185,7 +183,8 @@ class Select(Input):
             he.Option(he.Str(v), value=k).add_flag("selected", value == k)
             for k, v in self.options.items()
         ]
+        select = he.Select(*options).sort()
         if self.col.nullable:
-            options.insert(0, he.Option(he.Str("-"), value=""))
-        result = self._init_element(he.Select(*options), **kwargs)
+            select.insert(0, he.Option(he.Str("-"), value=""))
+        result = self._init_element(select, **kwargs)
         return result

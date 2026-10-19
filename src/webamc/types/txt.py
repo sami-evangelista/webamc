@@ -133,6 +133,7 @@ txt_t = tp.Literal[
     "page_title_ticket_error",
     "page_title_ticket_password_change",
     "param_err_invalid_duplicate_value",
+    "param_err_invalid_item_relation",
     "param_err_invalid_null_value",
     "param_err_invalid_value",
     "param_seq_instance_num",

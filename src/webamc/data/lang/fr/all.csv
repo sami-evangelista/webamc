@@ -109,10 +109,7 @@ op_notlike;ne contient pas
 page_title_admin;administration
 page_title_admin_database;base de données
 page_title_admin_submit;soumission
-page_title_ticket;ticket
-page_title_ticket_account_creation;création d'un compte
 page_title_auth;authentification
-page_title_ticket_eaddr_change;changement d'adresse électronique
 page_title_exam_creation;création
 page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
@@ -124,13 +121,16 @@ page_title_item_database;base de données
 page_title_item_groups;groupes
 page_title_item;QCM en ligne
 page_title_item_submit;soumission
-page_title_ticket_password_change;changement de mot de passe
 page_title_profile;profil
 page_title_project;QCM papier
-word_disconnection;déconnexion
 page_title_stats;statistiques
+page_title_ticket_account_creation;création d'un compte
+page_title_ticket_eaddr_change;changement d'adresse électronique
 page_title_ticket_error;erreur de ticket
+page_title_ticket_password_change;changement de mot de passe
+page_title_ticket;ticket
 param_err_invalid_duplicate_value;%s: valeur en double
+param_err_invalid_item_relation;Cet ajout est impossible car cet élément apparaîtrait alors deux fois dans le QCM/exercice %s.
 param_err_invalid_null_value;%s: valeur attendue
 param_err_invalid_value;%s: valeur invalide
 param_seq_instance_num;Instance %s
@@ -262,6 +262,7 @@ word_date;date
 word_delete;supprimer
 word_detach;détacher
 word_details;détails
+word_disconnection;déconnexion
 word_exam;examen
 word_exercise;exercice
 word_file;Fichier

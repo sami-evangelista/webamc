@@ -213,6 +213,9 @@ const item_db_add_child = function (db_itm_id) {
         'itr_parent': db_itm_id,
         'itr_child': base_input_value(select_id)
     };
+    if(data['itr_child'] == null) {
+        return;
+    }
     const success = function () {
         item_db_on_children_update(db_itm_id);
     };

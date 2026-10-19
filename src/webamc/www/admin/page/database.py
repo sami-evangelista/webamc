@@ -33,7 +33,7 @@ def page(
         name="tbl",
         id_="tbl",
         onchange="admin_table_change()"
-    )
+    ).sort()
 
     # select with page selection (empty for now)
     select_pages = he.Select(

@@ -135,13 +135,13 @@ def page(
             else:
                 ok_types = {children[0].itm_type}
         excluded_items = set(c.itm_id for c in children)
-        candidate_items = sorted(
+        candidate_items = [
             (option_str(item), item.itm_id)
             for item in queries.get_usr_items(ctx.dbs, session.usr_id(ctx))
             if item.itm_type in ok_types
             and not item.itm_is_mcq
             and item.itm_id not in excluded_items
-        )
+        ]
         if candidate_items != list():
             options += [
                 he.Option(he.Str(opt), value=str(val))
@@ -151,7 +151,10 @@ def page(
                 *options,
                 id_=f"select-add-child-{item.itm_id}",
                 onchange=f"item_db_add_child({item.itm_id})"
-            ).set_data("type", "integer")
+            ).sort(
+            ).set_data(
+                "type", "integer"
+            )
 
     # <tr> for item content
     content = _content(ctx, item, iti_num, children)

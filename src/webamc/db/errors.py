@@ -4,9 +4,6 @@ from webamc.all import *
 
 
 class DBException(Exception):
-    def __init__(self, tbl: str):
-        super().__init__()
-        self.tbl = tbl
     def msg(self) -> str:
         return lang.txt("err_db_invalid_request")
 
@@ -16,6 +13,7 @@ class DBInvalidValue(DBException):
         super().__init__(tbl)
         self.col = col
         self.val = val
+        self.tbl = tbl
     def __str__(self) -> str:
         return (
             f"invalid value for column {self.tbl}.{self.col}: "
@@ -38,6 +36,7 @@ class DBDuplicateValue(DBException):
         super().__init__(tbl)
         self.col = col
         self.val = val
+        self.tbl = tbl
     def __str__(self) -> str:
         return (
             f"duplicate for column {self.tbl}.{self.col}: "
@@ -59,10 +58,22 @@ class DBInvalidNullValue(DBException):
     def __init__(self, tbl: str, col: str):
         super().__init__(tbl)
         self.col = col
+        self.tbl = tbl
     def __str__(self) -> str:
         return f"invalid null value for column {self.tbl}.{self.col}"
     def msg(self) -> str:
         return lang.txt(
             "param_err_invalid_null_value",
             lang.txt(tp.cast(types.txt_t, f"col_desc_{self.col}"))
+        )
+
+
+class DBItemRelationInvalid(DBException):
+    def __init__(self, itm_code_ancestor: str):
+        super().__init__()
+        self.itm_code_ancestor = itm_code_ancestor
+    def msg(self) -> str:
+        return lang.txt(
+            "param_err_invalid_item_relation",
+            self.itm_code_ancestor
         )

@@ -54,12 +54,12 @@ def page(
             )
             for s in students
         ]
-        options.insert(0, he.Option(he.Str(""), value=""))
         select_user = he.Select(
             *options,
             id_=f"assoc-{pg}-{copy}",
             onchange=f"project_associate_manual({pg}, {copy})"
-        )
+        ).sort()
+        select_user.insert(0, he.Option(he.Str("-"), value=""))
         tds.append(he.Td(he.Empty()))
         tds.append(he.Td(select_user))
         trs.append(he.Tr(*tds))
