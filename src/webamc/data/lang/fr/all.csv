@@ -109,6 +109,7 @@ op_notlike;ne contient pas
 page_title_admin;administration
 page_title_admin_database;base de données
 page_title_admin_submit;soumission
+page_title_ticket;ticket
 page_title_ticket_account_creation;création d'un compte
 page_title_auth;authentification
 page_title_ticket_eaddr_change;changement d'adresse électronique
@@ -166,7 +167,7 @@ seq_delete_project;supprimer ce projet
 seq_delete_recursively;supprimer cet élément et tout son contenu
 seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
 seq_error_messages;message(s) d'erreur
-seq_exercise_list;liste d'exercices
+seq_exercise_list;liste d'exercices ou de questions
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
 seq_information_messages;message(s) d'information
 seq_latex_id;identifiant étudiant dans le code latex

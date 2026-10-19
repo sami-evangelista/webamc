@@ -488,7 +488,7 @@ class Item(Base):
     itm_rnd: bool = sa.Column(
         ct.Boolean,
         nullable=False,
-        default=False,
+        default=True,
         info={
             "ui_visible": True,
             "ui_updatable": True

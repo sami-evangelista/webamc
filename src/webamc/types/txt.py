@@ -127,6 +127,7 @@ txt_t = tp.Literal[
     "page_title_profile",
     "page_title_project",
     "page_title_stats",
+    "page_title_ticket",
     "page_title_ticket_account_creation",
     "page_title_ticket_eaddr_change",
     "page_title_ticket_error",

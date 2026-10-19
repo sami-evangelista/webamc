@@ -1,7 +1,8 @@
+from sqlalchemy import select
+
 from webamc.db import tables, queries
 from webamc.www.all import *
 from webamc.www.item import router
-from webamc.www.item.page import database_list
 
 
 def data(
@@ -10,5 +11,22 @@ def data(
 ) -> fa.Response:
     item_child = queries.get_item(ctx.dbs, args["itr_child"])
     item_parent = queries.get_item(ctx.dbs, args["itr_parent"])
-    result = database_list.div_item(ctx, item_child, item_parent)
-    return base.wrap_code("succ", result=str(result))
+    query = select(
+        tables.ItemRelation.itr_order
+    ).where(
+        tables.ItemRelation.itr_parent == item_parent.itm_id
+    ).order_by(
+        tables.ItemRelation.itr_order.desc()
+    )
+    order = ctx.dbs.scalars(query).first()
+    if order is None:
+        order = 1
+    else:
+        order = order + 1
+    itr = tables.ItemRelation(
+        itr_parent=item_parent.itm_id,
+        itr_child=item_child.itm_id,
+        itr_order=order
+    )
+    ctx.dbs.add(itr)
+    return base.wrap_code("succ")

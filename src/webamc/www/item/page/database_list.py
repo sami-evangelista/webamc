@@ -61,7 +61,7 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
     # if there is only one item returned by the query, load it
     if len(items) == 1:
         script: he.Element = he.Script(
-            f"item_admin_code_click({items[0].itm_id}, false, null)"
+            f"item_db_code_click({items[0].itm_id}, false, null)"
         )
     else:
         script = he.Empty()
@@ -90,26 +90,30 @@ def div_item(
         label = he.Txt("word_exercise")
         div_code_class = "item-code item-code-exercise"
     buttons: list[he.Element] = list()
+    if item_parent is None:
+        itm_id_parent = None
+    else:
+        itm_id_parent = item_parent.itm_id
     if item_parent is not None and session.has_admin_right(ctx, item_parent):
         img_unlink = base.static_img(
             "unlink",
             "word_detach",
-            js=f"item_detach({item.itm_id}, {item_parent.itm_id});"
+            js=f"item_db_detach({item.itm_id}, {json.dumps(itm_id_parent)});"
         )
         buttons.append(img_unlink)
     if session.has_admin_right(ctx, item):
         img_delete = base.static_img(
             "dismiss",
             "word_delete",
-            js=f"item_delete({item.itm_id}, {json.dumps(is_root)});"
+            js=f"item_db_delete({item.itm_id}, {json.dumps(itm_id_parent)});"
         )
         buttons.append(img_delete)
         img_delete = base.static_img(
             "trash",
             "seq_delete_recursively",
             js=(
-                "item_delete_recursively"
-                f"({item.itm_id}, {json.dumps(is_root)});"
+                "item_db_delete_recursively"
+                f"({item.itm_id}, {json.dumps(itm_id_parent)});"
             )
         )
         buttons.append(img_delete)
@@ -125,7 +129,7 @@ def div_item(
         he.Str(f" [{item.itm_code}]"),
         style="cursor: pointer;",
         onclick=(
-            "item_admin_code_click("
+            "item_db_code_click("
             f"{item.itm_id}, {json.dumps(is_root)}, null)"
         )
     )

@@ -97,7 +97,7 @@ def page(
             for i in all_instances
         ]
         onchange = (
-            f"item_admin_code_click({item.itm_id}, false, this.value);"
+            f"item_db_code_click({item.itm_id}, false, this.value);"
             " return false;"
         )
         select_instance = he.Select(
@@ -107,12 +107,11 @@ def page(
         )
         trs += [select_instance, img_instance]
 
-    # <tr> for item content
+    # <tr> with select containing elements that can be added to the
+    # exercise
     children: None | list[tables.Item] = None
-    trs.append(base.field_label(he.Txt("word_content")))
+    select_add: None | he.Element = None
     if item.itm_type == types.ITEM_TYPE_EXERCISE:
-
-        # select containing elements that can be added to the exercise
         def option_str(item: tables.Item) -> str:
             assert item.itm_code is not None
             if item.itm_type == types.ITEM_TYPE_QUESTION:
@@ -143,18 +142,25 @@ def page(
             and not item.itm_is_mcq
             and item.itm_id not in excluded_items
         )
-        options += [
-            he.Option(he.Str(opt), value=str(val))
-            for (opt, val) in candidate_items
-        ]
-        select_add = he.Select(
-            *options,
-            id_=f"select-add-child-{item.itm_id}",
-            onchange=f"item_admin_add_child({item.itm_id})"
-        ).set_data("type", "integer")
-        trs.append(select_add)
+        if candidate_items != list():
+            options += [
+                he.Option(he.Str(opt), value=str(val))
+                for (opt, val) in candidate_items
+            ]
+            select_add = he.Select(
+                *options,
+                id_=f"select-add-child-{item.itm_id}",
+                onchange=f"item_db_add_child({item.itm_id})"
+            ).set_data("type", "integer")
+
+    # <tr> for item content
     content = _content(ctx, item, iti_num, children)
-    trs.append(content)
+    if content is not None or select_add is not None:
+        trs.append(base.field_label(he.Txt("word_content")))
+        if select_add is not None:
+            trs.append(select_add)
+        if content is not None:
+            trs.append(content)
 
     # <table> containing all previous <tr>
     table_attributes = he.mktable(((tr, ) for tr in trs), class_="table-form")
@@ -162,12 +168,11 @@ def page(
     # script initialising the item
     d = json.dumps
     js = (
-        f"item_init_admin("
+        f"item_db_init("
         f"{d(item.itm_id)}, {d(tags)}, {d(grps)}, {d(init_grps)})"
     )
     script = he.Script(js)
 
-    # prepare result
     result = he.ElementList(
         table_attributes,
         script
@@ -180,7 +185,7 @@ def _content(
         item: tables.Item,
         iti_num: int,
         children: list[tables.Item] | None
-) -> he.Element:
+) -> None | he.Element:
     if item.itm_type == types.ITEM_TYPE_EXERCISE:
         return _content_exercise(ctx, item, children)
     if item.itm_type == types.ITEM_TYPE_QUESTION:
@@ -194,14 +199,15 @@ def _content_exercise(
         ctx: context.Context,
         item: tables.Item,
         children: list[tables.Item] | None
-) -> he.Element:
+) -> None | he.Element:
     if children is None:
         children = queries.get_children(ctx.dbs, item.itm_id)
-    result = he.ElementList(*[
+    if children == list():
+        return None
+    return he.ElementList(*[
         database_list.div_item(ctx, item_child, item)
         for item_child in children
     ])
-    return result
 
 
 def _content_pack(
@@ -212,12 +218,12 @@ def _content_pack(
     div_pack = he.Div(id_=id_div_pack)
     script = he.Script(
         f"var init = {json.dumps(item.itm_pack_spec)};"
-        f"item_pack_load({item.itm_id}, {json.dumps(id_div_pack)}, init);"
+        f"item_db_pack_load({item.itm_id}, {json.dumps(id_div_pack)}, init);"
     )
     a_update = base.static_img(
         "edit",
         "word_update",
-        js=f"item_pack_update({item.itm_id});"
+        js=f"item_db_pack_update({item.itm_id});"
     )
     content = he.ElementList(div_pack, a_update, script)
     return content

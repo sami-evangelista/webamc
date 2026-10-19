@@ -9,8 +9,8 @@ def data(ctx: context.Context, args: router.args_oper_add_t) -> fa.Response:
     itm_code = args["itm_code"]
     itm_title = args["itm_title"]
 
-    if itm_type == types.ITEM_TYPE_PACK:
-        itm_pack_spec = ""
+    if itm_type != types.ITEM_TYPE_PACK:
+        itm_pack_spec = None
     else:
         itm_pack_spec = json.dumps({"op": "all"})
 

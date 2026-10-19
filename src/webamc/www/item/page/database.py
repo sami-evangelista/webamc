@@ -27,7 +27,7 @@ def page(
 
     # filter button
     a_filter = base.static_img(
-        "checkmark", "word_filter", js="item_filter()", class_="submit"
+        "checkmark", "word_filter", js="item_db_filter()", class_="submit"
     )
 
     # table containing all filters
@@ -48,7 +48,7 @@ def page(
         class_="table-form",
         id_="table-item-filters"
     )
-    js = f"item_filters_init({json.dumps(div_tags_id)})"
+    js = f"item_db_filters_init({json.dumps(div_tags_id)})"
     div_filters = he.Div(
         table,
         a_filter,
@@ -57,7 +57,8 @@ def page(
         class_="box"
     )
 
-    script = he.Script(f"item_filter({json.dumps(kwargs.get('itm_id'))});")
+    itm_id = kwargs.get("itm_id")
+    script = he.Script(f"item_db_filter({json.dumps(itm_id)});")
     elements = [
         div_filters,
         he.Div(id_="div-item-list"),

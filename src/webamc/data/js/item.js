@@ -1,91 +1,20 @@
-var item_table_filter_tag;
 var item_groups_loaded = new Set();
-var item_admin_items_loaded = new Set();
-var item_packs = {};
-var item_admin_roots = new Set();
+var item_db_items_loaded = new Set();
+var item_db_packs = {};
+var item_db_roots = new Set();
+var item_db_table_filter_tag;
 
 
-const item_remove_child_item = function (itm_id) {
-    $('#div-item-code-' + itm_id).remove();
-    $('#div-item-body-' + itm_id).remove();
-}
-
-
-const item_detach = function (itm_id, itm_id_parent) {
-    const go = function () {
-        const db_where = [
-            {'op': '=', 'col': 'itr_parent', 'val': itm_id_parent},
-            {'op': '=', 'col': 'itr_child', 'val': itm_id},
-        ];
-        const success = function() {
-            item_remove_child_item(itm_id);
-        };
-        xhr_db_delete('item_relation', db_where, success);
+const item_add = function () {
+    const success = function (response) {
+        const url = Constants.path_item_page_main
+              + "?sub_page=item_database"
+              + "&itm_id=" + response.result['itm_id']
+        ;
+        base_relocate(url);
     };
-    base_ask_confirmation(Lang['qst_confirmation_item_detach'], go);
-}
-
-
-const item_deletion_success = function (itm_id, is_root) {
-    const result = function () {
-        if(is_root) {
-            item_filter();
-        } else {
-            item_remove_child_item(itm_id);
-        }
-    };
-    return result;
-}
-
-
-const item_delete = function (itm_id, is_root) {
-    const go = function () {
-        const db_where = {
-            'op': '=',
-            'col': 'itm_id',
-            'val': itm_id
-        };
-        xhr_db_delete(
-            'item', [db_where], item_deletion_success(itm_id, is_root)
-        );
-    };
-    base_ask_confirmation(Lang['qst_confirmation_item_deletion'], go);
-}
-
-
-const item_delete_recursively = function (itm_id, is_root) {
-    const go = function () {
-        const data = {
-            'itm_id': itm_id
-        };
-        xhr_post(
-            Constants.path_item_oper_recursive_deletion,
-            item_deletion_success(itm_id, is_root),
-            data
-        );
-    };
-    base_ask_confirmation(
-        Lang['qst_confirmation_item_recursive_deletion'], go
-    );
-}
-
-
-const item_filter = function (itm_id = null) {
-    const success = function (result) {
-        item_admin_items_loaded = new Set();
-	$('#div-item-list').html(result);
-    };
-    const url = Constants.path_item_page_database_list;
-    const data = base_input_values('#table-item-filters');
-    data['itm_id'] = itm_id;
-    data['itm_type'] = $('#itm_type').val();
-    data['itm_tags'] = item_table_filter_tag.get_tag_ids();
-    xhr_post(url, success, data, 'html');
-};
-
-
-const item_filters_init = function (div_id) {
-    item_table_filter_tag = new TagTable(div_id, {}, true, null, true, null);
+    const data = base_input_values('#table-add-item');
+    xhr_post_oper(Constants.path_item_oper_add, data, success);
 }
 
 
@@ -103,21 +32,96 @@ const item_load_grp = function (db_grp_id) {
     }
 }
 
-const item_admin_code_click = function (db_itm_id, is_root_item, iti_num) {
+
+const item_db_on_children_update = function (db_itm_id) {
+    const path = Constants.path_item_page_database_body
+          + '?itm_id=' + db_itm_id
+          + '&iti_num=1'
+    ;
+    const success = function (response) {
+        $('#div-item-body-' + db_itm_id).html(response);
+    };
+    xhr_get(path, success);
+}
+
+
+const item_db_detach = function (db_itm_id, db_itm_id_parent) {
+    const go = function () {
+        const db_where = [
+            {'op': '=', 'col': 'itr_parent', 'val': db_itm_id_parent},
+            {'op': '=', 'col': 'itr_child', 'val': db_itm_id},
+        ];
+        const success = function() {
+            item_db_on_children_update(db_itm_id_parent);
+        };
+        xhr_db_delete('item_relation', db_where, success);
+    };
+    base_ask_confirmation(Lang['qst_confirmation_item_detach'], go);
+}
+
+
+const item_db_delete = function (db_itm_id, db_itm_id_parent) {
+    let success;
+    if(db_itm_id_parent != null) {
+        success = function() { item_db_on_children_update(db_itm_id_parent); };
+    } else {
+        success = function() { item_db_filter(); };
+    }
+    const go = function () {
+        const db_where = {
+            'op': '=',
+            'col': 'itm_id',
+            'val': db_itm_id
+        };
+        xhr_db_delete('item', [db_where], success);
+    };
+    base_ask_confirmation(Lang['qst_confirmation_item_deletion'], go);
+}
+
+
+const item_db_delete_recursively = function (db_itm_id, db_itm_id_parent) {
+    let success;
+    if(db_itm_id_parent != null) {
+        success = function() { item_db_on_children_update(db_itm_id_parent); };
+    } else {
+        success = function() { item_db_filter(); };
+    }
+    if(db_itm_id_parent != null) {
+        success = function() { item_db_on_children_update(db_itm_id_parent); };
+    }
+    const go = function () {
+        const data = {
+            'itm_id': db_itm_id
+        };
+        xhr_post(Constants.path_item_oper_recursive_deletion, success, data);
+    };
+    const txt = Lang['qst_confirmation_item_recursive_deletion'];
+    base_ask_confirmation(txt, go);
+}
+
+
+const item_db_filters_init = function (div_id) {
+    item_db_table_filter_tag = new TagTable(
+        div_id, {}, true, null, true, null
+    );
+}
+
+
+const item_db_code_click = function (db_itm_id, is_root, db_iti_num) {
     const div_body = $('#div-item-body-' + db_itm_id);
-    const target_instance = iti_num || 1;
-    const is_dropdown_change = (iti_num !== null);
+    const target_instance = db_iti_num || 1;
+    const is_dropdown_change = (db_iti_num !== null);
 
     /* if we click on a root item we have to hide all other roots to
      * avoid duplicate items in the page referenced through different
      * roots */
-    if(is_root_item) {
-        if(item_admin_items_loaded.has(db_itm_id)) {
-            item_filter();
+    if(is_root) {
+        if(item_db_items_loaded.has(db_itm_id)) {
+            item_db_filter();
         } else {
             /* hide all other roots */
             const success = function (result) {
-                item_admin_items_loaded = new Set();
+                item_db_items_loaded = new Set();
 	        $('#div-item-list').html(result);
             };
             const url = Constants.path_item_page_database_list;
@@ -125,7 +129,7 @@ const item_admin_code_click = function (db_itm_id, is_root_item, iti_num) {
             xhr_post(url, success, data, 'html');
         }
     } else {
-        if(item_admin_items_loaded.has(db_itm_id) && !is_dropdown_change) {
+        if(item_db_items_loaded.has(db_itm_id) && !is_dropdown_change) {
             div_body.fadeToggle();
         } else {
             const success = function (result) {
@@ -133,7 +137,7 @@ const item_admin_code_click = function (db_itm_id, is_root_item, iti_num) {
                 if (!div_body.is(':visible')) {
                     div_body.hide().fadeIn();
                 }
-                item_admin_items_loaded.add(db_itm_id);
+                item_db_items_loaded.add(db_itm_id);
             };
             const path = Constants.path_item_page_database_body
                   + '?itm_id=' + db_itm_id 
@@ -145,7 +149,26 @@ const item_admin_code_click = function (db_itm_id, is_root_item, iti_num) {
 };
 
 
-const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
+const item_db_pack_load = function (pak_id, div_container_id, pak_spec) {
+    const div_id = 'pack-' + pak_id;
+    item_db_packs[pak_id] = new Pack(div_container_id, div_id, pak_spec);
+}
+
+
+const item_db_pack_update = function (pak_id) {
+    const db_where = {
+        'op': '=',
+        'col': 'pak_id',
+        'val': pak_id
+    };
+    const db_values = {
+        'pak_spec': item_db_packs[pak_id].get_json()
+    };
+    xhr_db_update('pack', [db_where], db_values);
+}
+
+
+const item_db_init = function (db_itm_id, tags, grps, init_grps) {
 
     /* initialise the tag table */
     const table_tags_id = 'table-item-tags-' + db_itm_id;
@@ -184,45 +207,28 @@ const item_init_admin = function (db_itm_id, tags, grps, init_grps) {
 }
 
 
-const item_pack_load = function (pak_id, div_container_id, pak_spec) {
-    const div_id = 'pack-' + pak_id;
-    item_packs[pak_id] = new Pack(div_container_id, div_id, pak_spec);
-}
-
-
-const item_pack_update = function (pak_id) {
-    const db_where = {
-        'op': '=',
-        'col': 'pak_id',
-        'val': pak_id
-    };
-    const db_values = {
-        'pak_spec': item_packs[pak_id].get_json()
-    };
-    xhr_db_update('pack', [db_where], db_values);
-}
-
-
-const item_add = function () {
-    const success = function (response) {
-        const url = Constants.path_item_page_main
-              + "?sub_page=item_database"
-              + "&itm_id=" + response.result['itm_id']
-        ;
-        base_relocate(url);
-    };
-    const data = base_input_values('#table-add-item');
-    xhr_post_oper(Constants.path_item_oper_add, data, success);
-}
-
-
-const item_admin_add_child = function (itm_id) {
-    const select_id = 'select-add-child-' + itm_id;
+const item_db_add_child = function (db_itm_id) {
+    const select_id = 'select-add-child-' + db_itm_id;
     const data = {
-        'itr_parent': itm_id,
+        'itr_parent': db_itm_id,
         'itr_child': base_input_value(select_id)
     };
     const success = function () {
+        item_db_on_children_update(db_itm_id);
     };
     xhr_post_oper(Constants.path_item_oper_add_child, data, success);
 }
+
+
+const item_db_filter = function (db_itm_id = null) {
+    const success = function (result) {
+        item_db_items_loaded = new Set();
+	$('#div-item-list').html(result);
+    };
+    const url = Constants.path_item_page_database_list;
+    const data = base_input_values('#table-item-filters');
+    data['itm_id'] = db_itm_id;
+    data['itm_type'] = $('#itm_type').val();
+    data['itm_tags'] = item_db_table_filter_tag.get_tag_ids();
+    xhr_post(url, success, data, 'html');
+};
