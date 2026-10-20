@@ -235,3 +235,16 @@ const item_db_filter = function (db_itm_id = null) {
     data['itm_tags'] = item_db_table_filter_tag.get_tag_ids();
     xhr_post(url, success, data, 'html');
 };
+
+
+const item_db_move = function (db_itm_id, db_itm_id_parent, move) {
+    const success = function () {
+        item_db_on_children_update(db_itm_id_parent);
+    };
+    const data = {
+        'itr_child': db_itm_id,
+        'itr_parent': db_itm_id_parent,
+        'move': move
+    };
+    xhr_post_oper(Constants.path_item_oper_move_child, data, success);
+}

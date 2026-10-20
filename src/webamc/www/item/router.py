@@ -13,6 +13,11 @@ args_oper_add_child_t = tp_ext.TypedDict("args_oper_add_child_t", {
     "itr_parent": int,
     "itr_child": int
 })
+args_oper_move_child_t = tp_ext.TypedDict("args_oper_move_child_t", {
+    "itr_parent": int,
+    "itr_child": int,
+    "move": int
+})
 args_item_t = tp_ext.TypedDict("args_item_t", {
     "itm_id": int
 })
@@ -40,6 +45,18 @@ def route_oper_add_child(
         if not session.has_submission_right(ctx):
             raise fa.HTTPException(status_code=403)
         return add_child.data(ctx, args)
+
+
+@router.post("/item/oper/move-child")
+def route_oper_move_child(
+        req: fa.Request,
+        args: args_oper_move_child_t
+) -> fa.Response:
+    from .oper import move_child
+    with context.Context(req) as ctx:
+        if not session.has_submission_right(ctx):
+            raise fa.HTTPException(status_code=403)
+        return move_child.data(ctx, args)
 
 
 @router.post("/item/oper/submit")

@@ -71,6 +71,8 @@ err_http_500;Erreur 500 - Erreur du serveur !!!
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
 err_invalid_ticket;Ce ticket n'est plus vaide.
+word_move_up;monter
+word_move_down;descendre
 err_io;Erreur d'entrée/sortie.
 err_item_admin_empty_archive;L'archive est vide.
 err_mail_file_not_found;Fichier de mail non trouvé.

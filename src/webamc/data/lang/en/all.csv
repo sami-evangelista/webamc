@@ -274,7 +274,9 @@ word_help;help
 word_login;Login
 word_mcq;MCQ
 word_minutes;minutes
-word_mod_date;Modification date
+word_mod_date;modification date
+word_move_up;move up
+word_move_down;move down
 word_no;no
 word_page;page
 word_parameters;parameters

@@ -277,6 +277,8 @@ txt_t = tp.Literal[
     "word_mcq",
     "word_minutes",
     "word_mod_date",
+    "word_move_down",
+    "word_move_up",
     "word_no",
     "word_page",
     "word_parameters",

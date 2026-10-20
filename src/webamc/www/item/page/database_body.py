@@ -207,10 +207,14 @@ def _content_exercise(
         children = queries.get_children(ctx.dbs, item.itm_id)
     if children == list():
         return None
-    return he.ElementList(*[
-        database_list.div_item(ctx, item_child, item)
-        for item_child in children
-    ])
+    no = len(children)
+    elements = list()
+    for idx, item_child in enumerate(children):
+        elements.append(
+            database_list.div_item(ctx, item_child, item, (idx, no - 1))
+        )
+    result = he.ElementList(*elements)
+    return result
 
 
 def _content_pack(

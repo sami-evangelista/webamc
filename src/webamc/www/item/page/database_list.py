@@ -51,7 +51,7 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
     ).order_by(
         tables.Item.itm_code
     ).all()
-    elements = [div_item(ctx, item, None) for item in items]
+    elements = [div_item(ctx, item, None, None) for item in items]
 
     if not filters.get("display_num_found", True):
         p = he.P(he.Str("&nbsp;", escape=False))
@@ -72,7 +72,8 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
 def div_item(
         ctx: context.Context,
         item: tables.Item,
-        item_parent: None | tables.Item
+        item_parent: None | tables.Item,
+        position: None | tuple[int, int]
 ) -> he.Element:
 
     div_code_id = f"div-item-code-{item.itm_id}"
@@ -95,18 +96,28 @@ def div_item(
     else:
         itm_id_parent = item_parent.itm_id
     if item_parent is not None and session.has_admin_right(ctx, item_parent):
-        img_up = base.static_img(
-            "arrow-up",
-            "word_detach",
-            js=f"item_db_move({item.itm_id}, {json.dumps(itm_id_parent)}, -1);"
-        )
-        buttons.append(img_up)
-        img_down = base.static_img(
-            "arrow-down",
-            "word_detach",
-            js=f"item_db_move({item.itm_id}, {json.dumps(itm_id_parent)}, -1);"
-        )
-        buttons.append(img_down)
+        if position is not None and position[0] > 0:
+            js = (
+                "item_db_move("
+                f"{item.itm_id}, {json.dumps(itm_id_parent)}, -1);"
+            )
+            img_up = base.static_img(
+                "arrow-up",
+                "word_move_up",
+                js=js
+            )
+            buttons.append(img_up)
+        if position is not None and position[0] < position[1]:
+            js = (
+                "item_db_move("
+                f"{item.itm_id}, {json.dumps(itm_id_parent)}, +1);"
+            )
+            img_down = base.static_img(
+                "arrow-down",
+                "word_move_down",
+                js=js
+            )
+            buttons.append(img_down)
         img_unlink = base.static_img(
             "unlink",
             "word_detach",
