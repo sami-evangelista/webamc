@@ -1,6 +1,8 @@
 id;text
+param_err_item_referenced_in_exam_submission;This element cannot be deleted because it appeared in an exam (%s). You must first delete this exam in order to delete the element.
 action_download_archive;Download the archive
 action_refresh;refresh
+col_desc_exm_title;title
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;user
@@ -11,7 +13,7 @@ col_desc_cas_enabled;enabled
 col_desc_cas_id;#
 col_desc_cas_login;cas identifier
 col_desc_cas_usr;user
-col_desc_exm_duration;duration
+col_desc_exm_duration;duration (min.)
 col_desc_exm_mcq;MCQ
 col_desc_exm_start;start
 col_desc_grp_id;#
@@ -110,7 +112,7 @@ page_title_admin;administration
 page_title_admin_database;database
 page_title_admin_submit;submission
 page_title_auth;authentication
-page_title_exam_creation;creation
+page_title_exam_add;creation
 page_title_exam_dashboard;dashboard
 page_title_exam_database;database
 page_title_exam;exam

@@ -72,6 +72,8 @@ class DateTime(sa.DateTime, ColType):
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
             return "NA"
+        if isinstance(val, str):
+            val = datetime.datetime.fromisoformat(val)
         if not isinstance(val, datetime.datetime):
             raise ValueError
         return fmt.fmt_datetime(val)
@@ -233,18 +235,20 @@ class ForeignKey(IntEnum):
         return result
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
+        from . import util
         if val is None:
             return "NA"
         dbs = tp.cast(Session, kwargs["dbs"])
-        tbl = cls.col.table
+        tbl = util.get_tbl_meta(util.get_col_tbl(cls.col))
         row = dbs.query(tbl).where(cls.col == val).first()
+        assert row is not None
         return cls.fmt(row)
     @classmethod
     def get_values(cls, **kwargs: tp.Any) -> dict[int, str]:
+        from . import util
         dbs = tp.cast(Session, kwargs["dbs"])
-        tbl = cls.col.table
-        query = dbs.query(cls.col, tbl)
-        return {
-            getattr(row, cls.col.name): cls.fmt(row)
-            for row in query.all()
-        }
+        tbl = util.get_tbl_meta(util.get_col_tbl(cls.col))
+        query = dbs.query(tbl)
+        if "where" in kwargs:
+            query = query.where(sa.and_(*kwargs["where"]))
+        return {getattr(o, cls.col.name): cls.fmt(o) for o in query.all()}

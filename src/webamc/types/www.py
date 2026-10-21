@@ -186,7 +186,7 @@ page_t = tp.Literal[
 sub_page_t = tp.Literal[
     "admin_database",
     "admin_submit",
-    "exam_creation",
+    "exam_add",
     "exam_dashboard",
     "exam_database",
     "item_add",

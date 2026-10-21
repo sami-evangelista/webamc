@@ -70,7 +70,7 @@ def route_exam_page(
         sub_page: None | types.sub_page_t = None,
         exm_id: None | int = None
 ) -> fa.Response:
-    from .page import creation, database, dashboard
+    from .page import add, database, dashboard
     layout: base.page_layout_t = {
         "page": "exam",
         "default": "exam_database",
@@ -80,10 +80,10 @@ def route_exam_page(
                 "img": "database",
                 "gen": database.page
             },
-            "exam_creation": {
+            "exam_add": {
                 "dev": True,
                 "img": "add",
-                "gen": creation.page
+                "gen": add.page
             },
             "exam_dashboard": {
                 "dev": True,

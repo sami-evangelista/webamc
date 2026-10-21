@@ -17,7 +17,7 @@ def get_grps(
         (tables.UsrGrp.ugp_usr == usr_id)
         & (tables.UsrGrp.ugp_grp == tables.Grp.grp_id)
     )
-    return [row.tuple() for row in query]
+    return [row._tuple() for row in query]
 
 
 def get_viewable_mcqs(
@@ -59,7 +59,7 @@ def get_viewable_mcqs(
     ).order_by(
         tables.Item.itm_title
     )
-    return [row.tuple() for row in query]
+    return [row._tuple() for row in query]
 
 
 def get_active_registration(
@@ -80,7 +80,7 @@ def get_active_registration(
 
     # getting the ongoing examd
     for row in exam_registrations:
-        exam, registration = row.tuple()
+        exam, registration = row._tuple()
         if exam.end_time() >= now:
             return exam, registration
 
@@ -133,7 +133,7 @@ def get_usr_exams(
     ).order_by(
         tables.Exam.exm_start.desc()
     )
-    return [row.tuple() for row in query]
+    return [row._tuple() for row in query]
 
 
 def get_exam_registrations(
@@ -147,7 +147,7 @@ def get_exam_registrations(
         (tables.Registration.reg_exam == exm_id)
         & (tables.Registration.reg_usr == tables.Usr.usr_id)
     )
-    return [row.tuple() for row in query.all()]
+    return [row._tuple() for row in query.all()]
 
 
 def get_ticket(
@@ -165,7 +165,7 @@ def get_ticket(
     row = query.first()
     if row is None:
         return None
-    return row.tuple()
+    return row._tuple()
 
 
 def get_exam_monitoring(
@@ -649,7 +649,7 @@ def list_messages(
     ).order_by(
         tables.Message.msg_date.desc()
     )
-    return [row.tuple() for row in query.all()]
+    return [row._tuple() for row in query.all()]
 
 
 def has_messages(dbs: Session, usr_id: int) -> bool:
@@ -682,7 +682,7 @@ def get_item_instance(
         tables.ItemInstance
     ).where(
         (tables.ItemInstance.iti_item == itm_id)
-        & (tables.ItemInstance.iti_num == tables.ItemInstance.iti_num)
+        & (tables.ItemInstance.iti_num == iti_num)
     ).first()
 
 

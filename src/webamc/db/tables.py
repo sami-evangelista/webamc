@@ -121,6 +121,10 @@ class Usr(Base):
             "doc": r"last name"
         }
     )
+    def fmt(self) -> str:
+        result = f"{self.usr_name.upper()} {self.usr_name.title()}"
+        result += f" [{self.usr_code}]"
+        return result
 
 
 class Attr(Base):
@@ -611,6 +615,12 @@ class Item(Base):
                 "item",
                 Item.itm_title.name
             )
+    def fmt(self) -> str:
+        if self.itm_title is not None:
+            result = f"{self.itm_title} [{self.itm_code}]"
+        else:
+            result = str(self.itm_code)
+        return result
 
 
 class ItemRelation(Base):
@@ -940,6 +950,14 @@ class Exam(Base):
         ct.Integer,
         primary_key=True
     )
+    exm_title: str = sa.Column(
+        ct.String,
+        nullable=False,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
     exm_mcq: int = sa.Column(
         RefItem,
         nullable=False,
@@ -1129,7 +1147,7 @@ class Message(Base):
 
 # define attributes of foreign keys
 RefUsr.col = Usr.usr_id
-RefUsr.fmt = lambda usr: str(usr.usr_code)
+RefUsr.fmt = lambda usr: usr.fmt()
 RefAttr.col = Attr.atr_id
 RefAttr.fmt = lambda attr: str(attr.atr_code)
 RefTbl.col = Tbl.tbl_id
@@ -1138,8 +1156,6 @@ RefSubmission.col = Submission.sub_id
 RefSubmission.fmt = lambda sub: str(sub.sub_id)
 RefGrp.col = Grp.grp_id
 RefGrp.fmt = lambda grp: str(grp.grp_name)
-RefItem.col = Item.itm_id
-RefItem.fmt = lambda item: str(item.itm_code)
 RefTag.col = Tag.tag_id
 RefTag.fmt = lambda tag: str(tag.tag_name)
 RefExam.col = Exam.exm_id
@@ -1148,6 +1164,8 @@ RefRegistration.col = Registration.reg_id
 RefRegistration.fmt = lambda reg: str(reg.reg_id)
 RefItemInstance.col = ItemInstance.iti_id
 RefItemInstance.fmt = lambda iti: str(iti.iti_id)
+RefItem.col = Item.itm_id
+RefItem.fmt = lambda item: item.fmt()
 
 
 def create_listeners() -> tp.Any:
@@ -1157,15 +1175,32 @@ def create_listeners() -> tp.Any:
             conn: Connection,
             target: Item
     ) -> None:
+        # we make sure before deleting the item that no answer is
+        # related to it in the context of an exam submission
+        query_select = select(
+            Exam
+        ).where(
+            (ItemInstance.iti_item == target.itm_id)
+            & (ItemInstance.iti_id == Answer.ans_instance)
+            & (Answer.ans_submission == Submission.sub_id)
+            & (Submission.sub_type == types.SUBMISSION_TYPE_EXAM)
+            & (Submission.sub_exm_registration == Registration.reg_id)
+            & (Registration.reg_exam == Exam.exm_id)
+        )
+        exam = conn.scalars(query_select).first()
+        if exam is not None:
+            title = exam.exm_title
+            raise errors.DBDeletionOfItemReferencedInExamSubmission(title)
+
         # when we delete a question we delete all choices in it
         if target.itm_type == types.ITEM_TYPE_QUESTION:
-            query = delete(
+            query_delete = delete(
                 Item
             ).where(
                 (ItemRelation.itr_parent == target.itm_id)
                 & (ItemRelation.itr_child == Item.itm_id)
             )
-            conn.execute(query)
+            conn.execute(query_delete)
 
     def on_insert_item_relation(
             mapper: Mapper[tp.Any],

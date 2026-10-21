@@ -77,3 +77,14 @@ class DBItemRelationInvalid(DBException):
             "param_err_invalid_item_relation",
             self.itm_code_ancestor
         )
+
+
+class DBDeletionOfItemReferencedInExamSubmission(DBException):
+    def __init__(self, itm_code: str):
+        super().__init__()
+        self.itm_code = itm_code
+    def msg(self) -> str:
+        return lang.txt(
+            "param_err_item_referenced_in_exam_submission",
+            self.itm_code
+        )

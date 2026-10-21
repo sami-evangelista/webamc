@@ -21,16 +21,17 @@ const exam_toggle_details = function (db_exm_id) {
 }
 
 
-const exam_delete = function (db_exm_id, db_exm_mcq) {
+const exam_delete = function (db_exm_id) {
     const go = function () {
 	const success = function () {
             location.reload();
 	};
-	const where = [
-            {'op': '=', 'col': 'exm_id', 'val': db_exm_id},
-            {'op': '=', 'col': 'exm_mcq', 'val': db_exm_mcq}
-	];
-	xhr_db_delete('exam', where, success);
+	const where = {
+            'op': '=',
+            'col': 'exm_id',
+            'val': db_exm_id
+        };
+	xhr_db_delete('exam', [where], success);
     }
     const question = Lang['qst_confirmation_exam_deletion'];
     base_ask_confirmation(question, go);

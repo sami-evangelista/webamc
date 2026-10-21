@@ -20,7 +20,8 @@ def data(
 
     # verify the ticket.  this may raise an exception
     try:
-        user, _, _ = get_cas_client().verify_ticket(ticket)
+        user, attrib, _ = get_cas_client().verify_ticket(ticket)
+        print(attrib)
     except:
         user = None
 

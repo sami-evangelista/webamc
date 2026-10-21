@@ -123,7 +123,6 @@ def get_attribute(
         col: types.db_col_t,
         val: types.db_base_val_t,
         id_: int,
-        values: None | types.db_map_t = None,
         updatable: bool = True
 ) -> he.Element:
     tbl = db_util.get_col_tbl(col)
@@ -133,17 +132,15 @@ def get_attribute(
     pkey_name = db_util.get_col_name(pkey)
     updatable = updatable and db_util.is_col_updatable(col)
     if updatable:
-        where: list[types.db_where_t] = list()
-        if values is not None:
-            where += [
-                {"op": "=", "col": col_name, "val": val}
-                for col_name, val in values.items()
-            ]
-        where.append({"op": "=", "col": pkey.name, "val": id_})
+        where: types.db_where_t = {
+            "op": "=",
+            "col": pkey.name,
+            "val": id_
+        }
         query: types.db_query_t = {
             "type": "update",
             "table": tbl_name,
-            "where": where
+            "where": [where]
         }
         updatable = has_right_to_execute(ctx, query)
 
@@ -196,9 +193,9 @@ def get_filter_wheres(
             # because values received should be correct
             if value is None:
                 typed_value = None
-            elif isinstance(col.type, sa.Integer):
+            elif isinstance(db_util.get_col_type(col), sa.Integer):
                 typed_value = int(value)
-            elif isinstance(col.type, sa.Boolean):
+            elif isinstance(db_util.get_col_type(col), sa.Boolean):
                 typed_value = bool(value)
             else:
                 typed_value = str(value)
@@ -222,7 +219,7 @@ def get_col_input_type(
         col: types.db_col_t
 ) -> ui.Input:
     c = db_util.get_col(col)
-    return tp.cast(ct.ColType, c.type).get_input(c, dbs=ctx.dbs)
+    return db_util.get_col_type(c).get_input(c, dbs=ctx.dbs)
 
 
 def val_fmt(
@@ -231,7 +228,7 @@ def val_fmt(
         val: types.db_base_val_t
 ) -> tuple[bool, str]:
     c = db_util.get_col(col)
-    return tp.cast(ct.ColType, c.type).val_fmt(val, dbs=ctx.dbs)
+    return db_util.get_col_type(c).val_fmt(val, dbs=ctx.dbs)
 
 
 def get_txt_and_input(

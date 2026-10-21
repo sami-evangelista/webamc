@@ -1,7 +1,9 @@
 id;text
+param_err_item_referenced_in_exam_submission;Cet élément ne peut pas être supprimé car il est apparu dans un examen (%s). Vous devez d'abord supprimer cet examen pour pouvoir supprimer l'élément.
 action_download_archive;Télécharger l'archive
 action_refresh;Rafraîchir
 col_desc_adm_id;#
+col_desc_exm_title;titre
 col_desc_adm_tbl;table
 col_desc_adm_usr;utilisateur
 col_desc_atr_code;identifiant
@@ -11,9 +13,10 @@ col_desc_cas_enabled;activé
 col_desc_cas_id;#
 col_desc_cas_login;identifiant CAS
 col_desc_cas_usr;utilisateur
-col_desc_exm_duration;durée
+col_desc_exm_duration;durée (min.)
 col_desc_exm_mcq;QCM
 col_desc_exm_start;début
+col_desc_exm_title;titre
 col_desc_grp_id;#
 col_desc_grp_name;nom
 col_desc_grp_parent;parent
@@ -112,7 +115,7 @@ page_title_admin;administration
 page_title_admin_database;base de données
 page_title_admin_submit;soumission
 page_title_auth;authentification
-page_title_exam_creation;création
+page_title_exam_add;création
 page_title_exam_dashboard;tableau de bord
 page_title_exam_database;base de données
 page_title_exam;examen

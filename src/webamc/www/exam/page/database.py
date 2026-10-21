@@ -1,6 +1,8 @@
+from itertools import chain
+
 from webamc.www.all import *
 from webamc.util import misc
-from webamc.db import queries
+from webamc.db import queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
 from webamc.www.exam import router
 
@@ -75,26 +77,35 @@ def page(
         div_buttons = he.Div(*buttons, class_="submit")
 
         # div containing details on the exam
-        p_attrs = [
-            he.P(
-                he.Txt(tp.cast(types.txt_t, f"col_desc_{attr}")),
-                he.Br(),
-                www_db_util.get_attribute(
-                    ctx, attr, getattr(exam, attr), exam.exm_id,
-                    values={"exm_mcq": item.itm_id}
+        def get_exam_attr(col: types.db_col_t) -> types.db_base_val_t:
+            col_name = db_util.get_col_name(col)
+            return tp.cast(types.db_base_val_t, getattr(exam, col_name))
+        attrs = list()
+        for txt, attr in chain(
+                www_db_util.get_attributes(
+                    ctx,
+                    get_exam_attr,
+                    tables.Exam.exm_mcq,
+                    updatable=False
+                ),
+                www_db_util.get_attributes(
+                    ctx,
+                    get_exam_attr,
+                    tables.Exam.exm_start,
+                    tables.Exam.exm_duration
                 )
-            )
-            for attr in ["exm_start", "exm_duration"]
-        ]
+        ):
+            attrs += [txt, attr]
+        table_attrs = he.mktable(((e, ) for e in attrs), class_="table-form")
         div_details = he.Div(
-            *p_attrs,
+            table_attrs,
             id_=f"div-exam-details-{exam.exm_id}",
             style="display: none;",
             class_="exam-details"
         )
 
         # exam div containing its title, details and buttons
-        p_title = he.P(he.Str(str(item.itm_title)))
+        p_title = he.P(he.Str(str(exam.exm_title)))
         div_exam = he.Div(
             p_title,
             div_details,
