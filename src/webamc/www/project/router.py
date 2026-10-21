@@ -4,25 +4,6 @@ from webamc import project as proj
 
 router = fa.APIRouter()
 
-args_oper_action_t = tp_ext.TypedDict(
-    "args_oper_action_t", {
-        "action": proj.action_t,
-        "project_code": str,
-        "action_params": proj.action_params_t
-    }
-)
-args_page_manual_association_t = tp_ext.TypedDict(
-    "args_page_manual_association_t", {
-        "project_code": str,
-        "action_params": proj.action_params_t
-    }
-)
-args_project_code_t = tp_ext.TypedDict(
-    "args_project_code_t", {
-        "project_code": str
-    }
-)
-
 
 @router.get("/project/page/main")
 def route_project_page_main(req: fa.Request, pcode: str = "") -> fa.Response:
@@ -34,7 +15,7 @@ def route_project_page_main(req: fa.Request, pcode: str = "") -> fa.Response:
 @router.post("/project/page/project")
 def route_project_page_project(
         req: fa.Request,
-        args: args_project_code_t
+        args: types.args_route_project_project_code_t
 ) -> fa.Response:
     from .page import project
     with context.Context(req) as ctx:
@@ -55,7 +36,7 @@ def route_project_page_get_file(
 @router.post("/project/page/manual-association")
 def route_project_page_manual_association(
         req: fa.Request,
-        args: args_page_manual_association_t
+        args: types.args_route_project_page_manual_association_t
 ) -> fa.Response:
     from .page import manual_association
     with context.Context(req) as ctx:
@@ -65,7 +46,7 @@ def route_project_page_manual_association(
 @router.post("/project/oper/upload")
 def route_project_oper_upload(
         req: fa.Request,
-        action: proj.action_t = fa.Form(...),
+        action: types.action_t = fa.Form(...),
         file_content: fa.UploadFile = fa.File(...),
         project_code: str = fa.Form(...)
 ) -> fa.Response:
@@ -77,7 +58,7 @@ def route_project_oper_upload(
 @router.post("/project/oper/action")
 def route_project_oper_action(
         req: fa.Request,
-        args: args_oper_action_t
+        args: types.args_route_project_oper_action_t
 ) -> fa.Response:
     from .oper import action
     with context.Context(req) as ctx:
@@ -87,7 +68,7 @@ def route_project_oper_action(
 @router.post("/project/oper/get-status")
 def route_project_oper_get_status(
         req: fa.Request,
-        args: args_project_code_t
+        args: types.args_route_project_project_code_t
 ) -> fa.Response:
     from .oper import get_status
     ctx = context.Context(req)

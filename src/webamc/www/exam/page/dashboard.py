@@ -1,12 +1,11 @@
 from webamc.www.all import *
 from webamc.db import tables, queries
 from webamc.util import fmt
-from webamc.www.exam import router
 
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_page_exam_t]
+        **kwargs: tp.Unpack[types.args_route_exam_exam_t]
 ) -> he.Element:
     def format_exam(
             item: tables.Item,

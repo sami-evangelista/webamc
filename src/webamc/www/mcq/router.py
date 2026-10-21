@@ -3,12 +3,6 @@ from webamc.www.all import *
 
 router = fa.APIRouter()
 
-args_mcq_result_t = tp_ext.TypedDict("args_mcq_result_t", {
-    "itm_id": int,
-    "choices": dict[int, bool],
-    "questions": dict[int, dict[int, bool]]
-})
-
 
 @router.get("/mcq/page/form")
 def route_mcq_page_form(
@@ -24,7 +18,7 @@ def route_mcq_page_form(
 @router.post("/mcq/oper/correction")
 def route_mcq_oper_correction(
         req: fa.Request,
-        mcq_result: args_mcq_result_t
+        mcq_result: types.args_route_mcq_result_t
 ) -> fa.Response:
     from .oper import correction
     with context.Context(req) as ctx:
@@ -34,7 +28,7 @@ def route_mcq_oper_correction(
 @router.post("/mcq/oper/save")
 def route_mcq_oper_save(
         req: fa.Request,
-        mcq_result: args_mcq_result_t
+        mcq_result: types.args_route_mcq_result_t
 ) -> fa.Response:
     from .oper import save
     with context.Context(req) as ctx:

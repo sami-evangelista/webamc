@@ -1,12 +1,11 @@
 from webamc.www.all import *
 from webamc.db import util as db_util, desc, tables
 from webamc.www.db import util as www_db_util
-from webamc.www.item import router
 
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_item_t]
+        **kwargs: tp.Unpack[types.args_route_item_item_t]
 ) -> he.Element:
 
     # type

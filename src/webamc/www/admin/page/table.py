@@ -1,12 +1,11 @@
 from webamc.www.all import *
 from webamc.db import desc, queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
-from webamc.www.admin import router
 
 
 def page(
         ctx: context.Context,
-        args: router.args_page_table_t
+        args: types.args_route_admin_page_table_t
 ) -> fa.Response:
     session.check_admin_table(ctx, args["tbl_id"])
 

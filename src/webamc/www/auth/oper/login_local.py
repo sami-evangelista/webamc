@@ -1,12 +1,11 @@
 from webamc.www.all import *
 from webamc.db import tables
 from webamc.util import security
-from webamc.www.auth import router
 
 
 def data(
         ctx: context.Context,
-        args: router.args_oper_login_local_t
+        args: types.args_route_auth_oper_login_local_t
 ) -> fa.Response:
     if not config.CONFIG["auth_local_enabled"]:
         raise fa.HTTPException(status_code=403)

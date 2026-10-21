@@ -1,12 +1,11 @@
 from webamc.www.all import *
 from webamc.db import queries
 from webamc.util import fmt
-from webamc.www.exam import router
 
 
 def page(
         ctx: context.Context,
-        args: router.args_page_dashboard_exam_t
+        args: types.args_route_exam_exam_t
 ) -> fa.Response:
 
     exam_id = args["exm_id"]

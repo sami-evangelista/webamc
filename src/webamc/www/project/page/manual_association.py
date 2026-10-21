@@ -1,11 +1,10 @@
 from webamc.www.all import *
-from webamc.www.project import router
 from webamc import project
 
 
 def page(
         ctx: context.Context,
-        args: router.args_page_manual_association_t
+        args: types.args_route_project_page_manual_association_t
 ) -> fa.Response:
     proj = project.Project(
         session.usr_code(ctx),

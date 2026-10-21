@@ -5,7 +5,7 @@ from webamc.db import queries, tables
 
 def data(
         ctx: context.Context,
-        args: router.args_oper_register_group_t
+        args: types.args_route_exam_oper_register_group_t
 ) -> fa.Response:
     query = ctx.dbs.query(
         tables.Grp

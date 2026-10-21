@@ -1,9 +1,11 @@
 from webamc.www.all import *
-from webamc.www.item import router
 from webamc.db import tables
 
 
-def data(ctx: context.Context, args: router.args_oper_add_t) -> fa.Response:
+def data(
+        ctx: context.Context,
+        args: types.args_route_item_oper_add_t
+) -> fa.Response:
     itm_type = args["itm_type"]
     itm_is_mcq = args["type"] == "mcq"
     itm_code = args["itm_code"]

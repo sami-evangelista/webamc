@@ -6,7 +6,7 @@ from webamc.www.db.util import get_txt_and_input
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_item_t]
+        **kwargs: tp.Unpack[types.args_route_item_item_t]
 ) -> he.Element:
     def get_trs() -> tp.Generator[list[he.Element]]:
         yield [base.field_label(he.Txt("word_type"))]

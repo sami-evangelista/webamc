@@ -2,12 +2,11 @@ import datetime
 
 from webamc.db import tables, queries
 from webamc.www.all import *
-from webamc.www.mcq import router
 
 
 def data(
         ctx: context.Context,
-        mcq_result: router.args_mcq_result_t
+        mcq_result: types.args_route_mcq_result_t
 ) -> fa.Response:
 
     itm_id = mcq_result["itm_id"]
@@ -26,7 +25,7 @@ def data(
     ctx.dbs.flush()
 
     # save selected answers for each question
-    for qst_id, qst_choices in mcq_result.get("questions", {}).items():
+    for qst_id, qst_choices in mcq_result.get("questions", dict()).items():
         qst_id_int = int(qst_id)
 
         # get default instance (num 1) or fallback to first available

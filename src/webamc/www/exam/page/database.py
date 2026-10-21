@@ -4,12 +4,11 @@ from webamc.www.all import *
 from webamc.util import misc
 from webamc.db import queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
-from webamc.www.exam import router
 
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_page_exam_t]
+        **kwargs: tp.Unpack[types.args_route_exam_exam_t]
 ) -> he.Element:
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
     if exams == list():

@@ -1,18 +1,17 @@
 import json
 
 from webamc.www.all import *
-from webamc.www.project import router
 from webamc.db import queries, tables
 from webamc import project as proj
 
 
 def page(
         ctx: context.Context,
-        args: router.args_project_code_t
+        args: types.args_route_project_project_code_t
 ) -> fa.Response:
     trs: list[he.Element] = list()
 
-    def file_elements(f: proj.file_t) -> tuple[he.Element, he.Element]:
+    def file_elements(f: types.file_t) -> tuple[he.Element, he.Element]:
         span = he.Span(
             he.Txt(proj.file_txt(f), fmt=False),
             id_=f"label-file-{f}"
@@ -25,7 +24,7 @@ def page(
         )
         return file_img, span
 
-    def list_action_files(action: proj.action_t) -> None:
+    def list_action_files(action: types.action_t) -> None:
         trs_files = [
             he.Tr(*[he.Td(e) for e in file_elements(f)])
             for f in proj.list_files(action)
@@ -40,7 +39,7 @@ def page(
             trs.append(tr)
 
     def label_action(
-            action: proj.action_t,
+            action: types.action_t,
             txt: types.txt_t,
             help_section: str | None
     ) -> he.Element:
@@ -53,7 +52,7 @@ def page(
         return result
 
     def new_action(
-            action: proj.action_t,
+            action: types.action_t,
             txt: types.txt_t,
             js: None | str = None,
             icon: types.static_img_t = "play",
@@ -77,8 +76,8 @@ def page(
         list_action_files(action)
 
     def new_upload_action(
-            action: proj.action_t,
-            f: proj.file_t,
+            action: types.action_t,
+            f: types.file_t,
             txt: types.txt_t,
             help_section: None | str = None
     ) -> None:

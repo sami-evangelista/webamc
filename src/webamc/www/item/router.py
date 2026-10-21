@@ -3,30 +3,11 @@ from webamc.www.all import *
 
 router = fa.APIRouter()
 
-args_oper_add_t = tp_ext.TypedDict("args_oper_add_t", {
-    "itm_code": str,
-    "itm_title": str,
-    "itm_type": types.item_type_t,
-    "type": tp.Literal["exe", "mcq"]
-})
-args_oper_add_child_t = tp_ext.TypedDict("args_oper_add_child_t", {
-    "itr_parent": int,
-    "itr_child": int
-})
-args_oper_move_child_t = tp_ext.TypedDict("args_oper_move_child_t", {
-    "itr_parent": int,
-    "itr_child": int,
-    "move": int
-})
-args_item_t = tp_ext.TypedDict("args_item_t", {
-    "itm_id": int
-})
-
 
 @router.post("/item/oper/add")
 def route_oper_add(
         req: fa.Request,
-        args: args_oper_add_t
+        args: types.args_route_item_oper_add_t
 ) -> fa.Response:
     from .oper import add
     with context.Context(req) as ctx:
@@ -38,7 +19,7 @@ def route_oper_add(
 @router.post("/item/oper/add-child")
 def route_oper_add_child(
         req: fa.Request,
-        args: args_oper_add_child_t
+        args: types.args_route_item_oper_add_child_t
 ) -> fa.Response:
     from .oper import add_child
     with context.Context(req) as ctx:
@@ -50,7 +31,7 @@ def route_oper_add_child(
 @router.post("/item/oper/move-child")
 def route_oper_move_child(
         req: fa.Request,
-        args: args_oper_move_child_t
+        args: types.args_route_item_oper_move_child_t
 ) -> fa.Response:
     from .oper import move_child
     with context.Context(req) as ctx:
@@ -74,7 +55,7 @@ def route_oper_submit(
 @router.post("/item/oper/recursive-deletion")
 def route_oper_recursive_deletion(
         req: fa.Request,
-        args: args_item_t
+        args: types.args_route_item_item_t
 ) -> fa.Response:
     from .oper import recursive_deletion
     with context.Context(req) as ctx:

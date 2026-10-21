@@ -1,15 +1,12 @@
-from sqlalchemy import select
-
 from webamc.db import tables
 from webamc.www.all import *
-from webamc.www.item import router
 
 
 def data(
         ctx: context.Context,
-        args: router.args_oper_move_child_t
+        args: types.args_route_item_oper_move_child_t
 ) -> fa.Response:
-    query = select(
+    query = ctx.dbs.query(
         tables.ItemRelation
     ).where(
         tables.ItemRelation.itr_parent == args["itr_parent"]

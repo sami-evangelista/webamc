@@ -4,19 +4,6 @@ from webamc.db import queries, tables
 
 router = fa.APIRouter()
 
-args_page_dashboard_exam_t = tp_ext.TypedDict(
-    "args_page_dashboard_exam_t", {
-        "exm_id": int
-    }
-)
-args_page_exam_t = tp_ext.TypedDict("args_page_exam_t", {
-    "exm_id": int
-})
-args_oper_register_group_t = tp_ext.TypedDict("args_oper_register_group_t", {
-    "exm_id": int,
-    "grp_id": int
-})
-
 
 def _get_exam(
         ctx: context.Context,
@@ -47,7 +34,7 @@ def route_oper_export_scores(
 @router.post("/exam/oper/register-group")
 def route_oper_register_group(
         req: fa.Request,
-        args: args_oper_register_group_t
+        args: types.args_route_exam_oper_register_group_t
 ) -> fa.Response:
     from .oper import register_group
     with context.Context(req) as ctx:
@@ -57,7 +44,7 @@ def route_oper_register_group(
 @router.post("/exam/page/dashboard-exam")
 def route_page_dashboard_exam(
         req: fa.Request,
-        args: args_page_dashboard_exam_t
+        args: types.args_route_exam_exam_t
 ) -> fa.Response:
     from .page import dashboard_exam
     with context.Context(req) as ctx:

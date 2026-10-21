@@ -1,11 +1,10 @@
 from webamc.www.all import *
 from webamc.db import tables, queries
-from webamc.www.ticket import router
 
 
 def data(
         ctx: context.Context,
-        args: router.args_oper_password_change_t
+        args: types.args_route_ticket_oper_password_change_t
 ) -> fa.Response:
     if args["loc_password"] != args["loc_password_confirm"]:
         return base.wrap_code("err_invalid_password_confirm")

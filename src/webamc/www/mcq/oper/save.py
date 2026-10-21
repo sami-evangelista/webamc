@@ -1,11 +1,10 @@
 from webamc.www.all import *
 from webamc.db import tables, queries
-from webamc.www.mcq import router
 
 
 def data(
         ctx: context.Context,
-        mcq_result: router.args_mcq_result_t
+        mcq_result: types.args_route_mcq_result_t
 ) -> fa.Response:
 
     session.check_active_registration(ctx)

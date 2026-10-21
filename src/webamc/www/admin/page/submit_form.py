@@ -1,10 +1,9 @@
 from webamc.www.all import *
-from webamc.www.admin import router
 
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_page_admin_t]
+        **kwargs: tp.Unpack[types.args_route_admin_tbl_t]
 ) -> he.Element:
     input_csv = he.Input(
         type_="file",

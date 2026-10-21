@@ -1,12 +1,11 @@
 from webamc.www.all import *
-from webamc.www.project import router
 from webamc.util import fmt
 from webamc import project
 
 
 def data(
         ctx: context.Context,
-        args: router.args_project_code_t
+        args: types.args_route_project_project_code_t
 ) -> fa.Response:
     proj = project.Project(
         session.usr_code(ctx),

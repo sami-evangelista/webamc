@@ -4,7 +4,7 @@ from webamc.www.item import router
 
 def page(
         ctx: context.Context,
-        **kwargs: tp.Unpack[router.args_item_t]
+        item_id: int
 ) -> he.Element:
     from . import group
     return group.page(ctx, None)

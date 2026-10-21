@@ -2,12 +2,11 @@ from webamc.www.all import *
 from webamc import mailing
 from webamc.db import tables, col_types as ct
 from webamc.util import security
-from webamc.www.ticket import router
 
 
 def data(
         ctx: context.Context,
-        args: router.args_oper_send_t
+        args: types.args_route_ticket_oper_send_t
 ) -> fa.Response:
 
     # check eaddr is valid

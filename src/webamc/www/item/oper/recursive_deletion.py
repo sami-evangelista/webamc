@@ -1,12 +1,10 @@
 from webamc.db import queries, tables
 from webamc.www.all import *
-from webamc.www.item import router
-
 
 
 def data(
         ctx: context.Context,
-        args: router.args_item_t
+        args: types.args_route_item_item_t
 ) -> fa.responses.Response:
     def loop(itm_id: int) -> None:
         children = [c.itm_id for c in queries.get_children(ctx.dbs, itm_id)]

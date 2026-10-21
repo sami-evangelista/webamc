@@ -3,16 +3,6 @@ from webamc.www.all import *
 
 router = fa.APIRouter()
 
-args_page_table_t = tp_ext.TypedDict("args_page_table_t", {
-    "tbl_id": int,
-    "page_num": int,
-    "filters": dict[str, tp.Any]
-})
-
-args_page_admin_t = tp_ext.TypedDict("args_page_admin_t", {
-    "tbl_id": int
-})
-
 
 @router.post("/admin/oper/submit")
 def route_oper_submit(
@@ -27,7 +17,7 @@ def route_oper_submit(
 @router.post("/admin/page/table")
 def route_page_table(
         req: fa.Request,
-        args: args_page_table_t
+        args: types.args_route_admin_page_table_t
 ) -> fa.Response:
     from .page import table
     with context.Context(req) as ctx:

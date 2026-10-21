@@ -4,7 +4,7 @@ from webamc import project
 
 def data(
         ctx: context.Context,
-        action: project.action_t,
+        action: types.action_t,
         ufile: fa.UploadFile,
         project_code: str
 ) -> fa.Response:

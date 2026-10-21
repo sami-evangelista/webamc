@@ -2,12 +2,6 @@ from webamc.www.all import *
 
 
 router = fa.APIRouter()
-args_oper_login_local_t = tp_ext.TypedDict(
-    "args_oper_login_local_t", {
-        "loc_login": str,
-        "loc_password": str
-    }
-)
 
 
 @router.get("/auth/page/main")
@@ -41,7 +35,7 @@ def route_auth_oper_logout(req: fa.Request) -> fa.Response:
 @router.post("/auth/oper/login-local")
 def route_auth_oper(
         req: fa.Request,
-        args: args_oper_login_local_t
+        args: types.args_route_auth_oper_login_local_t
 ) -> fa.Response:
     from .oper import login_local
     with context.Context(req) as ctx:

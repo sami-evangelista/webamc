@@ -14,103 +14,12 @@ from webamc.util import fmt
 from webamc.www import base
 
 
-action_t = tp.Literal[
-    "analyse",
-    "associate_automatic",
-    "associate_manual_prepare",
-    "associate_manual",
-    "clean_associations",
-    "compile",
-    "delete",
-    "export_scores",
-    "new",
-    "upload_answer_sheets",
-    "upload_source",
-    "send_annotated_sheets",
-    "send_notification_mail"
-]
-source_type_t = tp.Literal[
-    "tex",
-    "txt"
-]
-cmd_t = tp.Literal[
-    "decode",
-    "analyse",
-    "annotate",
-    "association",
-    "association-auto",
-    "clean_associations",
-    "prepare_s",
-    "note",
-    "export",
-    "meptex",
-    "prepare_bk",
-    "getimages",
-    "imprime",
-    "read-pdfform"
-]
-data_t = tp_ext.TypedDict(
-    "data_t", {
-        "assoc_attr": int,
-        "code": str,
-        "title": str,
-        "amc_code": str,
-        "threshold": float,
-        "copies": int,
-        "groups": list[int]
-    },
-    total=False
-)
-action_params_t = tp_ext.TypedDict(
-    "action_params_t", {
-        "copy": None | int,
-        "student": None | int,
-        "id": None | str
-    },
-    total=False
-)
 association_t = dict[
     tuple[int, int],  # (student, copy)
     tuple[None | str, None | str, None | Path]  # (auto, manual, name-file)
 ]
-file_t = tp.Literal[
-    "csv_list",
-    "json_status",
-    "log_webamc",
-    "ods_scores",
-    "pdf_answer_sheets",
-    "pdf_correction",
-    "pdf_subject",
-    "sqlite_association",
-    "sqlite_capture",
-    "source",
-    "tex_main",
-    "txt_main",
-    "xy_calage",
-    "zip_annotated_sheets",
-    "zip_sheets",
-    "zip_tex"
-]
-file_status_t = tp.TypedDict(
-    "file_status_t", {
-        "exists": bool,
-        "size": None | int,
-        "date": None | datetime.datetime
-    }
-)
-status_t = tp_ext.TypedDict(
-    "status_t", {
-        "source_type": source_type_t,
-        "done": dict[action_t, bool],
-        "doable": dict[action_t, tuple[bool, list[tuple[str, str]]]],
-        "history": list[tuple[action_t, datetime.datetime, bool]],
-        "data": data_t,
-        "files": dict[file_t, file_status_t],
-        "warning": dict[action_t, bool]
-    }
-)
-doable_t = dict[action_t, tuple[bool, list[tuple[str, str]]]]
-ACTION_FILES: dict[action_t, list[file_t]] = {
+doable_t = dict[types.action_t, tuple[bool, list[tuple[str, str]]]]
+ACTION_FILES: dict[types.action_t, list[types.file_t]] = {
     "compile": [
         "pdf_subject",
         "zip_sheets",
@@ -128,10 +37,10 @@ ACTION_FILES: dict[action_t, list[file_t]] = {
     ]
 }
 ACTION_DEP: dict[
-    action_t,
+    types.action_t,
     list[
-        tuple[tp.Literal["action"], action_t]
-        | tuple[tp.Literal["file"], file_t]
+        tuple[tp.Literal["action"], types.action_t]
+        | tuple[tp.Literal["file"], types.file_t]
         | tuple[tp.Literal["data"], str]
     ]
 ] = {
@@ -179,7 +88,7 @@ ACTION_DEP: dict[
         ("action", "send_annotated_sheets")
     ]
 }
-ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
+ACTION_COMMANDS: dict[types.action_t, list[types.cmd_t]] = {
     "analyse": [
         "read-pdfform",
         "getimages",
@@ -204,7 +113,7 @@ ACTION_COMMANDS: dict[action_t, list[cmd_t]] = {
         "annotate"
     ]
 }
-AMC_COMMANDS: dict[cmd_t, list[str]] = {
+AMC_COMMANDS: dict[types.cmd_t, list[str]] = {
     "analyse": [
         "analyse",
         "--data", "{dir_data}",
@@ -303,7 +212,7 @@ AMC_COMMANDS: dict[cmd_t, list[str]] = {
         "--pdf-dir", "{dir_outbox}"
     ]
 }
-CANCELLED: dict[action_t, list[action_t]] = {
+CANCELLED: dict[types.action_t, list[types.action_t]] = {
     "compile": [
         "analyse",
         "associate_automatic",
@@ -324,7 +233,7 @@ CANCELLED: dict[action_t, list[action_t]] = {
         "export_scores"
     ]
 }
-CLEAN: dict[action_t, list[file_t]] = {
+CLEAN: dict[types.action_t, list[types.file_t]] = {
     "compile": [
         "ods_scores",
         "pdf_answer_sheets",
@@ -354,14 +263,14 @@ DEFAULT_AMC_CODE = "code"
 PCODE_REGEXP = r'[a-zA-Z][a-zA-Z0-9_\-]*'
 
 
-def file_name(f: file_t) -> str:
+def file_name(f: types.file_t) -> str:
     idx = f.find("_")
     if idx < 0:
         return f
     return f[idx + 1:] + "." + f[:idx]
 
 
-def file_txt(f: file_t) -> types.txt_t:
+def file_txt(f: types.file_t) -> types.txt_t:
     result = tp.cast(types.txt_t, f"seq_project_file_{f}")
     assert result in types.literal_type_values(types.txt_t)
     return result
@@ -377,7 +286,7 @@ def json_serialise(obj: object) -> str:
     raise TypeError
 
 
-def list_files(action: action_t) -> list[file_t]:
+def list_files(action: types.action_t) -> list[types.file_t]:
     return list(ACTION_FILES.get(action, list()))
 
 
@@ -393,15 +302,18 @@ class Project:
         self.ucode = ucode
         self.uname = uname
         self.pcode = pcode
-        self.done = {a: False for a in types.literal_type_values(action_t)}
+        self.done = {
+            a: False
+            for a in types.literal_type_values(types.action_t)
+        }
         self.history = list()
-        self.data: data_t = {}
+        self.data: types.data_t = {}
         self.dbs = dbs
-        self.source_type: source_type_t = "tex"
+        self.source_type: types.source_type_t = "tex"
         if read:
             json_file = self.fpath("json_status")
             with open(json_file, encoding="utf-8") as fd:
-                status = tp.cast(status_t, json.loads(fd.read()))
+                status = tp.cast(types.status_t, json.loads(fd.read()))
                 try:
                     self.source_type = status["source_type"]
                     self.done = status["done"]
@@ -413,7 +325,7 @@ class Project:
     def path(self, *name: str) -> Path:
         return Project.user_dir(self.ucode).joinpath(self.pcode, *name)
 
-    def fpath(self, f: file_t) -> Path:
+    def fpath(self, f: types.file_t) -> Path:
         return self.path() / file_name(f)
 
     @staticmethod
@@ -430,9 +342,9 @@ class Project:
         assert result is not None
         return result
 
-    def files(self) -> dict[file_t, file_status_t]:
-        result: dict[file_t, file_status_t] = dict()
-        for f in types.literal_type_values(file_t):
+    def files(self) -> dict[types.file_t, types.file_status_t]:
+        result: dict[types.file_t, types.file_status_t] = dict()
+        for f in types.literal_type_values(types.file_t):
             fpath = self.fpath(f)
             exists = fpath.is_file()
             date: datetime.datetime | None = None
@@ -451,13 +363,13 @@ class Project:
     def doable(self) -> doable_t:
         files = self.files()
         result: doable_t = dict()
-        for act in types.literal_type_values(action_t):
+        for act in types.literal_type_values(types.action_t):
             doable = True
             missing = list()
             for dep_type, dep in ACTION_DEP[act]:
                 ok = True
                 if dep_type == "file":
-                    ok = files[tp.cast(file_t, dep)]["exists"]
+                    ok = files[tp.cast(types.file_t, dep)]["exists"]
                 elif dep_type == "action":
                     ok = self.done[dep]
                 elif dep_type == "data":
@@ -473,7 +385,7 @@ class Project:
                 result["compile"] = (True, list())
         return result
 
-    def status(self) -> status_t:
+    def status(self) -> types.status_t:
         return {
             "source_type": self.source_type,
             "done": self.done,
@@ -484,8 +396,11 @@ class Project:
             "warning": self.warning()
         }
 
-    def warning(self) -> dict[action_t, bool]:
-        result = {act: False for act in types.literal_type_values(action_t)}
+    def warning(self) -> dict[types.action_t, bool]:
+        result = {
+            act: False
+            for act in types.literal_type_values(types.action_t)
+        }
         result["compile"] = self.done["compile"]
         result["delete"] = True
         result["associate_automatic"] = (
@@ -561,9 +476,9 @@ class Project:
 
     def exec(
             self,
-            cmd: cmd_t,
+            cmd: types.cmd_t,
             exec_dir: Path,
-            params: action_params_t,
+            params: types.action_params_t,
             additional_args: list[str]
     ) -> types.oper_code_t:
         exec_path = shutil.which("auto-multiple-choice")
@@ -651,7 +566,7 @@ class Project:
                 if key in self.data:
                     del self.data[key]  # type: ignore
             else:
-                typ = tp.get_type_hints(data_t)[key]
+                typ = tp.get_type_hints(types.data_t)[key]
                 try:
                     self.data[key] = typ(data[key])  # type: ignore
                 except (ValueError, TypeError):
@@ -662,7 +577,7 @@ class Project:
         self.generate_csv()
         return "succ", list()
 
-    def zip_pdfs(self, zip_file: file_t, pdf_dir: Path) -> None:
+    def zip_pdfs(self, zip_file: types.file_t, pdf_dir: Path) -> None:
         path = self.fpath(zip_file)
         with zipfile.ZipFile(path, "w") as zf:
             for entry in pdf_dir.iterdir():
@@ -760,12 +675,12 @@ class Project:
 
     def action(
             self,
-            action: action_t,
-            params: action_params_t,
+            action: types.action_t,
+            params: types.action_params_t,
             fname: str | None = None,
             fcontent: bytes | None = None
     ) -> types.oper_code_t:
-        def clean_files(files: list[file_t]) -> None:
+        def clean_files(files: list[types.file_t]) -> None:
             for f in files:
                 if f.startswith("sqlite"):
                     path = self.path("data", file_name(f))
