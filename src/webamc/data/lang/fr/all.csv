@@ -1,9 +1,7 @@
 id;text
-param_err_item_referenced_in_exam_submission;Cet élément ne peut pas être supprimé car il est apparu dans un examen (%s). Vous devez d'abord supprimer cet examen pour pouvoir supprimer l'élément.
 action_download_archive;Télécharger l'archive
 action_refresh;Rafraîchir
 col_desc_adm_id;#
-col_desc_exm_title;titre
 col_desc_adm_tbl;table
 col_desc_adm_usr;utilisateur
 col_desc_atr_code;identifiant
@@ -74,8 +72,6 @@ err_http_500;Erreur 500 - Erreur du serveur !!!
 err_invalid_eaddr;L'adresse électronique est invalide.
 err_invalid_password_confirm;Les mots de passe fournis sont différents.
 err_invalid_ticket;Ce ticket n'est plus vaide.
-word_move_up;monter
-word_move_down;descendre
 err_io;Erreur d'entrée/sortie.
 err_item_admin_empty_archive;L'archive est vide.
 err_mail_file_not_found;Fichier de mail non trouvé.
@@ -96,7 +92,6 @@ header_authentication_cas;Authentification par un serveur
 header_authentication_local;Authentification locale
 header_authentication_password_change;Changement de mot de passe
 info_exam_finished;Examen terminé !
-info_exam_status;Statut de l'épreuve : %s
 info_no_exam_available;Aucun examen n'est disponible.
 info_no_mcq_available;Aucun QCM n'est disponible.
 info_please_wait;Opération en cours. Veuillez patienter.
@@ -138,13 +133,13 @@ param_err_invalid_duplicate_value;%s: valeur en double
 param_err_invalid_item_relation;Cet ajout est impossible car cet élément apparaîtrait alors deux fois dans le QCM/exercice %s.
 param_err_invalid_null_value;%s: valeur attendue
 param_err_invalid_value;%s: valeur invalide
+param_err_item_referenced_in_exam_submission;Cet élément ne peut pas être supprimé car il est apparu dans un examen (%s). Vous devez d'abord supprimer cet examen pour pouvoir supprimer l'élément.
 param_seq_instance_num;Instance %s
-param_seq_items_found;%s élément(s) trouvé(s)
+param_seq_items_found;%s éléments trouvés
 param_seq_next_question;question suivante (%s)
 param_seq_previous_question;question précédente (%s)
-param_seq_registrations_done;%s enregistrement(s) effectué(s)
+param_seq_registrations_done;%s enregistrements effectués
 param_seq_switch_mode;modifier le mode (%s)
-param_seq_users_registered;%s utilisatrice(s) enregistrée(s) pour cet examen
 qst_confirmation_db_row_deletion;Confirmez-vous la suppression de cette ligne ?
 qst_confirmation_exam_deletion;Cet examen sera supprimé de votre base de données. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
 qst_confirmation_item_deletion;Cet élément sera supprimé de votre base de données mais son contenu ne le sera pas. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
@@ -155,6 +150,7 @@ qst_confirmation_project_associate_automatic;Confirmez-vous l'association automa
 qst_confirmation_project_clean_associations;Confirmez-vous la suppression des associations copie/étudiante ?
 qst_confirmation_project_compile;Confirmez-vous la génération du sujet ? Ceci supprimera tous les documents de travail actuel. Annulez si vous avez déjà imprimé les sujets.
 qst_confirmation_project_delete;Ce projet ainsi que tous les fichiers qui lui sont associés seront supprimés. Cette opération n'est pas réversible. Confirmez-vous la suppression ?
+qst_confirmation_registrations_delete;Les enregistrements sélectionnés seront supprimés. Confirmez vous la suppression ?
 qst_confirmation_restart_mcq;Voulez vous recommencer ce QCM ?
 seq_add_an_item;ajouter un élément
 seq_administrate_this_mcq;administrer ce QCM
@@ -162,7 +158,7 @@ seq_analyse_answer_sheets;analyser les copies scannées
 seq_associate_automatic;associer étudiantes et copies (mode automatique)
 seq_associate_manual;associer étudiantes et copies (mode manuel)
 seq_association_attr;attribut utilisé pour l'association automatique
-seq_association_source;groupe(s) des étudiantes
+seq_association_source;groupes des étudiantes
 seq_clean_associations;supprimer les associations étudiante/copie
 seq_compile_latex;générer le sujet
 seq_confirmation_request;demande de confirmation
@@ -170,11 +166,20 @@ seq_content_type;type de contenu
 seq_csv_file;fichier CSV
 seq_delete_project;supprimer ce projet
 seq_delete_recursively;supprimer cet élément et tout son contenu
+seq_delete_selected_registrations;supprimer les enregistrements sélectionnés
 seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
-seq_error_messages;message(s) d'erreur
+seq_error_messages;messages d'erreur
+seq_exam_status_finished;ierminé
+seq_exam_status_in_progress;en cours
+seq_exam_status;statut de l'épreuve
+seq_exam_status_upcoming;À venir
+seq_exam_student_status_inactive;inactif (> 5 min)
+seq_exam_student_status_not_started;non commencé
+seq_exam_student_status_online;En ligne
 seq_exercise_list;liste d'exercices ou de questions
+seq_export_exam_scores;exporter le fichier des notes
 seq_generate_scores_and_annotated_sheets;générer les fichiers de notes
-seq_information_messages;message(s) d'information
+seq_information_messages;messages d'information
 seq_latex_id;identifiant étudiant dans le code latex
 seq_manual_association;association manuelle
 seq_my_groups;mes groupes
@@ -186,7 +191,7 @@ seq_pack_delete_box;Supprimer la boîte
 seq_pack_reverse_selection;Inverser la sélection
 seq_pack_take_all;Prendre toutes les questions
 seq_pack_take_by_difficulty;Choisir des questions selon leur niveau de difficulté
-seq_pack_take_by_tag;Choisir des questions selon leur(s)
+seq_pack_take_by_tag;Choisir des questions selon leurs tags
 seq_pack_take_head;Prendre un certain nombre de questions
 seq_pack_take_shuf;Mélanger aléatoirement les questions
 seq_pack_take_sort;Trier les questions
@@ -201,7 +206,8 @@ seq_project_file_zip_sheets;sujet (un fichier / étudiante)
 seq_qst_type_multi;plusieurs choix
 seq_qst_type_single;un seul choix
 seq_question_pack;pack de questions
-seq_records_found;enregistrement(s) trouvé(s)
+seq_records_found;enregistrements trouvés
+seq_select_a_group_to_register;sélectionnez un groupe à enregistrer
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;déposer les copies annotées dans les boîtes étudiantes
@@ -209,7 +215,8 @@ seq_send_notification_mail;envoyer un mail de notification aux étudiantes
 seq_upload_answer_sheets;envoyer le fichier PDF des copies scannées
 seq_upload_latex_archive;envoyer la source du QCM
 seq_upload_student_list;envoyer le fichier CSV contenant la liste des étudiantes
-seq_warning_messages;message(s) d'avertissement
+seq_users_registered;utilisatrices enregistrées
+seq_warning_messages;messages d'avertissement
 seq_zip_file;fichier ZIP
 stats_answer_prefix;Réponse
 stats_answers_detail;Détail des réponses :
@@ -224,12 +231,6 @@ stats_select_qst;Sélectionnez une question...
 stats_select_student;Sélectionnez un étudiant...
 stats_student_prefix;1. Étudiant :
 stats_title;Tableau de bord des statistiques
-status_finished;Terminé
-status_inactive;Inactif (> 5 min)
-status_in_progress;En cours
-status_not_started;Non commencé
-status_online;En ligne
-status_upcoming;À venir
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse électronique modifiée avec succès.
 succ_login;Connexion réussie.
@@ -275,10 +276,11 @@ word_file_name;Nom du fichier
 word_filter;filtrer
 word_groups;groupes
 word_help;aide
-word_login;Login
 word_mcq;QCM
 word_minutes;minutes
 word_mod_date;Date de modification
+word_move_down;descendre
+word_move_up;monter
 word_no;non
 word_page;page
 word_parameters;paramètres
@@ -287,6 +289,7 @@ word_question;question
 word_restart;recommencer
 word_review;révision
 word_rights;droits
+word_score;note
 word_send;envoyer
 word_sender;expéditeur
 word_size;Taille

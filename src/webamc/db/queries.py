@@ -115,7 +115,7 @@ def get_grps_usrs(
         & (tables.Usr.usr_id == tables.UsrGrp.ugp_usr)
         & (tables.UsrGrp.ugp_right == right)
     ).order_by(
-        tables.Usr.usr_code
+        tables.Usr.usr_name, tables.Usr.usr_fst_name
     )
     yield from query.all()
 
@@ -170,75 +170,59 @@ def get_ticket(
 
 def get_exam_monitoring(
         dbs: Session,
-        exam_id: int
+        exm_id: int
 ) -> types.exam_monitoring_t | None:
-    return None
-"""
+
     # get exam info
-    exam = dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
+    exam = dbs.query(
+        tables.Exam
+    ).where(
+        tables.Exam.exm_id == exm_id
+    ).first()
     if not exam:
         return None
 
     now = datetime.datetime.now()
-    exam_end = exam.end_time()
 
-    # global status
-    global_status: str
-    if now < exam.exm_start:
-        global_status = "upcoming"
-    elif now > exam_end:
-        global_status = "finished"
-    else:
-        global_status = "in progress"
-
-    # get total questions for this exam's mcq
-    direct_items = dbs.query(tables.Item.itm_id).filter(
-        tables.Item.itm_parent == exam.exm_mcq
-    ).all()
-
-    parent_ids = [exam.exm_mcq] + [item.itm_id for item in direct_items]
-
-    total_questions = dbs.query(tables.Question).join(
-        tables.Item, tables.Question.qst_id == tables.Item.itm_id
-    ).filter(
-        tables.Item.itm_parent.in_(parent_ids)
-    ).count()
-
-    # get students, registrations, submissions and logins
-    results = dbs.query(
+    # get students, registrations, submissions
+    query = dbs.query(
         tables.Usr,
         tables.Registration,
-        tables.ExamSubmission,
-        tables.LocalAuth.loc_login
+        tables.Submission
     ).select_from(
-        tables.Usr
+        tables.Registration
+    ).where(
+        tables.Registration.reg_exam == exm_id
     ).join(
-        tables.Registration, tables.Usr.usr_id == tables.Registration.reg_usr
+        tables.Usr, tables.Usr.usr_id == tables.Registration.reg_usr
     ).outerjoin(
-        tables.ExamSubmission,
-        tables.Registration.reg_id == tables.ExamSubmission.exs_registration
-    ).outerjoin(
-        tables.LocalAuth, tables.LocalAuth.loc_usr == tables.Usr.usr_id
-    ).filter(
-        tables.Registration.reg_exam == exam_id
-    ).all()
+        tables.Submission,
+        tables.Registration.reg_id == tables.Submission.sub_exm_registration
+    ).order_by(
+        tables.Usr.usr_name, tables.Usr.usr_fst_name
+    )
 
     students_data: list[types.student_monitoring_t] = []
 
-    for usr, reg, exam_sub, loc_login in results:
-        student_status = "not started"
+    for row in query.all():
+        usr, reg, sub = row._tuple()
+
+        student_status: types.exam_student_status_t = "not-started"
         last_seen: datetime.datetime | None = None
         answered_count = 0
         score = 0.0
+        total_questions = 0
 
-        if exam_sub is not None:
+        if sub is not None:
             student_status = "online"
-            last_seen = exam_sub.exs_date_update
+            last_seen = sub.sub_exm_date_update
+            assert last_seen is not None
 
             if now - last_seen > datetime.timedelta(minutes=5):
-                student_status = "inactive (> 5 min)"
+                student_status = "inactive"
 
             # count answers tied to this specific student's submission
+            """
             answered_count = dbs.query(
                 sa.func.count(  # pylint: disable=not-callable
                     sa.distinct(tables.Item.itm_parent)
@@ -252,20 +236,23 @@ def get_exam_monitoring(
                 tables.Item,
                 tables.ItemInstance.iti_item == tables.Item.itm_id
             ).filter(
-                tables.Answer.ans_submission == exam_sub.exs_id,
+                tables.Answer.ans_submission == sub.sub_id,
                 tables.Item.itm_type == types.ITEM_TYPE_CHOICE
             ).scalar()
 
             answered_count = answered_count or 0
+            """
+            answered_count = 0
 
-            detailed_scores = get_student_detailed_scores(
-                dbs, exam.exm_mcq, exam_sub.exs_id
-            )
-            score = sum(detailed_scores.values())
+            #detailed_scores = get_student_detailed_scores(
+            #    dbs, exam.exm_mcq, sub.exs_id
+            #)
+            #score = sum(detailed_scores.values())
+            score = 0
+            total_questions = 0
 
         students_data.append({
             "reg_id": int(reg.reg_id),
-            "usr_login": str(loc_login) if loc_login else "no login",
             "usr_name": str(usr.usr_name),
             "usr_fst_name": str(usr.usr_fst_name),
             "status": student_status,
@@ -275,13 +262,21 @@ def get_exam_monitoring(
             "score": score
         })
 
+    # exam status
+    exam_status: types.exam_status_t
+    if now < exam.exm_start:
+        exam_status = "upcoming"
+    elif now > exam.end_time():
+        exam_status = "finished"
+    else:
+        exam_status = "in-progress"
+
     return {
-        "exam_status": global_status,
-        "exam_start": exam.exm_start,
-        "exam_end": exam_end,
+        "status": exam_status,
+        "start": exam.exm_start,
+        "end": exam.end_time(),
         "students": students_data
     }
-"""
 
 
 def gen_pack_questions(

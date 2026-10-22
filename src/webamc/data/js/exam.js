@@ -71,6 +71,7 @@ const exam_register_group = function () {
 	const url = Constants.path_exam_oper_register_group;
 	xhr_post_oper(url, data, success);
     }
+    $('#grp_id').val('');
 }
 
 
@@ -85,27 +86,28 @@ const exam_delete_registrations = function () {
     const handle_checkbox = function(_, checkbox) {
 	if($(checkbox).prop('checked')) {
 	    const reg_id = $(checkbox).data('reg_id');
-	    let query = {
+            const where = {
+		'op': '=',
+		'col': 'reg_id',
+		'val': reg_id
+	    };
+	    const query = {
 	        'type': 'delete',
 		'table': 'registration',
-		'where': [{
-		    'op': '=',
-		    'col': 'reg_id',
-		    'val': reg_id
-		}]
+		'where': [where]
 	    };
 	    queries.push(query);
 	}
     };
     $('.checkbox_registration').each(handle_checkbox);
     if(queries.length > 0) {
-		const question = Lang['qst_confirmation_item_deletion'];
-		const go = function(){
-			const success = function (_) {
-				 exam_dashboard_select();
-			};
-			xhr_db(queries, success);
-    };
+	const question = Lang['qst_confirmation_registrations_delete'];
+	const go = function(){
+	    const success = function (_) {
+		exam_dashboard_select();
+	    };
+	    xhr_db(queries, success);
+        };
 	base_ask_confirmation(question, go);
-	}
+    }
 }

@@ -32,7 +32,6 @@ static_img_t = tp.Literal[
     "edit",
     "exam",
     "group",
-    "group-add",
     "help",
     "home",
     "inbox",
@@ -149,23 +148,6 @@ oper_code_t = tp.Literal[
     "succ_ticket_eaddr_change_sent",
     "succ_ticket_password_change_sent"
 ]
-student_monitoring_t = tp_ext.TypedDict("student_monitoring_t", {
-    "reg_id": int,
-    "usr_login": str,
-    "usr_name": str,
-    "usr_fst_name": str,
-    "status": str,
-    "last_seen": datetime.datetime | None,
-    "answered_count": int,
-    "total_questions": int,
-    "score": float
-})
-exam_monitoring_t = tp_ext.TypedDict("exam_monitoring_t", {
-    "exam_status": str,
-    "exam_start": datetime.datetime,
-    "exam_end": datetime.datetime,
-    "students": list[student_monitoring_t]
-})
 help_t = tp.Literal[
     "item_submit",
     "project"

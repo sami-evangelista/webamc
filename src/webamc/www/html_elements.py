@@ -112,6 +112,8 @@ class P(Element):
     pass
 class Pre(Element):
     pass
+class Progress(Element):
+    pass
 class Select(Element):
     def sort(self) -> "Element":
         if not all(isinstance(c, Option) for c in self.children):

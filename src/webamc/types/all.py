@@ -7,3 +7,5 @@ from .www import *
 from .check import *
 from .project import *
 from .routes import *
+from .mcq import *
+from .exam import *

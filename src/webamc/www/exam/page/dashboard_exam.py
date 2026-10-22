@@ -1,3 +1,5 @@
+import random
+
 from webamc.www.all import *
 from webamc.db import queries
 from webamc.util import fmt
@@ -14,62 +16,42 @@ def page(
     if not monitoring_data:
         return fa.responses.HTMLResponse(lang.txt("err_exam_not_found"))
 
-    # color configuration
-    exam_colors = {
-        "upcoming": "#0056b3",
-        "in progress": "#28a745",
-        "finished": "#6c757d"
-    }
+    trs: list[list[he.Element]] = list()
+    exam_status: types.exam_status_t = monitoring_data.get(
+        "status", "upcoming"
+    )
+    exam_not_started = exam_status == "upcoming"
+    exam_finished = exam_status == "finished"
 
-    student_colors = {
-        "online": "green",
-        "not started": "red",
-        "inactive (> 5 min)": "orange"
-    }
-
-    # translation mapping for dynamic database statuses
-    translated_status = {
-        "upcoming": lang.txt("status_upcoming"),
-        "in progress": lang.txt("status_in_progress"),
-        "finished": lang.txt("status_finished"),
-        "online": lang.txt("status_online"),
-        "not started": lang.txt("status_not_started"),
-        "inactive (> 5 min)": lang.txt("status_inactive")
-    }
-
-    trs: list[he.Element] = list()
-    raw_exam_status = monitoring_data.get("exam_status", "")
-    exam_not_start = raw_exam_status == "upcoming"
-    tr_all = []
-
-    # table header with translated columns
-
-    if exam_not_start:
+    # table header
+    tr_all: list[he.Element] = []
+    if exam_not_started:
         input_all = he.Input(
             type_="checkbox",
             id_="checkbox_all",
             onclick="exam_select_all_registrations()"
         )
-        tr_all.append(he.Td(input_all))
+        tr_all += [input_all]
+    tr_all += [
+        he.Txt("word_student"),
+        he.Txt("word_score"),
+        he.Txt("word_progress"),
+        he.Txt("word_status")
+    ]
+    trs.append(tr_all)
 
-    tr_all.extend([
-        he.Td(he.Txt("word_login")),
-        he.Td(he.Txt("word_student")),
-        he.Td(he.Str("Score")),  # will be put in lang later
-        he.Td(he.Txt("word_progress")),
-        he.Td(he.Txt("word_status"))
-    ])
-    trs.append(he.Tr(*tr_all))
-
-    # rows generation
+    # table rows generation
     for student in monitoring_data["students"]:
-        student_name = fmt.fmt_name(student["usr_fst_name"],
-                                    student["usr_name"])
-
-        row_cells = []
+        student_name = fmt.fmt_name(
+            student["usr_fst_name"],
+            student["usr_name"],
+            False
+        )
+        status = student["status"]
+        tds = []
 
         # checkbox using reg_id for deletion actions
-        if exam_not_start:
+        if exam_not_started:
             input_check = he.Input(
                 type_="checkbox",
                 id_=f"checkbox_{student['reg_id']}",
@@ -77,113 +59,72 @@ def page(
             ).set_data(
                 "reg_id", str(student['reg_id'])
             )
+            tds.append(input_check)
 
-            row_cells.append(he.Td(input_check))
-
-        # status with color coding and translation
-        raw_student_status = student["status"]
-        s_color = student_colors.get(raw_student_status, "black")
-        display_student_status = translated_status.get(raw_student_status,
-                                                       raw_student_status)
-
-        status_element = he.Span(
-            he.Str(display_student_status),
-            style=f"color: {s_color}; font-weight: bold;"
+        # student status
+        txt_status = tp.cast(
+            types.txt_t,
+            f"seq_exam_student_status_{status.replace('-', '_')}"
         )
+        cls_status = f"student-status-{student['status']}"
+        span_status = he.Span(he.Txt(txt_status), class_=cls_status)
 
         # progress bar logic
         answered = student["answered_count"]
         total = student["total_questions"]
-        percent = int((answered / total) * 100) if total > 0 else 0
+        total = 43
+        answered = random.randint(0, total)
+        progress = he.Progress(
+            max_=str(total),
+            value=str(answered)
+        )
 
-        # green if 100%, blue otherwise
-        bar_color = "#28a745" if percent == 100 else "#007bff"
-
-        style = (
-            f"width: {percent}%; height: 100%; background-color: {bar_color}; "
-            "transition: width 0.3s;"
-        )
-        progress_fill = he.Div(
-            style=style
-        )
-        style = (
-            "width: 100px; height: 12px; background-color: #e9ecef; "
-            "border-radius: 4px; overflow: hidden; display: inline-block; "
-            "vertical-align: middle; border: 1px solid #ccc;"
-        )
-        progress_bg = he.Div(
-            progress_fill,
-            style=style
-        )
-        style = (
-            "font-size: 0.85em; margin-left: 8px; vertical-align: middle; "
-            "color: #555;"
-        )
-        progress_text = he.Span(
-            he.Str(f" {answered}/{total}"),
-            style=style
-        )
-        progress_element = he.Div(progress_bg, progress_text)
-
-        # build row
-        row_cells.extend([
-            he.Td(he.Str(student["usr_login"])),
-            he.Td(he.Str(student_name)),
-            he.Td(he.Str(str(student["score"]))),
-            he.Td(progress_element),
-            he.Td(status_element)
-        ])
-        trs.append(he.Tr(*row_cells))
+        tds += [
+            he.Str(student_name),
+            he.Str(str(student["score"])),
+            progress,
+            span_status
+        ]
+        trs.append(tds)
 
     # assemble page elements
     elements: list[he.Element] = list()
 
-    # global exam status translated
-    raw_exam_status = monitoring_data['exam_status']
-    e_color = exam_colors.get(raw_exam_status, "black")
-    display_exam_status = translated_status.get(
-        raw_exam_status,
-        raw_exam_status
+    # table with exam general informations and buttons
+    exam_status = monitoring_data["status"]
+    txt_status = tp.cast(
+        types.txt_t,
+        f"seq_exam_status_{exam_status.replace('-', '_')}"
     )
-
-    header_status = he.H3(
-        he.Str(lang.txt("info_exam_status") % display_exam_status),
-        style=f"color: {e_color}; margin-bottom: 15px;"
-    )
-    elements.append(header_status)
-
-    # registration count
-    txt = (
-        lang.txt("param_seq_users_registered")
-        % str(len(monitoring_data["students"]))
-    )
-    elements.append(he.P(he.Str(txt)))
-
-    # export button
-    if len(monitoring_data["students"]) > 0:
-        style = (
-            "margin-bottom: 15px; display: inline-block; "
-            "background-color: #28a745; color: white; padding: 8px 12px; "
-            "text-decoration: none; border-radius: 4px;"
-        )
-        btn_export = he.A(
-            he.Str("Exporter les notes"),
-            href=f"../oper/export-scores?exm_id={exam_id}",
-            class_="btn btn-primary",
-            style=style
-        )
-        elements.append(btn_export)
-
-    if exam_not_start and len(monitoring_data["students"]) > 0:
-        img_delete = base.static_img(
+    cls_status = f"exam-status-{exam_status}"
+    span_exam_status = he.Span(he.Txt(txt_status), class_=cls_status)
+    str_no_students = he.Str(str(len(monitoring_data["students"])))
+    trs_exam_status: list[list[he.Element]] = [
+        [he.Txt("seq_exam_status"), span_exam_status],
+        [he.Txt("seq_users_registered"), str_no_students]
+    ]
+    buttons: list[he.Element] = list()
+    if exam_not_started and len(monitoring_data["students"]) > 0:
+        btn = base.static_img(
             "trash",
-            "word_delete",
+            "seq_delete_selected_registrations",
             js="exam_delete_registrations()"
         )
-        elements.append(img_delete)
+        buttons.append(btn)
+    if exam_finished or True:
+        btn = base.static_img(
+            "doc-table",
+            "seq_export_exam_scores",
+            href=f"../oper/export-scores?exm_id={exam_id}"
+        )
+        buttons.append(btn)
+    if buttons != list():        
+        trs_exam_status.append([he.ElementList(*buttons), he.Empty()])
+    table_exam_status = he.mktable(trs_exam_status, class_="table-form")
+    elements.append(table_exam_status)
 
     # data table
     if len(monitoring_data["students"]) > 0:
-        elements.append(he.Table(*trs, class_="table-form"))
+        elements.append(he.mktable(trs, class_="table-form"))
 
     return fa.responses.HTMLResponse(str(he.ElementList(*elements)))

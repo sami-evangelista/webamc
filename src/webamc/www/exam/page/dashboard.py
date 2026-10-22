@@ -7,46 +7,39 @@ def page(
         ctx: context.Context,
         **kwargs: tp.Unpack[types.args_route_exam_exam_t]
 ) -> he.Element:
-    def format_exam(
-            item: tables.Item,
-            exam: tables.Exam
-    ) -> str:
-        title = item.itm_title if item.itm_title is not None else "???"
+    def format_exam(exam: tables.Exam) -> str:
+        title = exam.exm_title
         return title + " (" + fmt.fmt_datetime(exam.exm_start) + ")"
 
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
 
+    trs = list()
+
+    # select with exams
     exm_id = kwargs.get("exm_id")
     select_exams = he.Select(
-        he.Option(he.Str(lang.txt("seq_select_an_exam")), value=""),
-        *[he.Option(he.Str(format_exam(item, exam)), value=exam.exm_id)
+        he.Option(he.Str("-"), value=""),
+        *[he.Option(he.Str(format_exam(exam)), value=exam.exm_id)
           for item, exam in exams],
         id_="exm_id",
         onchange="exam_dashboard_select()"
     )
+    trs.append([he.Txt("seq_select_an_exam"), select_exams])
 
     # select with groups
     q = queries.get_submit_grps(ctx.dbs, session.usr_id(ctx))
     select_grp = he.Select(
+        he.Option(he.Str("-"), value=""),
         *[he.Option(he.Str(grp.grp_name), value=grp.grp_id) for grp in q],
-        id_="grp_id"
+        id_="grp_id",
+        onchange="exam_register_group()"
     )
-    img_add = base.static_img(
-        "group-add",
-        title="word_add",
-        js="exam_register_group()"
-    )
-    table = he.Table(
-        he.Tr(he.Td(select_grp), he.Td(img_add)),
-        class_="table-form"
-    )
+    trs.append([he.Txt("seq_select_a_group_to_register"), select_grp])
+
+    table = he.mktable(trs, class_="table-form")
 
     # div containing inputs
-    div_inputs = he.Div(
-        select_exams,
-        table,
-        class_="box"
-    )
+    div_inputs = he.Div(table, class_="box")
 
     # check if an exam id has been passed trough the url
     script: he.Element = he.Empty()

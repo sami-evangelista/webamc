@@ -26,8 +26,10 @@ def fmt_title(s: str) -> str:
     return s[0].upper() + s[1:]
 
 
-def fmt_name(fst_name: str, name: str) -> str:
-    return fst_name.title() + " " + name.upper()
+def fmt_name(fst_name: str, name: str, fst_name_first: bool = True) -> str:
+    if fst_name_first:
+        return fst_name.title() + " " + name.upper()
+    return  name.upper() + " " + fst_name.title()
 
 
 def fmt_file_size(size: int) -> str:

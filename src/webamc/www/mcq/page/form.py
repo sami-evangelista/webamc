@@ -16,24 +16,6 @@ _form_ctx_t = tp.TypedDict(
     }
 )
 
-_mcq_content_question_t = tp.TypedDict(
-    "_mcq_content_question_t",
-    {
-        "itm_id": int,
-        "iti_num": int
-    }
-)
-
-_mcq_content_exercise_t = tp.TypedDict(
-    "_mcq_content_exercise_t",
-    {
-        "itm_id": int,
-        "itm_children": tp.Sequence["_mcq_content_t"]
-    }
-)
-
-_mcq_content_t = tp.Union[_mcq_content_question_t, _mcq_content_exercise_t]
-
 
 def page(
         ctx: context.Context,
@@ -192,9 +174,11 @@ def _gen_mcq_content(
         ctx: context.Context,
         item: tables.Item,
         instance_num: int | None = None
-) -> _mcq_content_t:
-    def loop(item: tables.Item) -> _mcq_content_t:
+) -> types.mcq_content_t:
+    def loop(item: tables.Item) -> types.mcq_content_t:
+
         assert item.itm_type != types.ITEM_TYPE_CHOICE
+        result: types.mcq_content_t
 
         # question type
         if item.itm_type == types.ITEM_TYPE_QUESTION:
@@ -213,26 +197,39 @@ def _gen_mcq_content(
                     # choosing random instance
                     chosen_instance = random.choice(instances).iti_num
 
-            # returning tuple with itm id and instance num
-            return {"itm_id": item.itm_id, "iti_num": chosen_instance}
+            result = {
+                "itm_id": item.itm_id,
+                "iti_num": chosen_instance,
+                "children": None
+            }
 
         # pack type
-        if item.itm_type == types.ITEM_TYPE_PACK:
+        elif item.itm_type == types.ITEM_TYPE_PACK:
             packs[item] = list()
-            return {"itm_id": item.itm_id, "itm_children": packs[item]}
+            result = {
+                "itm_id": item.itm_id,
+                "iti_num": 1,
+                "children": packs[item]
+            }
 
         # mcq or exercise type
-        children = [
-            loop(child) for child in queries.get_children(
-                ctx.dbs, item.itm_id
-            )
-        ]
-        if item.itm_rnd:
-            random.shuffle(children)
+        else:
+            children = [
+                loop(child) for child in queries.get_children(
+                    ctx.dbs, item.itm_id
+                )
+            ]
+            if item.itm_rnd:
+                random.shuffle(children)
+            result = {
+                "itm_id": item.itm_id,
+                "iti_num": 1,
+                "children": children
+            }
 
-        return {"itm_id": item.itm_id, "itm_children": children}
+        return result
 
-    packs: dict[tables.Item, list[tp.Any]] = dict()
+    packs: dict[tables.Item, list[types.mcq_content_t]] = dict()
     qsts: set[int] = set()
     result = loop(item)
 
@@ -252,7 +249,11 @@ def _gen_mcq_content(
                 else:
                     c_num = random.choice(insts).iti_num
 
-            pack_content.append({"itm_id": item_qst.itm_id, "iti_num": c_num})
+            pack_content.append({
+                "itm_id": item_qst.itm_id,
+                "iti_num": c_num,
+                "children": None
+            })
             qsts.add(item_qst.itm_id)
 
     return result
@@ -264,7 +265,7 @@ def _setup(
         exam: None | tables.Exam,
         registration: None | tables.Registration,
         instance_num: None | int = None
-) -> tuple[_mcq_content_t, list[int]]:
+) -> tuple[types.mcq_content_t, list[int]]:
 
     # in review mode we generate a new content each time the form is
     # reloaded
@@ -279,7 +280,7 @@ def _setup(
     sub = queries.get_registration_submission(ctx.dbs, registration)
     if sub is not None:
         assert sub.sub_exm_content is not None
-        content = tp.cast(_mcq_content_t, json.loads(sub.sub_exm_content))
+        content = tp.cast(types.mcq_content_t, json.loads(sub.sub_exm_content))
         choices = [
             c.itm_id
             for c in queries.get_submission_choices(ctx.dbs, sub)
@@ -391,7 +392,7 @@ def _form_question(
 def _form_exercise(
         ctx: context.Context,
         item: tables.Item,
-        children: tp.Sequence[_mcq_content_t],
+        children: tp.Sequence[types.mcq_content_t],
         form_ctx: _form_ctx_t
 ) -> he.Element:
     form_ctx["exe_id"] = item.itm_id
@@ -456,24 +457,23 @@ def _form_exercise(
 
 def _form_item(
         ctx: context.Context,
-        content: _mcq_content_t,
+        content: types.mcq_content_t,
         form_ctx: _form_ctx_t
 ) -> he.Element:
 
-    # if it's a dict with iti_num, new question struct
-    if isinstance(content, dict) and "iti_num" in content:
-        qst_content = tp.cast(_mcq_content_question_t, content)
+    # if no child it's a question
+    if content["children"] is None:
         return _form_question(
             ctx,
-            queries.get_item(ctx.dbs, qst_content["itm_id"]),
-            qst_content["iti_num"],
+            queries.get_item(ctx.dbs, content["itm_id"]),
+            content["iti_num"],
             form_ctx
         )
 
-    # if it's an exercice or a pack
+    # otherwise it's an exercice or a pack
     return _form_exercise(
         ctx,
         queries.get_item(ctx.dbs, content["itm_id"]),
-        content["itm_children"],
+        content["children"],
         form_ctx
     )
