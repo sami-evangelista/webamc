@@ -111,14 +111,14 @@ def page(
             js="exam_delete_registrations()"
         )
         buttons.append(btn)
-    if exam_finished or True:
+    if exam_finished:
         btn = base.static_img(
             "doc-table",
             "seq_export_exam_scores",
             href=f"../oper/export-scores?exm_id={exam_id}"
         )
         buttons.append(btn)
-    if buttons != list():        
+    if buttons != list():
         trs_exam_status.append([he.ElementList(*buttons), he.Empty()])
     table_exam_status = he.mktable(trs_exam_status, class_="table-form")
     elements.append(table_exam_status)

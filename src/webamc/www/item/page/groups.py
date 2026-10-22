@@ -1,5 +1,4 @@
 from webamc.www.all import *
-from webamc.www.item import router
 
 
 def page(

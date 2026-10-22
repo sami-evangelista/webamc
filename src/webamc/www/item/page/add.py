@@ -1,5 +1,4 @@
 from webamc.www.all import *
-from webamc.www.item import router
 from webamc.db import tables
 from webamc.www.db.util import get_txt_and_input
 

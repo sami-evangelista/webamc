@@ -1,5 +1,4 @@
 from webamc.www.all import *
-from webamc import project as proj
 
 
 router = fa.APIRouter()
