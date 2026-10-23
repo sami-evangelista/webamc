@@ -31,14 +31,14 @@ def route_oper_export_scores(
         return export_scores.generate_excel_scores(ctx=ctx, exam_id=exm_id)
 
 
-@router.post("/exam/oper/register-group")
-def route_oper_register_group(
+@router.post("/exam/oper/register")
+def route_oper_register(
         req: fa.Request,
-        args: types.args_route_exam_oper_register_group_t
+        args: types.args_route_exam_oper_register_t
 ) -> fa.Response:
-    from .oper import register_group
+    from .oper import register
     with context.Context(req) as ctx:
-        return register_group.data(ctx, args)
+        return register.data(ctx, args)
 
 
 @router.post("/exam/page/dashboard-exam")

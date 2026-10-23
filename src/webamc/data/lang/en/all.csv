@@ -209,6 +209,7 @@ seq_qst_type_single;one choice
 seq_question_pack;question pack
 seq_records_found;record(s) found
 seq_select_a_group_to_register;select a group to register
+seq_select_a_user_to_register;select a user to register
 seq_select_an_exam;select an exam
 seq_select_a_project;select a project
 seq_send_annotated_sheets;drop off annotated sheets in student inboxes

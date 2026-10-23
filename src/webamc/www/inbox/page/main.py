@@ -27,5 +27,5 @@ def page(ctx: context.Context) -> fa.Response:
     else:
         cols: list[types.txt_t] = ["word_title", "word_sender", "word_date"]
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
-        elem = he.Table(*trs, class_="solid-table")
+        elem = he.Table(*trs, class_="table-solid")
     return base.page(ctx, "inbox", elem)

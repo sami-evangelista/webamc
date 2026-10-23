@@ -195,13 +195,13 @@ div.my-name {
 }
 
 /* solid table with borders */
-.solid-table {
+.table-solid {
     margin-top: 20px;
     margin-bottom: 20px;
     margin-left: 20px;
     border-spacing: 0px;
     & tr td {
-	padding: 4px;
+	padding: 5px;
 	border: solid 1px var(--color-table-border);
 	border-style: solid solid solid solid;
     }

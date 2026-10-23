@@ -1,5 +1,3 @@
-import random
-
 from webamc.www.all import *
 from webamc.db import queries
 from webamc.util import fmt
@@ -16,7 +14,6 @@ def page(
     if not monitoring_data:
         return fa.responses.HTMLResponse(lang.txt("err_exam_not_found"))
 
-    trs: list[list[he.Element]] = list()
     exam_status: types.exam_status_t = monitoring_data.get(
         "status", "upcoming"
     )
@@ -24,23 +21,23 @@ def page(
     exam_finished = exam_status == "finished"
 
     # table header
-    tr_all: list[he.Element] = []
+    td_head = [
+        he.Td(he.Txt("word_student")),
+        he.Td(he.Txt("word_score")),
+        he.Td(he.Txt("word_progress")),
+        he.Td(he.Txt("word_status"))
+    ]
     if exam_not_started:
         input_all = he.Input(
             type_="checkbox",
             id_="checkbox_all",
             onclick="exam_select_all_registrations()"
         )
-        tr_all += [input_all]
-    tr_all += [
-        he.Txt("word_student"),
-        he.Txt("word_score"),
-        he.Txt("word_progress"),
-        he.Txt("word_status")
-    ]
-    trs.append(tr_all)
+        td_head.insert(0, he.Td(input_all))
+    thead = he.Thead(he.Tr(*td_head))
 
     # table rows generation
+    trs: list[list[he.Element]] = list()
     for student in monitoring_data["students"]:
         student_name = fmt.fmt_name(
             student["usr_fst_name"],
@@ -71,11 +68,9 @@ def page(
 
         # progress bar logic
         answered = student["answered_count"]
-        total = student["total_questions"]
-        total = 43
-        answered = random.randint(0, total)
+        total_questions = student["total_questions"]
         progress = he.Progress(
-            max_=str(total),
+            max_=str(max(1, total_questions)),
             value=str(answered)
         )
 
@@ -125,6 +120,8 @@ def page(
 
     # data table
     if len(monitoring_data["students"]) > 0:
-        elements.append(he.mktable(trs, class_="table-form"))
+        table_monitoring = he.mktable(trs, class_="table-solid")
+        table_monitoring.insert(0, thead)
+        elements.append(table_monitoring)
 
     return fa.responses.HTMLResponse(str(he.ElementList(*elements)))

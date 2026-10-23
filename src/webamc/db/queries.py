@@ -106,7 +106,7 @@ def get_grps_usrs(
         dbs: Session,
         grp_ids: set[int],
         right: types.usr_right_t
-) -> tp.Iterator[tables.Usr]:
+) -> tp.Generator[tables.Usr]:
     query = dbs.query(
         tables.Usr
     ).where(
@@ -115,9 +115,26 @@ def get_grps_usrs(
         & (tables.Usr.usr_id == tables.UsrGrp.ugp_usr)
         & (tables.UsrGrp.ugp_right == right)
     ).order_by(
-        tables.Usr.usr_name, tables.Usr.usr_fst_name
+        tables.Usr.usr_name,
+        tables.Usr.usr_fst_name
     )
     yield from query.all()
+
+
+def is_in_grps(
+        dbs: Session,
+        usr_id: int,
+        grp_ids: set[int],
+        right: types.usr_right_t
+) -> bool:
+    query = dbs.query(
+        tables.UsrGrp
+    ).where(
+        (tables.UsrGrp.ugp_usr == usr_id)
+        & (tables.UsrGrp.ugp_grp.in_(grp_ids))
+        & (tables.UsrGrp.ugp_right == right)
+    )
+    return query.first() is not None
 
 
 def get_usr_exams(
@@ -182,9 +199,39 @@ def get_exam_monitoring(
     if not exam:
         return None
 
-    now = datetime.datetime.now()
+    # count the number of questions each registered user answered
+    query_answers = dbs.query(
+        tables.Registration.reg_usr,
+        tables.ItemRelation.itr_parent
+    ).select_from(
+        tables.Registration
+    ).where(
+        tables.Registration.reg_exam == exm_id
+    ).join(
+        tables.Submission,
+        tables.Submission.sub_exm_registration == tables.Registration.reg_id
+    ).join(
+        tables.Answer,
+        tables.Answer.ans_submission == tables.Submission.sub_id
+    ).join(
+        tables.ItemInstance,
+        tables.ItemInstance.iti_id == tables.Answer.ans_instance
+    ).join(
+        tables.Item,
+        tables.Item.itm_id == tables.ItemInstance.iti_item
+    ).where(
+        tables.Item.itm_type == types.ITEM_TYPE_CHOICE
+    ).join(
+        tables.ItemRelation,
+        tables.ItemRelation.itr_child == tables.Item.itm_id
+    )
+    answered_count: dict[int, set[int]] = dict()
+    for row_answer in query_answers.all():
+        usr_id, itm_id = row_answer._tuple()
+        answered_count.setdefault(usr_id, set()).add(itm_id)
 
-    # get students, registrations, submissions
+    # list (usr, registration, submission) for this exam. submission
+    # may be None if the user has not started the exam.
     query = dbs.query(
         tables.Usr,
         tables.Registration,
@@ -194,70 +241,56 @@ def get_exam_monitoring(
     ).where(
         tables.Registration.reg_exam == exm_id
     ).join(
-        tables.Usr, tables.Usr.usr_id == tables.Registration.reg_usr
+        tables.Usr,
+        tables.Usr.usr_id == tables.Registration.reg_usr
     ).outerjoin(
         tables.Submission,
         tables.Registration.reg_id == tables.Submission.sub_exm_registration
     ).order_by(
-        tables.Usr.usr_name, tables.Usr.usr_fst_name
+        tables.Usr.usr_name,
+        tables.Usr.usr_fst_name
     )
 
+    now = datetime.datetime.now()
     students_data: list[types.student_monitoring_t] = []
-
     for row in query.all():
         usr, reg, sub = row._tuple()
-
         student_status: types.exam_student_status_t = "not-started"
         last_seen: datetime.datetime | None = None
-        answered_count = 0
         score = 0.0
         total_questions = 0
-
         if sub is not None:
-            student_status = "online"
+            assert sub.sub_exm_date_update is not None
+            assert sub.sub_exm_content is not None
             last_seen = sub.sub_exm_date_update
-            assert last_seen is not None
-
+            content = tp.cast(
+                types.mcq_content_t,
+                json.loads(sub.sub_exm_content)
+            )
+            student_status = "online"
             if now - last_seen > datetime.timedelta(minutes=5):
                 student_status = "inactive"
-
-            # count answers tied to this specific student's submission
-            """
-            answered_count = dbs.query(
-                sa.func.count(  # pylint: disable=not-callable
-                    sa.distinct(tables.Item.itm_parent)
-                )
-            ).select_from(
-                tables.Answer
-            ).join(
-                tables.ItemInstance,
-                tables.Answer.ans_instance == tables.ItemInstance.iti_id
-            ).join(
-                tables.Item,
-                tables.ItemInstance.iti_item == tables.Item.itm_id
-            ).filter(
-                tables.Answer.ans_submission == sub.sub_id,
-                tables.Item.itm_type == types.ITEM_TYPE_CHOICE
-            ).scalar()
-
-            answered_count = answered_count or 0
-            """
-            answered_count = 0
-
+            total_questions = sum(
+                1 for c, _ in types.mcq_enum_items(content)
+                if c["itm_type"] == types.ITEM_TYPE_QUESTION
+            )
             #detailed_scores = get_student_detailed_scores(
             #    dbs, exam.exm_mcq, sub.exs_id
             #)
             #score = sum(detailed_scores.values())
             score = 0
-            total_questions = 0
 
+        if usr.usr_id not in answered_count:
+            count = 0
+        else:
+            count = len(answered_count[usr.usr_id])
         students_data.append({
             "reg_id": int(reg.reg_id),
             "usr_name": str(usr.usr_name),
             "usr_fst_name": str(usr.usr_fst_name),
             "status": student_status,
             "last_seen": last_seen,
-            "answered_count": answered_count,
+            "answered_count": count,
             "total_questions": total_questions,
             "score": score
         })

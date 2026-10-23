@@ -212,6 +212,7 @@ txt_t = tp.Literal[
     "seq_records_found",
     "seq_select_an_exam",
     "seq_select_a_group_to_register",
+    "seq_select_a_user_to_register",
     "seq_select_a_project",
     "seq_send_annotated_sheets",
     "seq_send_notification_mail",

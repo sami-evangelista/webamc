@@ -40,7 +40,7 @@ const exam_delete = function (db_exm_id) {
 
 const exam_dashboard_select = function () {
     const exm_id = $('#exm_id').val();
-    const dashboard = $('#exam_dashboard');
+    const dashboard = $('#div-exam-dashboard');
     if(exm_id == '' || exm_id == null) {
 	dashboard.html('');
     } else {
@@ -56,22 +56,19 @@ const exam_dashboard_select = function () {
 }
 
 
-const exam_register_group = function () {
-    const exm_id = $('#exm_id').val();
-    const grp_id = $('#grp_id').val();
-    if(exm_id != '' && grp_id != '') {
+const exam_register = function () {
+    const data = base_input_values('#div-exam-fields');
+    if(data['exm_id'] != null
+       && (data['grp_id'] != null || data['usr_id'] != null)) {
 	const success = function (result) {
             base_report_infos(result.msgs);
 	    exam_dashboard_select();
 	};
-	const data = {
-	    'exm_id': exm_id,
-	    'grp_id': grp_id
-	};
-	const url = Constants.path_exam_oper_register_group;
+	const url = Constants.path_exam_oper_register;
 	xhr_post_oper(url, data, success);
     }
     $('#grp_id').val('');
+    $('#usr_id').val('');
 }
 
 

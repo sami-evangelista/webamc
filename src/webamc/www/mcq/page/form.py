@@ -199,6 +199,7 @@ def _gen_mcq_content(
 
             result = {
                 "itm_id": item.itm_id,
+                "itm_type": types.ITEM_TYPE_QUESTION,
                 "iti_num": chosen_instance,
                 "children": None
             }
@@ -208,6 +209,7 @@ def _gen_mcq_content(
             packs[item] = list()
             result = {
                 "itm_id": item.itm_id,
+                "itm_type": types.ITEM_TYPE_PACK,
                 "iti_num": 1,
                 "children": packs[item]
             }
@@ -223,6 +225,7 @@ def _gen_mcq_content(
                 random.shuffle(children)
             result = {
                 "itm_id": item.itm_id,
+                "itm_type": types.ITEM_TYPE_EXERCISE,
                 "iti_num": 1,
                 "children": children
             }
@@ -251,6 +254,7 @@ def _gen_mcq_content(
 
             pack_content.append({
                 "itm_id": item_qst.itm_id,
+                "itm_type": types.ITEM_TYPE_QUESTION,
                 "iti_num": c_num,
                 "children": None
             })
@@ -461,8 +465,8 @@ def _form_item(
         form_ctx: _form_ctx_t
 ) -> he.Element:
 
-    # if no child it's a question
-    if content["children"] is None:
+    # it's a question
+    if content["itm_type"] == types.ITEM_TYPE_QUESTION:
         return _form_question(
             ctx,
             queries.get_item(ctx.dbs, content["itm_id"]),
@@ -471,6 +475,7 @@ def _form_item(
         )
 
     # otherwise it's an exercice or a pack
+    assert content["children"] is not None
     return _form_exercise(
         ctx,
         queries.get_item(ctx.dbs, content["itm_id"]),

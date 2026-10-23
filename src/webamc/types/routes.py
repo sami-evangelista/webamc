@@ -121,11 +121,12 @@ args_route_exam_exam_t = tp_ext.TypedDict(
         "exm_id": int
     }
 )
-args_route_exam_oper_register_group_t = tp_ext.TypedDict(
-    "args_route_exam_oper_register_group_t",
+args_route_exam_oper_register_t = tp_ext.TypedDict(
+    "args_route_exam_oper_register_t",
     {
         "exm_id": int,
-        "grp_id": int
+        "grp_id": None | int,
+        "usr_id": None | int
     }
 )
 

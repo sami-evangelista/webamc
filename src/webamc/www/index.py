@@ -39,5 +39,5 @@ def page(ctx: context.Context) -> fa.Response:
         ]
         gd = desc.col_desc
         trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(gd(c))) for c in cols])))
-        body = he.Table(*trs, class_="solid-table")
+        body = he.Table(*trs, class_="table-solid")
     return base.page(ctx, "index", body)

@@ -108,7 +108,7 @@ def page(
         he.P(he.Txt("seq_records_found"), he.Str(f": {nrows}"))
     )
 
-    p = he.P(he.Table(thead, *trs, class_="solid-table"))
+    p = he.P(he.Table(thead, *trs, class_="table-solid"))
     elements.append(p)
 
     return fa.responses.HTMLResponse(str(he.ElementList(*elements)))

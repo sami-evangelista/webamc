@@ -208,6 +208,7 @@ seq_qst_type_single;un seul choix
 seq_question_pack;pack de questions
 seq_records_found;enregistrements trouvés
 seq_select_a_group_to_register;sélectionnez un groupe à enregistrer
+seq_select_a_user_to_register;sélectionnez une étudiante à enregistrer
 seq_select_an_exam;sélectionnez un examen
 seq_select_a_project;sélectionnez un projet
 seq_send_annotated_sheets;déposer les copies annotées dans les boîtes étudiantes
@@ -251,12 +252,12 @@ tbl_desc_usr_attr;usr_attr
 tbl_desc_usr_grp;usr_grp
 tbl_desc_usr;usr
 warning_exam_deletion_forbidden;Attention : cet examen ne peut pas être supprimé car des étudiantes y sont inscrites.
-word_action;Action
+word_action;action
 word_actions;actions
 word_add;ajouter
 word_administrate;administrer
 word_answer;répondre
-word_archive;Archive
+word_archive;archive
 word_cancel;annuler
 word_close;fermer
 word_confirmation;confirmation
@@ -271,20 +272,20 @@ word_details;détails
 word_disconnection;déconnexion
 word_exam;examen
 word_exercise;exercice
-word_file;Fichier
-word_file_name;Nom du fichier
+word_file;fichier
+word_file_name;nom du fichier
 word_filter;filtrer
 word_groups;groupes
 word_help;aide
-word_mcq;QCM
+word_mcq;qcm
 word_minutes;minutes
-word_mod_date;Date de modification
+word_mod_date;date de modification
 word_move_down;descendre
 word_move_up;monter
 word_no;non
 word_page;page
 word_parameters;paramètres
-word_progress;Progression
+word_progress;progression
 word_question;question
 word_restart;recommencer
 word_review;révision
@@ -292,18 +293,18 @@ word_rights;droits
 word_score;note
 word_send;envoyer
 word_sender;expéditeur
-word_size;Taille
+word_size;taille
 word_start;démarrer
 word_statement;énoncé
-word_status;Statut
-word_student;Étudiant
+word_status;statut
+word_student;étudiante
 word_submission;soumission
 word_table;table
 word_tags;tags
 word_threshold;seuil
 word_title;titre
 word_type;type
-word_type;Type
+word_type;type
 word_update;modifier
 word_validate;valider
 word_view;vue
