@@ -86,14 +86,13 @@ const item_db_delete_recursively = function (db_itm_id, db_itm_id_parent) {
     } else {
         success = function() { item_db_filter(); };
     }
-    if(db_itm_id_parent != null) {
-        success = function() { item_db_on_children_update(db_itm_id_parent); };
-    }
     const go = function () {
         const data = {
             'itm_id': db_itm_id
         };
-        xhr_post(Constants.path_item_oper_recursive_deletion, success, data);
+        xhr_post_oper(
+            Constants.path_item_oper_recursive_deletion, data, success
+        );
     };
     const txt = Lang['qst_confirmation_item_recursive_deletion'];
     base_ask_confirmation(txt, go);

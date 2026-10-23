@@ -65,3 +65,25 @@ item_mdata_t = tp.Literal[
     "TITLE",
     "VISIBLE"
 ]
+
+mcq_content_t = tp_ext.TypedDict(
+    "mcq_content_t",
+    {
+        "itm_id": int,
+        "itm_type": item_type_t,
+        "itm_qst_type": question_type_t,
+        "iti_id": int,
+        "iti_num": int,
+        "children": None | list["mcq_content_t"]
+    }
+)
+
+
+def mcq_enum_items(
+        content: mcq_content_t,
+        parent: mcq_content_t | None = None
+) -> tp.Generator[tuple[mcq_content_t, None | mcq_content_t]]:
+    yield content, parent
+    if content["children"] is not None:
+        for c in content["children"]:
+            yield from mcq_enum_items(c, content)

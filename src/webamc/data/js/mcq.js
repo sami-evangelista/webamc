@@ -23,6 +23,8 @@ var mcq_changes_done = false;
 
 var mcq_clock_timeout = null;
 
+var mcq_content;
+
 
 const mcq_set_status = function (html_id, status = null) {
     const elem = $('#' + html_id)
@@ -40,7 +42,8 @@ const mcq_collect_answers = function () {
     const result = {
         'itm_id': parseInt($('#itm_id').val()),
 	'choices': {},
-	'questions': {}
+	'questions': {},
+        'content': mcq_content
     };
     for(let qst_id in mcq_qst_content) {
 	result['questions'][qst_id] = {};
@@ -235,10 +238,11 @@ const mcq_set_mode = function (mode) {
 }
 
 
-const mcq_init = function () {
+const mcq_init = function (content) {
     $(document).keypress(function (evt) {
         mcq_key_pressed(evt);
     });
+    mcq_content = content
     mcq_reset_mode();
 }
 

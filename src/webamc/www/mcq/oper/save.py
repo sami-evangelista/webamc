@@ -2,6 +2,41 @@ from webamc.www.all import *
 from webamc.db import tables, queries
 
 
+def _save_submission(
+        ctx: context.Context,
+        sub_id: int,
+        mcq_result: types.args_route_mcq_result_t
+) -> None:
+    mcq_content = mcq_result["content"]
+    for node, _ in types.mcq_enum_items(mcq_content):
+        assert node["itm_type"] != types.ITEM_TYPE_CHOICE
+        ans = tables.Answer(
+            ans_submission=sub_id,
+            ans_instance=node["iti_id"]
+        )
+        ctx.dbs.add(ans)
+        if node["itm_type"] == types.ITEM_TYPE_QUESTION:
+            cho_ids = {
+                i for i, c in mcq_result["questions"][node["itm_id"]].items()
+                if c
+            }
+            if len(cho_ids) > 0:
+                if node["itm_qst_type"] == types.QUESTION_TYPE_SINGLE:
+                    cho_ids = { cho_ids.pop() }
+                for cho_id in cho_ids:
+                    inst = queries.get_item_instance(
+                        ctx.dbs,
+                        cho_id,
+                        node["iti_num"]
+                    )
+                    assert inst is not None
+                    ans = tables.Answer(
+                        ans_submission=sub_id,
+                        ans_instance=inst.iti_id
+                    )
+                    ctx.dbs.add(ans)
+
+
 def data(
         ctx: context.Context,
         mcq_result: types.args_route_mcq_result_t
@@ -24,50 +59,10 @@ def data(
     ).delete()
     ctx.dbs.flush()
 
-    # reading the content of exam
-    content_tree = json.loads(sub.sub_exm_content)
-    itm_to_itinum = {}
+    # reading the content of the exam from the database and overwrite
+    # the one we received from in the request, for security
+    mcq_result["content"] = json.loads(sub.sub_exm_content)
 
-    # private function to map all the answers. it saves the question
-    # id with the instance num in a dict
-    def map_instances(node: dict[str, tp.Any]) -> None:
-        if "iti_num" in node:
-            itm_to_itinum[node["itm_id"]] = node["iti_num"]
-        if "itm_children" in node:
-            for child in node["itm_children"]:
-                map_instances(child)
+    _save_submission(ctx, sub.sub_id, mcq_result)
 
-    map_instances(content_tree)
-
-    # insert new answers
-    for qst_id, qst_choices in mcq_result["questions"].items():
-
-        # get the instance num with the question id
-        iti_num = itm_to_itinum.get(qst_id, 1)
-
-        # finding the instance id with the question id and instance num
-        qst_instance = queries.get_item_instance(
-            ctx.dbs,
-            qst_id,
-            iti_num
-        )
-        if qst_instance is not None:
-            ans = tables.Answer(
-                ans_submission=sub.sub_id,
-                ans_instance=qst_instance.iti_id
-            )
-            ctx.dbs.add(ans)
-        for cho_id, cho_chosen in qst_choices.items():
-            if cho_chosen:
-                cho_instance = queries.get_item_instance(
-                    ctx.dbs,
-                    cho_id,
-                    iti_num
-                )
-                if cho_instance is not None:
-                    ans = tables.Answer(
-                        ans_submission=sub.sub_id,
-                        ans_instance=cho_instance.iti_id
-                    )
-                    ctx.dbs.add(ans)
     return base.wrap_code("succ")

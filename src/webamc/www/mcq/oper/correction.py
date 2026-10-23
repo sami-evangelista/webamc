@@ -1,7 +1,8 @@
 import datetime
 
-from webamc.db import tables, queries
+from webamc.db import tables
 from webamc.www.all import *
+from . import save
 
 
 def data(
@@ -11,7 +12,6 @@ def data(
 
     itm_id = mcq_result["itm_id"]
     session.check_can_view_mcq(ctx, itm_id)
-
     usr_id = session.usr_id(ctx)
 
     # create review submission linked to user and mcq
@@ -24,50 +24,7 @@ def data(
     ctx.dbs.add(sub)
     ctx.dbs.flush()
 
-    # save selected answers for each question
-    for qst_id, qst_choices in mcq_result.get("questions", dict()).items():
-        qst_id_int = int(qst_id)
-
-        # get default instance (num 1) or fallback to first available
-        qst_instance = queries.get_item_instance(ctx.dbs, qst_id_int, 1)
-        if qst_instance is None:
-            qst_instance = ctx.dbs.query(
-                tables.ItemInstance
-            ).filter_by(
-                iti_item=qst_id_int
-            ).first()
-
-        if qst_instance is not None:
-            ans = tables.Answer(
-                ans_submission=sub.sub_id,
-                ans_instance=qst_instance.iti_id
-            )
-            ctx.dbs.add(ans)
-
-        # save checked choices
-        for cho_id, cho_chosen in qst_choices.items():
-            if cho_chosen:
-                cho_id_int = int(cho_id)
-                cho_instance = queries.get_item_instance(
-                    ctx.dbs,
-                    cho_id_int,
-                    1
-                )
-                if cho_instance is None:
-                    cho_instance = ctx.dbs.query(
-                        tables.ItemInstance
-                    ).filter_by(
-                        iti_item=cho_id_int
-                    ).first()
-
-                if cho_instance:
-                    ans = tables.Answer(
-                        ans_submission=sub.sub_id,
-                        ans_instance=cho_instance.iti_id
-                    )
-                    ctx.dbs.add(ans)
-
-    # commit all database changes
+    save._save_submission(ctx, sub.sub_id, mcq_result)
     ctx.dbs.commit()
 
     # compute live correction for choices and questions

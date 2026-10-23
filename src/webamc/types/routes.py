@@ -135,6 +135,7 @@ args_route_exam_oper_register_t = tp_ext.TypedDict(
 args_route_mcq_result_t = tp_ext.TypedDict(
     "args_route_mcq_result_t",
     {
+        "content": item.mcq_content_t,
         "itm_id": int,
         "choices": dict[int, bool],
         "questions": dict[int, dict[int, bool]]

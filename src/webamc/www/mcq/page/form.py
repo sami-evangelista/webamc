@@ -17,11 +17,7 @@ _form_ctx_t = tp.TypedDict(
 )
 
 
-def page(
-        ctx: context.Context,
-        itm_id: int,
-        iti_num: int | None = None
-) -> fa.Response:
+def page(ctx: context.Context, itm_id: int) -> fa.Response:
 
     session.check_logged_in(ctx)
 
@@ -39,19 +35,8 @@ def page(
         if exam.exm_mcq != itm_id:
             raise fa.HTTPException(status_code=403)
 
-    selected_instance = None
-    if iti_num is not None:
-        if session.has_admin_right(ctx, item):
-            selected_instance = int(iti_num)
-
     # setup and generate the content
-    content, choices = _setup(
-        ctx,
-        item,
-        exam,
-        registration,
-        selected_instance
-    )
+    content, choices = _setup(ctx, item, exam, registration)
 
     elements: list[he.Element] = list()
     form_ctx: _form_ctx_t = {
@@ -89,7 +74,7 @@ def page(
     if status_cells != list():
         status = he.Div(he.Table(he.Tr(*status_cells)), class_="status-rule")
         elements.append(status)
-    js += "\nmcq_init();"
+    js += f"\nmcq_init({json.dumps(content)});"
 
     elements.append(element_mcq)
 
@@ -172,35 +157,27 @@ def page(
 
 def _gen_mcq_content(
         ctx: context.Context,
-        item: tables.Item,
-        instance_num: int | None = None
+        item: tables.Item
 ) -> types.mcq_content_t:
     def loop(item: tables.Item) -> types.mcq_content_t:
 
         assert item.itm_type != types.ITEM_TYPE_CHOICE
         result: types.mcq_content_t
 
+        # get an instance of this item
+        instances = queries.get_instances(ctx.dbs, item.itm_id)
+        assert len(instances) > 0
+        inst = random.choice(instances)
+
         # question type
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             qsts.add(item.itm_id)
-
-            # getting instance of this question
-            instances = queries.get_instances(ctx.dbs, item.itm_id)
-            chosen_instance = 1
-            if instances:
-                if (
-                        instance_num is not None
-                        and any(i.iti_num == instance_num for i in instances)
-                ):
-                    chosen_instance = instance_num
-                else:
-                    # choosing random instance
-                    chosen_instance = random.choice(instances).iti_num
-
             result = {
                 "itm_id": item.itm_id,
                 "itm_type": types.ITEM_TYPE_QUESTION,
-                "iti_num": chosen_instance,
+                "itm_qst_type": item.itm_qst_type,
+                "iti_id": inst.iti_id,
+                "iti_num": inst.iti_num,
                 "children": None
             }
 
@@ -210,7 +187,9 @@ def _gen_mcq_content(
             result = {
                 "itm_id": item.itm_id,
                 "itm_type": types.ITEM_TYPE_PACK,
-                "iti_num": 1,
+                "itm_qst_type": item.itm_qst_type,
+                "iti_id": inst.iti_id,
+                "iti_num": inst.iti_num,
                 "children": packs[item]
             }
 
@@ -226,7 +205,9 @@ def _gen_mcq_content(
             result = {
                 "itm_id": item.itm_id,
                 "itm_type": types.ITEM_TYPE_EXERCISE,
-                "iti_num": 1,
+                "itm_qst_type": item.itm_qst_type,
+                "iti_id": inst.iti_id,
+                "iti_num": inst.iti_num,
                 "children": children
             }
 
@@ -241,21 +222,16 @@ def _gen_mcq_content(
         for item_qst in queries.gen_pack_questions(
                 ctx.dbs, item_pack, session.usr_id(ctx), qsts
         ):
-            insts = queries.get_instances(ctx.dbs, item_qst.itm_id)
-            c_num = 1
-            if insts:
-                if (
-                        instance_num is not None
-                        and any(i.iti_num == instance_num for i in insts)
-                ):
-                    c_num = instance_num
-                else:
-                    c_num = random.choice(insts).iti_num
+            instances = queries.get_instances(ctx.dbs, item_qst.itm_id)
+            assert len(instances) > 0
+            inst = random.choice(instances)
 
             pack_content.append({
                 "itm_id": item_qst.itm_id,
                 "itm_type": types.ITEM_TYPE_QUESTION,
-                "iti_num": c_num,
+                "itm_qst_type": item.itm_qst_type,
+                "iti_num": inst.iti_num,
+                "iti_id": inst.iti_id,
                 "children": None
             })
             qsts.add(item_qst.itm_id)
@@ -267,14 +243,13 @@ def _setup(
         ctx: context.Context,
         item: tables.Item,
         exam: None | tables.Exam,
-        registration: None | tables.Registration,
-        instance_num: None | int = None
+        registration: None | tables.Registration
 ) -> tuple[types.mcq_content_t, list[int]]:
 
     # in review mode we generate a new content each time the form is
     # reloaded
     if exam is None or registration is None:
-        return _gen_mcq_content(ctx, item, instance_num), list()
+        return _gen_mcq_content(ctx, item), list()
 
     # in exam mode we generate the content once and save it in table
     # Submission. then, if the page is reloaded we recover the
@@ -290,7 +265,7 @@ def _setup(
             for c in queries.get_submission_choices(ctx.dbs, sub)
         ]
     else:
-        content = _gen_mcq_content(ctx, item, instance_num)
+        content = _gen_mcq_content(ctx, item)
         choices = list()
         exs = tables.Submission(
             sub_type=types.SUBMISSION_TYPE_EXAM,
@@ -358,28 +333,25 @@ def _form_question(
             name=box_name,
             class_="choice-input"
         )
-        img = he.Label(
+        label = he.Label(
             he.Img(
                 src=img_file_path,
                 alt=f"cho-{cho.itm_id}"
-            ), for_=box_id
+            ),
+            for_=box_id
         )
-
         result_box = he.Div(
             id_=f"cho_{cho.itm_id}_status",
             class_="status-box status-box-choice"
         )
-        trs.append([result_box, box, img])
+        trs.append([result_box, box, label])
 
+    img = he.Img(
+        src=base.img_src(ctx, item.itm_id, iti_num),
+        alt=f"qst-{item.itm_id}"
+    )
     div_body = he.Div(
-        he.Img(
-            src=base.img_src(
-                ctx,
-                item.itm_id,
-                iti_num
-            ),
-            alt=f"qst-{item.itm_id}"
-        ),
+        img,
         he.mktable(trs),
         id_=f"qst_{item.itm_id}_body",
         class_="question-body"

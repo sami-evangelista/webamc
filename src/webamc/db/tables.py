@@ -1170,27 +1170,39 @@ RefItem.fmt = lambda item: item.fmt()
 
 def create_listeners() -> tp.Any:
 
-    def on_delete_item(
-            mapper: Mapper[tp.Any],
+    def check_item_not_in_exam_submission(
             conn: Connection,
-            target: Item
+            itm_id: int
     ) -> None:
-        # we make sure before deleting the item that no answer is
-        # related to it in the context of an exam submission
-        query_select = select(
+        # make sure that the item is not part of an exam submission
+        query = select(
             Exam
         ).where(
-            (ItemInstance.iti_item == target.itm_id)
+            (ItemInstance.iti_item == itm_id)
             & (ItemInstance.iti_id == Answer.ans_instance)
             & (Answer.ans_submission == Submission.sub_id)
             & (Submission.sub_type == types.SUBMISSION_TYPE_EXAM)
             & (Submission.sub_exm_registration == Registration.reg_id)
             & (Registration.reg_exam == Exam.exm_id)
         )
-        exam = conn.scalars(query_select).first()
+        exam = conn.execute(query).first()
         if exam is not None:
             title = exam.exm_title
             raise errors.DBDeletionOfItemReferencedInExamSubmission(title)
+
+    def on_delete_item_relation(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: ItemRelation
+    ) -> None:
+        check_item_not_in_exam_submission(conn, target.itr_parent)
+
+    def on_delete_item(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: Item
+    ) -> None:
+        check_item_not_in_exam_submission(conn, target.itm_id)
 
         # when we delete a question we delete all choices in it
         if target.itm_type == types.ITEM_TYPE_QUESTION:
@@ -1344,6 +1356,7 @@ def create_listeners() -> tp.Any:
         sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
         sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
     sa.event.listen(Item, "before_delete", on_delete_item)
+    sa.event.listen(ItemRelation, "before_delete", on_delete_item_relation)
     sa.event.listen(ItemRelation, "before_insert", on_insert_item_relation)
 
 create_listeners()
