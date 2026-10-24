@@ -5,7 +5,7 @@ router = fa.APIRouter()
 
 
 @router.get("/auth/page/main")
-def route_auth_page(
+def page_main(
         req: fa.Request,
         sub_page: str = ""
 ) -> fa.Response:
@@ -15,27 +15,26 @@ def route_auth_page(
 
 
 @router.get("/auth/oper/login-cas")
-def route_auth_oper_login_cas(
+def oper_login_cas(
         req: fa.Request,
-        ticket: str | None = None,
-        next_url: str | None = None
+        args: types.args_oper_t
 ) -> fa.Response:
     from .oper import login_cas
     with context.Context(req) as ctx:
-        return login_cas.data(ctx, ticket, next_url)
+        return login_cas.data(ctx, args)
 
 
 @router.get("/auth/oper/logout")
-def route_auth_oper_logout(req: fa.Request) -> fa.Response:
+def oper_logout(req: fa.Request) -> fa.Response:
     from .oper import logout
     with context.Context(req) as ctx:
         return logout.data(ctx)
 
 
 @router.post("/auth/oper/login-local")
-def route_auth_oper(
+def oper_login_local(
         req: fa.Request,
-        args: types.args_route_auth_oper_login_local_t
+        args: types.args_oper_t
 ) -> fa.Response:
     from .oper import login_local
     with context.Context(req) as ctx:

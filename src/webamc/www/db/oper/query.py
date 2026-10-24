@@ -5,10 +5,7 @@ from webamc.db import util as db_util
 from webamc.www.db import util as www_db_util, router
 
 
-def data(
-        ctx: context.Context,
-        query: types.db_query_t | list[types.db_query_t]
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     def build_where(where: types.db_where_t) -> tp.Any:
         col = db_util.get_col(where["col"])
         if where["op"] == "like":
@@ -20,6 +17,7 @@ def data(
             for col in db_util.get_tbl_cols(tbl)
         }
     session.check_logged_in(ctx)
+    query = args["query"]
     if isinstance(query, list):
         queries = query
         single_query = False

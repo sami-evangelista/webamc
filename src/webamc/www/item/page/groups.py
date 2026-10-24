@@ -1,9 +1,6 @@
 from webamc.www.all import *
 
 
-def page(
-        ctx: context.Context,
-        item_id: int
-) -> he.Element:
+def page(ctx: context.Context, itm_id: None | int) -> he.Element:
     from . import group
     return group.page(ctx, None)

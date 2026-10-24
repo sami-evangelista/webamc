@@ -91,22 +91,22 @@ op.connect()
 
 
 @app.get("/hello")
-async def hello() -> fa.Response:
+async def page_hello() -> fa.Response:
     return fa.responses.PlainTextResponse("It works mate !")
 
 
 @app.get("/static")
-async def route_static(file_name: str) -> fa.Response:
+async def page_static(file_name: str) -> fa.Response:
     return base.static_file(file_name)
 
 
 @app.get("/help")
-async def route_help(help_id: types.help_t) -> fa.Response:
+async def page_help(help_id: types.help_t) -> fa.Response:
     return base.help_page(help_id)
 
 
 @app.get("/img")
-async def route_img(
+async def page_img(
     req: fa.Request,
     itm_id: int,
     iti_num: int = 1
@@ -123,7 +123,7 @@ async def route_img(
 
 
 @app.get("/")
-async def route_index(req: fa.Request) -> fa.Response:
+async def page_index(req: fa.Request) -> fa.Response:
     with context.Context(req) as ctx:
         if not session.is_logged_in(ctx):
             url = base.mkuri("/auth/page/main")

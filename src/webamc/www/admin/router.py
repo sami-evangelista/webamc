@@ -5,7 +5,7 @@ router = fa.APIRouter()
 
 
 @router.post("/admin/oper/submit")
-def route_oper_submit(
+def oper_submit(
         req: fa.Request,
         csv_file: fa.UploadFile
 ) -> fa.Response:
@@ -15,17 +15,14 @@ def route_oper_submit(
 
 
 @router.post("/admin/page/table")
-def route_page_table(
-        req: fa.Request,
-        args: types.args_route_admin_page_table_t
-) -> fa.Response:
+def page_table(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .page import table
     with context.Context(req) as ctx:
         return table.page(ctx, args)
 
 
 @router.get("/admin/page/main")
-def route_page_main(
+def page_main(
         req: fa.Request,
         sub_page: None | types.sub_page_t = None,
         tbl_id: int | None = None

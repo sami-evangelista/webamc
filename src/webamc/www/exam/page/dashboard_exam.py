@@ -3,13 +3,10 @@ from webamc.db import queries
 from webamc.util import fmt
 
 
-def page(
-        ctx: context.Context,
-        args: types.args_route_exam_exam_t
-) -> fa.Response:
+def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
-    exam_id = args["exm_id"]
-    monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
+    exm_id = args["exm_id"]
+    monitoring_data = queries.get_exam_monitoring(ctx.dbs, exm_id)
 
     if not monitoring_data:
         return fa.responses.HTMLResponse(lang.txt("err_exam_not_found"))
@@ -110,7 +107,7 @@ def page(
         btn = base.static_img(
             "doc-table",
             "seq_export_exam_scores",
-            href=f"../oper/export-scores?exm_id={exam_id}"
+            href=f"../oper/export-scores?exm_id={exm_id}"
         )
         buttons.append(btn)
     if buttons != list():

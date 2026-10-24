@@ -3,17 +3,11 @@ from webamc.db import queries
 from webamc.util import fmt
 
 
-def page(
-        ctx: context.Context,
-        grp_id: int | None
-) -> he.Element:
+def page(ctx: context.Context, grp_id: None | int) -> he.Element:
     if grp_id is not None:
         if grp_id not in session.usr_submit_groups(ctx):
             raise fa.HTTPException(status_code=403)
-        grps = queries.get_grp_sub_grps(
-            ctx.dbs,
-            grp_id
-        )
+        grps = queries.get_grp_sub_grps(ctx.dbs, grp_id)
     else:
         grps = queries.get_usr_grps(
             ctx.dbs,
@@ -43,8 +37,8 @@ def page(
         children += [
             he.Div(
                 he.Str(
-                    fmt.fmt_name(usr.usr_fst_name, usr.usr_name)
-                    + " / " + usr.usr_code
+                    fmt.fmt_name(usr.usr_fst_name, usr.usr_name, False)
+                    + f" [{usr.usr_code}]"
                 ),
                 class_="usr-name"
             )

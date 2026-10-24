@@ -57,49 +57,52 @@ const xhr_post_oper = function (url, data, success = null) {
 }
 
 
-const xhr_db = function (data, success = null) {
+const xhr_db = function (query, success = null) {
+    const data = {
+        'query': query
+    };
     xhr_post_oper(Constants.path_db_oper_query, data, success);
 }
 
 
 const xhr_db_delete = function (db_tbl, db_where, success = null) {
-    const data = {
+    const query = {
         'type': 'delete',
         'table': db_tbl,
         'where': db_where
     };
-    xhr_db(data, success);
+    xhr_db(query, success);
 }
 
 
 const xhr_db_insert = function (db_tbl, db_values, success = null) {
-    const data = {
+    const query = {
         'type': 'insert',
         'table': db_tbl,
         'values': db_values
     };
-    xhr_db(data, success);
+    xhr_db(query, success);
 }
 
 
 const xhr_db_select = function (db_tbl, db_where, success = null) {
-    const data = {
+    const query = {
         'type': 'select',
         'table': db_tbl,
         'where': db_where
     };
-    xhr_db(data, success);
+    xhr_db(query, success);
 }
 
 
 const xhr_db_update = function (
     db_tbl, db_where, db_values, success = null
 ) {
-    const data = {
+    const query = {
         'type': 'update',
         'table': db_tbl,
         'where': db_where,
         'values': db_values
     };
-    xhr_db(data, success);
+    xhr_db(query, success);
 }

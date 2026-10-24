@@ -2,10 +2,7 @@ from webamc.db import tables, queries
 from webamc.www.all import *
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_item_oper_add_child_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     item_child = queries.get_item(ctx.dbs, args["itr_child"])
     item_parent = queries.get_item(ctx.dbs, args["itr_parent"])
     query = ctx.dbs.query(

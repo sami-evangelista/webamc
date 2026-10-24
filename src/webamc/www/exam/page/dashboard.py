@@ -3,10 +3,7 @@ from webamc.db import tables, queries
 from webamc.util import fmt
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_exam_exam_t]
-) -> he.Element:
+def page(ctx: context.Context, exm_id: int) -> he.Element:
     def format_exam(exam: tables.Exam) -> str:
         title = exam.exm_title
         return title + " (" + fmt.fmt_datetime(exam.exm_start) + ")"
@@ -16,7 +13,6 @@ def page(
     trs = list()
 
     # select with exams
-    exm_id = kwargs.get("exm_id")
     select_exams = he.Select(
         he.Option(he.Str("-"), value=""),
         *[he.Option(he.Str(format_exam(exam)), value=exam.exm_id)

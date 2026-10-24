@@ -2,10 +2,7 @@ from webamc.www.all import *
 from webamc import project
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_project_oper_action_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     if args["action"] == "new":
         code = project.Project.new(
             session.usr_code(ctx),

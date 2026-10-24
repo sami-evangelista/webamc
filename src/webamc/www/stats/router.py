@@ -9,7 +9,7 @@ router = fa.APIRouter()
 
 """
 @router.get("/stats/page/dashboard")
-def route_stats_page_dashboard(
+def page_dashboard(
         req: fa.Request,
         exam_id: int | None = None
 ) -> fa.Response:
@@ -19,7 +19,7 @@ def route_stats_page_dashboard(
 
 
 @router.post("/stats/oper/graph-data")
-def route_stats_open_graph_data(
+def oper_graph_data(
     req: fa.Request,
     args: args_graph_t
 ) -> fa.Response:
@@ -108,7 +108,7 @@ def route_stats_open_graph_data(
 
 
 @router.post("/stats/oper/evolution-data")
-def route_stats_evolution_data(
+def oper_evolution_data(
     req: fa.Request,
     args: args_evo_t
 ) -> fa.Response:
@@ -160,7 +160,7 @@ def route_stats_evolution_data(
 
 
 @router.post("/stats/oper/mcq-overview-data")
-def route_stats_mcq_overview_data(
+def oper_mcq_overview_data(
     req: fa.Request,
     args: args_mcq_overview_t
 ) -> fa.Response:
@@ -254,7 +254,7 @@ def route_stats_mcq_overview_data(
 
 
 @router.post("/stats/oper/tags-data")
-def route_stats_tags_data(req: fa.Request) -> fa.Response:
+def oper_tags_data(req: fa.Request) -> fa.Response:
     with context.Context(req) as ctx:
         current_usr_id = session.usr_id(ctx)
 

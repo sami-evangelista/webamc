@@ -3,10 +3,7 @@ from webamc.util import fmt
 from webamc import project
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_project_project_code_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     proj = project.Project(
         session.usr_code(ctx),
         session.usr_name(ctx),

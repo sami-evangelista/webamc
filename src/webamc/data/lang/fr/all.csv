@@ -169,7 +169,7 @@ seq_delete_recursively;supprimer cet élément et tout son contenu
 seq_delete_selected_registrations;supprimer les enregistrements sélectionnés
 seq_enter_new_eaddr;entrez votre nouvelle adresse électronique
 seq_error_messages;messages d'erreur
-seq_exam_status_finished;ierminé
+seq_exam_status_finished;terminé
 seq_exam_status_in_progress;en cours
 seq_exam_status;statut de l'épreuve
 seq_exam_status_upcoming;À venir

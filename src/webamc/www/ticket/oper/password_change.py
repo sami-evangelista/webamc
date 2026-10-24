@@ -2,10 +2,8 @@ from webamc.www.all import *
 from webamc.db import tables, queries
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_ticket_oper_password_change_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
+
     if args["loc_password"] != args["loc_password_confirm"]:
         return base.wrap_code("err_invalid_password_confirm")
     tkt_usr = queries.get_ticket(ctx.dbs, args["ticket"])

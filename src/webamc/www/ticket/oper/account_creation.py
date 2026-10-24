@@ -2,10 +2,7 @@ from webamc.www.all import *
 from webamc.db import tables
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_ticket_oper_account_creation_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     if not config.CONFIG["auth_account_creation_enabled"]:
         raise fa.HTTPException(status_code=403)
 

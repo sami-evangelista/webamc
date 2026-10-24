@@ -5,12 +5,9 @@ from webamc.www.all import *
 from . import save
 
 
-def data(
-        ctx: context.Context,
-        mcq_result: types.args_route_mcq_result_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
-    itm_id = mcq_result["itm_id"]
+    itm_id = args["itm_id"]
     session.check_can_view_mcq(ctx, itm_id)
     usr_id = session.usr_id(ctx)
 
@@ -24,7 +21,7 @@ def data(
     ctx.dbs.add(sub)
     ctx.dbs.flush()
 
-    save._save_submission(ctx, sub.sub_id, mcq_result)
+    save._save_submission(ctx, sub.sub_id, args)
     ctx.dbs.commit()
 
     # compute live correction for choices and questions
@@ -32,7 +29,7 @@ def data(
         "cho": dict(),
         "qst": dict()
     }
-    for cho_id, cho_checked in mcq_result["choices"].items():
+    for cho_id, cho_checked in args["choices"].items():
         row = ctx.dbs.query(
             tables.Item,
             tables.ItemRelation

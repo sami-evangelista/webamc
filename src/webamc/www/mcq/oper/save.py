@@ -5,9 +5,9 @@ from webamc.db import tables, queries
 def _save_submission(
         ctx: context.Context,
         sub_id: int,
-        mcq_result: types.args_route_mcq_result_t
+        args: types.args_oper_t
 ) -> None:
-    mcq_content = mcq_result["content"]
+    mcq_content = args["content"]
     for node, _ in types.mcq_enum_items(mcq_content):
         assert node["itm_type"] != types.ITEM_TYPE_CHOICE
         ans = tables.Answer(
@@ -17,7 +17,7 @@ def _save_submission(
         ctx.dbs.add(ans)
         if node["itm_type"] == types.ITEM_TYPE_QUESTION:
             cho_ids = {
-                i for i, c in mcq_result["questions"][node["itm_id"]].items()
+                i for i, c in args["questions"][node["itm_id"]].items()
                 if c
             }
             if len(cho_ids) > 0:
@@ -37,10 +37,7 @@ def _save_submission(
                     ctx.dbs.add(ans)
 
 
-def data(
-        ctx: context.Context,
-        mcq_result: types.args_route_mcq_result_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
     session.check_active_registration(ctx)
     active_registration = session.active_registration(ctx)
@@ -61,8 +58,8 @@ def data(
 
     # reading the content of the exam from the database and overwrite
     # the one we received from in the request, for security
-    mcq_result["content"] = json.loads(sub.sub_exm_content)
+    args["content"] = json.loads(sub.sub_exm_content)
 
-    _save_submission(ctx, sub.sub_id, mcq_result)
+    _save_submission(ctx, sub.sub_id, args)
 
     return base.wrap_code("succ")

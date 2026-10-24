@@ -3,10 +3,7 @@ from webamc.www.exam import router
 from webamc.db import queries, tables
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_exam_oper_register_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     exm_id = args["exm_id"]
     grp_id = args["grp_id"]
     usr_id = args["usr_id"]

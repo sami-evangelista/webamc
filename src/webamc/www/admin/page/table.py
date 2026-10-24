@@ -3,10 +3,7 @@ from webamc.db import desc, queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
 
 
-def page(
-        ctx: context.Context,
-        args: types.args_route_admin_page_table_t
-) -> fa.Response:
+def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     session.check_admin_table(ctx, args["tbl_id"])
 
     elements: list[he.Element] = list()

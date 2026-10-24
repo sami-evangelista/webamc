@@ -22,7 +22,7 @@ def _get_exam(
 
 
 @router.get("/exam/oper/export-scores")
-def route_oper_export_scores(
+def oper_export_scores(
     req: fa.Request,
     exm_id: int
 ) -> fa.Response:
@@ -32,19 +32,16 @@ def route_oper_export_scores(
 
 
 @router.post("/exam/oper/register")
-def route_oper_register(
-        req: fa.Request,
-        args: types.args_route_exam_oper_register_t
-) -> fa.Response:
+def oper_register(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .oper import register
     with context.Context(req) as ctx:
         return register.data(ctx, args)
 
 
 @router.post("/exam/page/dashboard-exam")
-def route_page_dashboard_exam(
+def page_dashboard_exam(
         req: fa.Request,
-        args: types.args_route_exam_exam_t
+        args: types.args_oper_t
 ) -> fa.Response:
     from .page import dashboard_exam
     with context.Context(req) as ctx:
@@ -52,7 +49,7 @@ def route_page_dashboard_exam(
 
 
 @router.get("/exam/page/main")
-def route_exam_page(
+def exam_page(
         req: fa.Request,
         sub_page: None | types.sub_page_t = None,
         exm_id: None | int = None

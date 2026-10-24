@@ -5,10 +5,7 @@ from webamc.db import queries, tables
 from webamc import project as proj
 
 
-def page(
-        ctx: context.Context,
-        args: types.args_route_project_project_code_t
-) -> fa.Response:
+def page(ctx: context.Context) -> fa.Response:
     trs: list[he.Element] = list()
 
     def file_elements(f: types.file_t) -> tuple[he.Element, he.Element]:

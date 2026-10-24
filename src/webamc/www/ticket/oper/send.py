@@ -4,17 +4,7 @@ from webamc.db import tables, col_types as ct
 from webamc.util import security
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_ticket_oper_send_t
-) -> fa.Response:
-
-    # check eaddr is valid
-    try:
-        ct.Eaddr.val_chk(args["usr_eaddr"])
-    except ValueError:
-        return base.wrap_code("err_invalid_eaddr")
-
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     query = ctx.dbs.query(tables.Usr)
     if session.is_logged_in(ctx):
         query = query.where(tables.Usr.usr_id == session.usr_id(ctx))
@@ -59,7 +49,6 @@ def data(
         tkt_eaddr=args["usr_eaddr"]
     )
     ctx.dbs.add(ticket)
-    ctx.dbs.commit()
 
     url = config.CONFIG["base_url"] + base.mkuri(
         "/ticket/page/main",
@@ -75,6 +64,7 @@ def data(
     }
     file_path = mailing.find_mail(mails[args["tkt_type"]])
     if file_path is None:
+        ctx.dbs.rollback()
         return base.wrap_code("err_mail_file_not_found")
 
     # send the mail
@@ -87,6 +77,8 @@ def data(
                 "eaddr": args["usr_eaddr"]
             }
     ):
+        ctx.dbs.rollback()
         return base.wrap_code("err_mail_server")
 
+    ctx.dbs.commit()
     return base.wrap_code(code)

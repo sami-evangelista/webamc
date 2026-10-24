@@ -3,10 +3,7 @@ from webamc.db import util as db_util, desc, tables
 from webamc.www.db import util as www_db_util
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_item_item_t]
-) -> he.Element:
+def page(ctx: context.Context, itm_id: None | int) -> he.Element:
 
     # type
     itm_types = [
@@ -56,7 +53,6 @@ def page(
         class_="box"
     )
 
-    itm_id = kwargs.get("itm_id")
     script = he.Script(f"item_db_filter({json.dumps(itm_id)});")
     elements = [
         div_filters,

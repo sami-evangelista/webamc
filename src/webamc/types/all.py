@@ -6,5 +6,4 @@ from .txt import *
 from .www import *
 from .check import *
 from .project import *
-from .routes import *
 from .exam import *

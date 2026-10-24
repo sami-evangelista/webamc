@@ -3,10 +3,7 @@ from webamc.db import tables
 from webamc.util import security
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_auth_oper_login_local_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     if not config.CONFIG["auth_local_enabled"]:
         raise fa.HTTPException(status_code=403)
     password_hash = security.hash_password(args["loc_password"])

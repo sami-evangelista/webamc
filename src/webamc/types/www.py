@@ -1,8 +1,7 @@
 import typing as tp
 import typing_extensions as tp_ext
 
-from .db import db_query_result_t
-from .txt import txt_t
+from . import project, txt, item, db
 
 
 json_response_t = tp_ext.TypedDict(
@@ -10,7 +9,7 @@ json_response_t = tp_ext.TypedDict(
     {
         "success": bool,
         "msgs": list[str],
-        "result": None | tp.Any | db_query_result_t
+        "result": None | tp.Any
     }
 )
 static_img_t = tp.Literal[
@@ -179,15 +178,48 @@ sub_page_t = tp.Literal[
     "ticket_error",
     "ticket_password_change"
 ]
+class args_oper_t(tp.TypedDict):
+    action_params: tp.NotRequired[project.action_params_t]
+    action: tp.NotRequired[project.action_t]
+    choices: tp.NotRequired[dict[int, bool]]
+    content: tp.NotRequired[item.mcq_content_t]
+    exm_id: tp.NotRequired[int]
+    filters: tp.NotRequired[dict[str, tp.Any]]
+    grp_id: tp.NotRequired[None | int]
+    itm_code: tp.NotRequired[str]
+    itm_exe_or_mcq: tp.NotRequired[tp.Literal["exe", "mcq"]]
+    itm_id: tp.NotRequired[int]
+    itm_title: tp.NotRequired[str]
+    itm_type: tp.NotRequired[item.item_type_t]
+    itr_child: tp.NotRequired[int]
+    itr_parent: tp.NotRequired[int]
+    loc_login: tp.NotRequired[str]
+    loc_password_confirm: tp.NotRequired[str]
+    loc_password: tp.NotRequired[str]
+    move: tp.NotRequired[int]
+    next_url: tp.NotRequired[str]
+    page_num: tp.NotRequired[int]
+    project_code: tp.NotRequired[str]
+    project_data: tp.NotRequired[dict[str, tp.Any]]
+    query: tp.NotRequired[db.db_query_t | list[db.db_query_t]]
+    questions: tp.NotRequired[dict[int, dict[int, bool]]]
+    tbl_id: tp.NotRequired[int]
+    ticket: tp.NotRequired[str]
+    tkt_type: tp.NotRequired[item.ticket_type_t]
+    usr_code: tp.NotRequired[str]
+    usr_eaddr: tp.NotRequired[str]
+    usr_fst_name: tp.NotRequired[str]
+    usr_id: tp.NotRequired[None | int]
+    usr_name: tp.NotRequired[str]
 
 
-def oper_code_to_txt(c: oper_code_t) -> txt_t:
-    return tp.cast(txt_t, c)
+def oper_code_to_txt(c: oper_code_t) -> txt.txt_t:
+    return tp.cast(txt.txt_t, c)
 
 
-def page_to_txt(page: page_t) -> txt_t:
-    return tp.cast(txt_t, f"page_title_{page}")
+def page_to_txt(page: page_t) -> txt.txt_t:
+    return tp.cast(txt.txt_t, f"page_title_{page}")
 
 
-def sub_page_to_txt(sub: sub_page_t) -> txt_t:
-    return tp.cast(txt_t, f"page_title_{sub}")
+def sub_page_to_txt(sub: sub_page_t) -> txt.txt_t:
+    return tp.cast(txt.txt_t, f"page_title_{sub}")

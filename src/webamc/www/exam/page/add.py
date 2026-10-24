@@ -3,10 +3,7 @@ from webamc.www.db import util as www_db_util
 from webamc.db import tables, util as db_util, desc
 
 
-def page(
-        ctx: context.Context,
-        **_: tp.Unpack[types.args_route_exam_exam_t]
-) -> he.Element:
+def page(ctx: context.Context, exm_id: int) -> he.Element:
     usr_id = session.usr_id(ctx)
     where = [
         tables.Item.itm_is_mcq

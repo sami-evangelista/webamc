@@ -2,14 +2,11 @@ from webamc.www.all import *
 from webamc import project
 
 
-def page(
-        ctx: context.Context,
-        args: types.args_route_project_page_manual_association_t
-) -> fa.Response:
+def page(ctx: context.Context, pcode: str) -> fa.Response:
     proj = project.Project(
         session.usr_code(ctx),
         session.usr_name(ctx),
-        args["project_code"],
+        pcode=pcode,
         dbs=ctx.dbs
     )
     associations = proj.list_associations()

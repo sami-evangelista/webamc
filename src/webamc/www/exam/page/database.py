@@ -6,10 +6,7 @@ from webamc.db import queries, tables, util as db_util
 from webamc.www.db import util as www_db_util
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_exam_exam_t]
-) -> he.Element:
+def page(ctx: context.Context, exm_id: int) -> he.Element:
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
     if exams == list():
         return he.Txt("info_no_exam_available")

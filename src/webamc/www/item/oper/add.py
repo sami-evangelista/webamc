@@ -2,15 +2,11 @@ from webamc.www.all import *
 from webamc.db import tables
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_item_oper_add_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     itm_type = args["itm_type"]
-    itm_is_mcq = args["type"] == "mcq"
+    itm_is_mcq = args["itm_exe_or_mcq"] == "mcq"
     itm_code = args["itm_code"]
     itm_title = args["itm_title"]
-
     if itm_type != types.ITEM_TYPE_PACK:
         itm_pack_spec = None
     else:

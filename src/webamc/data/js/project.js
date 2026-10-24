@@ -252,7 +252,7 @@ const project_associate_manual = function (student, copy) {
 
 
 const project_submit_data = function () {
-    const data = base_input_values('#table-action-data');
+    const project_data = base_input_values('#table-action-data');
     const url = Constants.path_project_oper_set_data;
     const handle_response = function (response) {
         base_report(response.msgs, response.success);
@@ -262,8 +262,11 @@ const project_submit_data = function () {
             project_highlight_errors(response.result);
         }
     }
-    delete data[project_groups.select_id()];
-    data['code'] = $('#project_code').val();
-    data['groups'] = project_groups.value;
+    delete project_data[project_groups.select_id()];
+    project_data['code'] = $('#project_code').val();
+    project_data['groups'] = project_groups.value;
+    const data = {
+        'project_data': project_data
+    };
     xhr_post(url, handle_response, data);
 }

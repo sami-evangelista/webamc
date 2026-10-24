@@ -1,10 +1,7 @@
 from webamc.www.all import *
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_item_item_t]
-) -> he.Element:
+def page(ctx: context.Context, itm_id: None | int) -> he.Element:
     input_zip = he.Input(
         id_="zip_file",
         type_="file",

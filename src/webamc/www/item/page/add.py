@@ -3,10 +3,7 @@ from webamc.db import tables
 from webamc.www.db.util import get_txt_and_input
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_item_item_t]
-) -> he.Element:
+def page(ctx: context.Context, itm_id: None | int) -> he.Element:
     def get_trs() -> tp.Generator[list[he.Element]]:
         yield [base.field_label(he.Txt("word_type"))]
         yield [select_type]
@@ -22,7 +19,7 @@ def page(
     select_type = he.Select(
         he.Option(he.Txt("word_mcq"), value="mcq"),
         he.Option(he.Txt("word_exercise"), value="exe"),
-        id_="type"
+        id_="itm_exe_or_mcq"
     )
     select_content_type = he.Select(
         he.Option(

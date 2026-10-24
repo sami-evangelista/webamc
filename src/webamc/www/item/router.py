@@ -5,10 +5,7 @@ router = fa.APIRouter()
 
 
 @router.post("/item/oper/add")
-def route_oper_add(
-        req: fa.Request,
-        args: types.args_route_item_oper_add_t
-) -> fa.Response:
+def oper_add(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .oper import add
     with context.Context(req) as ctx:
         if not session.has_submission_right(ctx):
@@ -17,10 +14,7 @@ def route_oper_add(
 
 
 @router.post("/item/oper/add-child")
-def route_oper_add_child(
-        req: fa.Request,
-        args: types.args_route_item_oper_add_child_t
-) -> fa.Response:
+def oper_add_child(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .oper import add_child
     with context.Context(req) as ctx:
         if not session.has_submission_right(ctx):
@@ -29,10 +23,7 @@ def route_oper_add_child(
 
 
 @router.post("/item/oper/move-child")
-def route_oper_move_child(
-        req: fa.Request,
-        args: types.args_route_item_oper_move_child_t
-) -> fa.Response:
+def oper_move_child(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .oper import move_child
     with context.Context(req) as ctx:
         if not session.has_submission_right(ctx):
@@ -41,10 +32,7 @@ def route_oper_move_child(
 
 
 @router.post("/item/oper/submit")
-def route_oper_submit(
-        req: fa.Request,
-        zip_file: fa.UploadFile
-) -> fa.Response:
+def oper_submit(req: fa.Request, zip_file: fa.UploadFile) -> fa.Response:
     from .oper import submit
     with context.Context(req) as ctx:
         if not session.has_submission_right(ctx):
@@ -53,9 +41,9 @@ def route_oper_submit(
 
 
 @router.post("/item/oper/recursive-deletion")
-def route_oper_recursive_deletion(
+def oper_recursive_deletion(
         req: fa.Request,
-        args: types.args_route_item_item_t
+        args: types.args_oper_t
 ) -> fa.Response:
     from .oper import recursive_deletion
     with context.Context(req) as ctx:
@@ -65,7 +53,7 @@ def route_oper_recursive_deletion(
 
 
 @router.post("/item/page/database-list")
-def route_page_database_list(
+def page_database_list(
         req: fa.Request,
         filters: dict[str, tp.Any]
 ) -> fa.Response:
@@ -77,7 +65,7 @@ def route_page_database_list(
 
 
 @router.get("/item/page/database-body")
-def route_page_database_body(
+def page_database_body(
         req: fa.Request,
         itm_id: int,
         iti_num: int,
@@ -90,7 +78,7 @@ def route_page_database_body(
 
 
 @router.get("/item/page/group")
-def route_page_group(
+def page_group(
         req: fa.Request,
         grp_id: int
 ) -> fa.Response:
@@ -102,7 +90,7 @@ def route_page_group(
 
 
 @router.get("/item/page/main")
-def route_page_main(
+def page_main(
         req: fa.Request,
         sub_page: None | types.sub_page_t = None,
         itm_id: None | int = None

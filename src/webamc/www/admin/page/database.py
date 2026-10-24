@@ -3,15 +3,11 @@ from webamc.db import util as db_util, desc, queries, tables
 from webamc.www.db import util as www_db_util
 
 
-def page(
-        ctx: context.Context,
-        **kwargs: tp.Unpack[types.args_route_admin_tbl_t]
-) -> he.Element:
+def page(ctx: context.Context, tbl_id: None | int) -> he.Element:
     elements: list[he.Element] = list()
 
     # list of tables the user can administrate and set the table to show
     tbls = list(queries.get_admin_tables(ctx.dbs, session.usr_id(ctx)))
-    tbl_id = kwargs["tbl_id"]
     if tbl_id is None:
         tbl_id = tbls[0].tbl_id
 

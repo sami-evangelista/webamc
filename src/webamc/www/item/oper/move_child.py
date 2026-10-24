@@ -2,10 +2,7 @@ from webamc.db import tables
 from webamc.www.all import *
 
 
-def data(
-        ctx: context.Context,
-        args: types.args_route_item_oper_move_child_t
-) -> fa.Response:
+def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     query = ctx.dbs.query(
         tables.ItemRelation
     ).where(
