@@ -50,8 +50,6 @@ static_img_t = tp.Literal[
     "unlink",
     "upload",
     "warning",
-    "zoom-in",
-    "zoom-out"
 ]
 path_t = tp.Literal[
     "/",
@@ -65,7 +63,7 @@ path_t = tp.Literal[
     "/db/page/input",
     "/db/oper/query",
     "/exam/page/main",
-    "/exam/page/dashboard-exam",
+    "/exam/page/dashboard",
     "/exam/oper/export-scores",
     "/exam/oper/register",
     "/help",
@@ -167,7 +165,6 @@ sub_page_t = tp.Literal[
     "admin_database",
     "admin_submit",
     "exam_add",
-    "exam_dashboard",
     "exam_database",
     "item_add",
     "item_database",

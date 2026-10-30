@@ -7,20 +7,6 @@ const exam_submit = function () {
 }
 
 
-const exam_toggle_details = function (db_exm_id) {
-    const div_details = $('#div-exam-details-' + db_exm_id);
-    const img_zoom = $('#img-exam-zoom-' + db_exm_id);
-    let src;
-    div_details.toggle();
-    if(div_details.is(':visible')) {
-        src = 'zoom-out';
-    } else {
-        src = 'zoom-in';
-    }
-    img_zoom.attr('src', base_img_src(src));
-}
-
-
 const exam_delete = function (db_exm_id) {
     const go = function () {
 	const success = function () {
@@ -50,14 +36,18 @@ const exam_dashboard_select = function () {
 	const data = {
 	    'exm_id': exm_id
 	};
-	const url = Constants.path_exam_page_dashboard_exam;
+	const url = Constants.path_exam_page_dashboard;
 	xhr_post(url, success, data, 'html');
     }
 }
 
 
 const exam_register = function () {
-    const data = base_input_values('#div-exam-fields');
+    const data = {
+        'exm_id': base_input_value('exm_id'),
+        'grp_id': base_input_value('grp_id'),
+        'usr_id': base_input_value('usr_id')
+    };
     if(data['exm_id'] != null
        && (data['grp_id'] != null || data['usr_id'] != null)) {
 	const success = function (result) {

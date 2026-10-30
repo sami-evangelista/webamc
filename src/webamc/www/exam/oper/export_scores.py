@@ -1,29 +1,29 @@
+import itertools
 import io
 import typing as tp
 import openpyxl
-from openpyxl.styles import PatternFill, Font, Alignment
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.formatting.rule import FormulaRule
-from fastapi.responses import Response
 
 from webamc.www.all import *
 from webamc.db import queries, tables
 
 
-def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
-    return fa.responses.HTMLResponse("")
-    """
-    # getting global data from exam
-    monitoring_data = queries.get_exam_monitoring(ctx.dbs, exam_id)
-    if not monitoring_data:
-        return Response(content="Can't find exam", status_code=404)
+ROW_PREFIX_COLS: list[types.txt_t] = [
+    "col_desc_usr_name",
+    "col_desc_usr_fst_name",
+    "col_desc_usr_code",
+    "word_score"
+]
+USR_DATA_COLS = 3
+COL_IDX_QUESTION_START = len(ROW_PREFIX_COLS)
+ROTATED_CHAR_WIDTH = 4
+CHAR_WIDTH_MULT = 1.6
 
-    # get real mcq_id
-    exam = ctx.dbs.query(tables.Exam).filter_by(exm_id=exam_id).first()
-    if not exam:
-        return Response(content="Can't find exam", status_code=404)
-    mcq_id = exam.exm_mcq
+
+def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
 
     # init excel file
     wb = openpyxl.Workbook()
@@ -32,84 +32,131 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
     ws.title = "Notes Examen"
 
     # styles
-    grey_fill = PatternFill(
-        start_color="D3D3D3", end_color="D3D3D3", fill_type="solid"
+    header_font = Font(
+        bold=True
     )
-    red_fill = PatternFill(
-        start_color="FFCCCC", end_color="FFCCCC", fill_type="solid"
+    header_fill = PatternFill(  # light blue
+        start_color="CCCCFF",
+        end_color="CCCCFF",
+        fill_type="solid"
     )
-    bold_font = Font(bold=True)
+    absent_fill = PatternFill(  # grey
+        start_color="DDDDDD",
+        end_color="DDDDDD",
+        fill_type="solid"
+    )
+    no_answer_fill = PatternFill(  # yellow
+        start_color="FFFF88",
+        end_color="FFFF88",
+        fill_type="solid"
+    )
+    usr_data_fill = PatternFill(  # rose salmon
+        start_color="FEDCD0",
+        end_color="FEDCD0",
+        fill_type="solid"
+    )
     vertical_align = Alignment(
-        textRotation=90, horizontal="center", vertical="bottom"
+        textRotation=90,
+        horizontal="center",
+        vertical="bottom"
     )
-    center_align = Alignment(horizontal="center", vertical="center")
+    center_align = Alignment(
+        horizontal="center",
+        vertical="bottom"
+    )
+    thin_border = Border(
+        left=Side(style="thin"), 
+        right=Side(style="thin"), 
+        top=Side(style="thin"), 
+        bottom=Side(style="thin")
+    )
 
-    students = monitoring_data["students"]
+    exam_result = list(queries.get_exam_result(ctx.dbs, exm_id))
 
-    # get all questions from db
-    direct_items = ctx.dbs.query(
-        tables.Item.itm_id
-    ).filter(
-        tables.Item.itm_parent == mcq_id
-    ).all()
-    parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
+    # list all questions
+    questions = sorted(
+        set(item for row in exam_result for item in row[3]),
+        key=lambda item: str(item.itm_code)
+    )
+    fst_qst_col = get_column_letter(COL_IDX_QUESTION_START + 1)
+    last_qst_col = get_column_letter(COL_IDX_QUESTION_START + len(questions))
 
-    questions_data = ctx.dbs.query(
-        tables.Question.qst_id,
-        tables.Item.itm_code
-    ).join(
-        tables.Item, tables.Question.qst_id == tables.Item.itm_id
-    ).filter(
-        tables.Item.itm_parent.in_(parent_ids)
-    ).all()
-
-    # pre-calculate stats
-    student_records: list[dict[str, tp.Any]] = []
-
-    for student in students:
-        is_absent = student["status"] == "not started"
-
-        sub_id = None
-        if not is_absent:
-            exam_sub = ctx.dbs.query(
-                tables.ExamSubmission
-            ).filter_by(
-                exs_registration=student["reg_id"]
-            ).first()
-            if exam_sub:
-                sub_id = exam_sub.exs_id
-
-        if sub_id is None:
-            scores_dict = dict()
+    # header row
+    headers = [lang.txt(t).title() for t in ROW_PREFIX_COLS]
+    max_header_len = 0
+    for item in questions:
+        headers.append(str(item.itm_code))
+        max_header_len = max(max_header_len, len(str(item.itm_code)))
+    ws.append(headers)
+    for col_idx, cell in enumerate(ws[1], start=1):
+        cell.font = header_font
+        cell.fill = header_fill
+        if col_idx > COL_IDX_QUESTION_START:
+            cell.alignment = vertical_align
+            letter = get_column_letter(col_idx)
+            ws.column_dimensions[letter].width = ROTATED_CHAR_WIDTH
         else:
-            scores_dict = queries.get_student_detailed_scores(
-                ctx.dbs, mcq_id, sub_id
-            )
+            cell.alignment = center_align
 
-        # save data for later
-        student_records.append({
-            "data": student,
-            "is_absent": is_absent,
-            "scores": scores_dict
-        })
+    for usr, sub, items, qst_answers, qst_scores in exam_result:
+        is_absent = sub is None
+        row_idx = ws.max_row + 1
+        row: list[str | int] = [
+            usr.usr_name.upper(),
+            usr.usr_fst_name.title(),
+            usr.usr_code.title()
+        ]
+        score = sum(qst_scores.get(qst, 0) for qst in questions)
+        if is_absent:
+            row.append("")
+        else:
+            row.append(
+                f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})"
+            )
+        for qst in questions:
+            if qst in qst_scores:
+                row.append(max(qst_scores[qst], 0))
+            else:
+                row.append("")
+        ws.append(row)
+
+        # color cells containing user informations (name, ...)
+        for col_idx in range(1, USR_DATA_COLS + 1):
+            ws.cell(row=row_idx, column=col_idx).fill = usr_data_fill
+
+        # color cells of questions that the user did not have (either
+        # the user is absent or the question did not appear)
+        for i, qst in enumerate(questions, start=1):
+            col_idx = i + COL_IDX_QUESTION_START
+            if qst not in items:
+                ws.cell(row=row_idx, column=col_idx).fill = absent_fill
+
+        # color cells of questions that the user did have but did not
+        # answer
+        for i, qst in enumerate(questions, start=1):
+            col_idx = i + COL_IDX_QUESTION_START
+            if qst in items and qst not in qst_scores:
+                ws.cell(row=row_idx, column=col_idx).fill = no_answer_fill
+
+    # adjust column widths containing names, first name, ...
+    for col_idx in range(1, USR_DATA_COLS + 1):
+        max_length = 0
+        for row_idx in range(1, ws.max_row + 1):
+            cell_value = ws.cell(row=row_idx, column=col_idx).value
+            max_length = max(max_length, len(str(cell_value)))
+        letter = get_column_letter(col_idx)
+        ws.column_dimensions[letter].width = max_length * CHAR_WIDTH_MULT
+
+    for col_idx, row_idx in itertools.product(
+            range(1, ws.max_column + 1),
+            range(1, ws.max_row + 1)
+    ):
+        ws.cell(row=row_idx, column=col_idx).border = thin_border
+
+    """
 
     # calculate statistics fields
     total_questions = len(questions_data)
-
-    # sort students alphabetically
-    student_records.sort(key=lambda x: (
-        (x["data"]["usr_name"] or "").lower(),
-        (x["data"]["usr_fst_name"] or "").lower()
-    ))
-
-    # write row 1: headers
-    headers = ["Nom", "Prénom", "Login", "Note", "Max"]
-    max_header_len = 0
-    for _, itm_code in questions_data:
-        code_str = str(itm_code)
-        headers.append(code_str)
-        max_header_len = max(max_header_len, len(code_str))
-    ws.append(headers)
 
     # auto-fit row height for vertical text
     ws.row_dimensions[1].height = max(40, max_header_len * 6)
@@ -155,7 +202,6 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
         is_absent = record["is_absent"]
         scores_dict = record["scores"]
 
-        current_row = ws.max_row + 1
 
         # set sum formula instead of fixed score
         if is_absent:
@@ -191,62 +237,19 @@ def generate_excel_scores(ctx: context.Context, exam_id: int) -> Response:
             if isinstance(cell.value, (int, float)):
                 cell.number_format = '0.0'
 
-        # apply grey style only for absent students
-        if is_absent:
-            for col_idx in range(5, len(row_data) + 1):
-                ws.cell(row=current_row, column=col_idx).fill = grey_fill
-
     # apply conditional formatting for incorrect/empty answers
     score_range = f"F4:{last_col_letter}{last_row}"
-
-    # rule: if student is NOT absent (col D <> "ABS") AND cell is
-    # empty or 0 => fill red
-    red_rule = FormulaRule(
-        formula=['AND($D4<>"ABS", OR(ISBLANK(F4), F4=0))'],
-        stopIfTrue=True,
-        fill=red_fill
-    )  # type: ignore[no-untyped-call]
-    ws.conditional_formatting.add(score_range, red_rule)
-
-    # auto-fit columns
-    for col_idx, col in enumerate(ws.columns, start=1):
-        max_length = 0
-        column_letter = get_column_letter(col_idx)
-
-        for cell in col:
-            try:
-                # mypy checking
-                cell_value = getattr(cell, "value", None)
-                row_num = getattr(cell, "row", None)
-
-                if cell_value is not None and row_num is not None:
-                    if row_num in [2, 3] or (row_num == 1 and col_idx > 5):
-                        continue
-                    max_length = max(max_length, len(str(cell_value)))
-            except:
-                pass
-
-        adjusted_width = max_length + 4
-        if col_idx <= 5 and adjusted_width < 12:
-            adjusted_width = 12
-        if col_idx > 5 and adjusted_width < 6:
-            adjusted_width = 6
-
-        ws.column_dimensions[column_letter].width = adjusted_width
-
-    # save and return response
+"""
+    headers_response = {
+        'Content-Disposition':
+        f'attachment; filename="notes_examen_{exm_id}.xlsx"'
+    }
     stream = io.BytesIO()
     wb.save(stream)
     stream.seek(0)
-
-    headers_response = {
-        'Content-Disposition':
-        f'attachment; filename="notes_examen_{exam_id}.xlsx"'
-    }
     mtype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    return Response(
+    return fa.Response(
         content=stream.read(),
         media_type=mtype,
         headers=headers_response
     )
-"""

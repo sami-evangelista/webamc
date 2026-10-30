@@ -136,17 +136,17 @@ def page(
         pg: types.page_t,
         body: he.Element,
         title: None | str = None,
-        sub_page: None | types.sub_page_t = None,
+        sub_pg: None | types.sub_page_t = None,
         side_buttons: None | list[he.Element] = None
 ) -> fa.Response:
 
     # set the page title
     if title is None:
         title = fmt.fmt_title(lang.txt(types.page_to_txt(pg)))
-        if sub_page is not None:
+        if sub_pg is not None:
             title += (
                 " / " +
-                fmt.fmt_title(lang.txt(types.sub_page_to_txt(sub_page)))
+                fmt.fmt_title(lang.txt(types.sub_page_to_txt(sub_pg)))
             )
 
     # menu (none if not connected)
@@ -183,10 +183,7 @@ def page(
         )
         body = he.ElementList(div_sidebar, div_mainpanel)
 
-    # help div and help button. we check if there is an help page for
-    # this page. the page title text is in the form
-    # page_title_XXX. there is an help page if XXX belongs to the
-    # literal type types.help_t values
+    # help div and help button
     img_close_help = static_img(
         "dismiss",
         "word_close",
@@ -199,10 +196,10 @@ def page(
         id_="div-tooltip-help"
     )
     help_id: None | types.help_t = None
-    if sub_page in types.literal_type_values(types.help_t):
-        help_id = tp.cast(types.help_t, sub_page)
-    elif page in types.literal_type_values(types.help_t):
-        help_id = tp.cast(types.help_t, page)
+    if sub_pg in types.literal_type_values(types.help_t):
+        help_id = tp.cast(types.help_t, sub_pg)
+    elif pg in types.literal_type_values(types.help_t):
+        help_id = tp.cast(types.help_t, pg)
     if help_id is None:
         img_help: he.Element = he.Empty()
     else:
@@ -396,7 +393,7 @@ def gen_composite_page(
         layout["page"],
         body,
         side_buttons=side_buttons,
-        sub_page=sub_page
+        sub_pg=sub_page
     )
 
 

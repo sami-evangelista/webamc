@@ -1,4 +1,5 @@
 import datetime
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.query import Query
 
@@ -723,3 +724,78 @@ def get_usr_items(
     ).where(
         tables.Item.itm_usr == usr_id
     ).all()
+
+
+exam_usr_result_t = tuple[
+    tables.Usr,
+    None | tables.Submission,
+    set[tables.Item],
+    dict[tables.Item, set[tables.Item]],
+    dict[tables.Item, int]
+]
+exam_result_t = tp.Iterator[exam_usr_result_t]
+def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
+    item_alias = aliased(tables.Item)
+    query = dbs.query(
+        tables.Usr,
+        tables.Submission,
+        tables.Item,
+        item_alias
+    ).select_from(
+        tables.Registration
+    ).where(
+        tables.Registration.reg_exam == exm_id
+    ).join(
+        tables.Usr,
+        tables.Usr.usr_id == tables.Registration.reg_usr
+    ).outerjoin(
+        tables.Submission,
+        tables.Submission.sub_exm_registration == tables.Registration.reg_id 
+    ).outerjoin(
+        tables.Answer,
+        tables.Answer.ans_submission == tables.Submission.sub_id
+    ).outerjoin(
+        tables.ItemInstance,
+        tables.ItemInstance.iti_id == tables.Answer.ans_instance
+    ).outerjoin(
+        tables.Item,
+        tables.Item.itm_id == tables.ItemInstance.iti_item
+    ).outerjoin(
+        tables.ItemRelation,
+        tables.ItemRelation.itr_child == tables.Item.itm_id
+    ).outerjoin(
+        item_alias,
+        item_alias.itm_id == tables.ItemRelation.itr_parent
+    ).order_by(
+        tables.Usr.usr_name,
+        tables.Usr.usr_fst_name,
+        tables.Usr.usr_code
+    )
+    prev: None | tuple[tables.Usr, tables.Submission] = None
+    qst_answers: dict[tables.Item, set[tables.Item]] = dict()
+    qst_scores: dict[tables.Item, int] = dict()
+    items: set[tables.Item] = set()
+    for row in query:
+        usr, sub, item, item_parent = row._tuple()
+        if prev is not None and (usr, sub) != prev:
+            yield prev[0], prev[1], items, qst_answers, qst_scores
+            qst_answers = dict()
+            qst_scores = dict()
+            items = set()
+        if item is not None:
+            items.add(item)
+            if item.itm_type == types.ITEM_TYPE_QUESTION:
+                qst_answers.setdefault(item, set())
+            elif item.itm_type == types.ITEM_TYPE_CHOICE:
+                # itm_parent is the question of the choice
+                assert item_parent is not None
+                qst_answers.setdefault(item_parent, set())
+                qst_answers[item_parent].add(item)
+                qst_scores.setdefault(item_parent, 0)
+                if item.itm_cho_correct:
+                    qst_scores[item_parent] += 1
+                else:
+                    qst_scores[item_parent] -= 1
+        prev = usr, sub
+    if prev is not None:
+        yield prev[0], prev[1], items, qst_answers, qst_scores

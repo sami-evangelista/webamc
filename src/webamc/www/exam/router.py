@@ -28,7 +28,7 @@ def oper_export_scores(
 ) -> fa.Response:
     from .oper import export_scores
     with context.Context(req) as ctx:
-        return export_scores.generate_excel_scores(ctx=ctx, exam_id=exm_id)
+        return export_scores.generate_excel_scores(ctx=ctx, exm_id=exm_id)
 
 
 @router.post("/exam/oper/register")
@@ -38,14 +38,11 @@ def oper_register(req: fa.Request, args: types.args_oper_t) -> fa.Response:
         return register.data(ctx, args)
 
 
-@router.post("/exam/page/dashboard-exam")
-def page_dashboard_exam(
-        req: fa.Request,
-        args: types.args_oper_t
-) -> fa.Response:
-    from .page import dashboard_exam
+@router.post("/exam/page/dashboard")
+def page_dashboard(req: fa.Request, args: types.args_oper_t) -> fa.Response:
+    from .page import dashboard
     with context.Context(req) as ctx:
-        return dashboard_exam.page(ctx, args)
+        return dashboard.page(ctx, args)
 
 
 @router.get("/exam/page/main")
@@ -54,7 +51,7 @@ def exam_page(
         sub_page: None | types.sub_page_t = None,
         exm_id: None | int = None
 ) -> fa.Response:
-    from .page import add, database, dashboard
+    from .page import add, database
     layout: base.page_layout_t = {
         "page": "exam",
         "default": "exam_database",
@@ -68,11 +65,6 @@ def exam_page(
                 "dev": True,
                 "img": "add",
                 "gen": add.page
-            },
-            "exam_dashboard": {
-                "dev": True,
-                "img": "list",
-                "gen": dashboard.page
             }
         }
     }
