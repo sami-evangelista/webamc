@@ -1,5 +1,6 @@
 import sys
 import typing as tp
+import typing_extensions as tp_ext
 
 
 VERBOSE = False
@@ -29,12 +30,11 @@ COL_BG_PURPLE = "\033[45m"
 COL_BG_CYAN = "\033[46m"
 COL_BG_LIGHTGREY = "\033[47m"
 
-settings_t = tp.TypedDict("settings_t", {
-    "fg_color": None | str,
-    "bg_color": None | str,
-    "prefix": None | str,
-    "file": tp.TextIO
-})
+class settings_t(tp_ext.TypedDict):
+    fg_color: None | str
+    bg_color: None | str
+    prefix: None | str
+    file: tp.TextIO
 
 SETTINGS: tp.Dict[str, settings_t] = {
     "msg": {

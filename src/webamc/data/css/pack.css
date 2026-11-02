@@ -1,10 +1,8 @@
 :root {
     --pack-color-box-border: #5555BB;
-    --pack-color-op-all: #93CAED;
+    --pack-color-op-all: #ACD1AF;
     --pack-color-op-shuf: #F47174;
     --pack-color-op-head: #F5CA7B;
-    --pack-color-op-difficulty: #EEEE9B;
-    --pack-color-op-sort: #ACD1AF;
     --pack-color-op-tag: #BBB5D8;
 }
 
@@ -47,12 +45,6 @@
 .pack-head {
     background-color: var(--pack-color-op-head);
 }
-.pack-by-difficulty {
-    background-color: var(--pack-color-op-difficulty);
-}
 .pack-by-tag {
     background-color: var(--pack-color-op-tag);
-}
-.pack-sort {
-    background-color: var(--pack-color-op-sort);
 }

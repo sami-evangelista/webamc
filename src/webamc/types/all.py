@@ -4,6 +4,4 @@ from .item import *
 from .misc import *
 from .txt import *
 from .www import *
-from .check import *
 from .project import *
-from .exam import *

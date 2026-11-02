@@ -1,10 +1,10 @@
 from webamc.www.all import *
-from webamc.db import util as db_util, desc
+from webamc.db import desc, tables
 from webamc.util import fmt
 
 
 def page(ctx: context.Context) -> fa.Response:
-    trs: list[he.Element] = list()
+    trs: list[list[he.Element]] = list()
     for item, usr in session.get_viewable_mcqs(ctx):
         links: list[he.Element] = list()
         has_admin_right = session.has_admin_right(ctx, item)
@@ -27,17 +27,21 @@ def page(ctx: context.Context) -> fa.Response:
             fmt.fmt_name(usr.usr_fst_name, usr.usr_name),
             fmt.fmt_datetime(item.itm_date)
         ]
-        tds = [he.Td(he.Str(field)) for field in fields]
-        tds.append(he.Td(*links))
-        trs.append(he.Tr(*tds))
+        tds: list[he.Element] = [he.Str(field) for field in fields]
+        tds.append(he.ElementList(*links))
+        trs.append(tds)
     body: he.Element
     if trs == list():
         body = he.P(he.Txt("info_no_mcq_available"))
     else:
         cols = [
-            db_util.get_col(c) for c in ["itm_title", "itm_usr", "itm_date"]
+            tables.Item.itm_title,
+            tables.Item.itm_usr,
+            tables.Item.itm_date
         ]
+        tds = [he.Td(he.Txt(desc.col_desc(c))) for c in cols]
         gd = desc.col_desc
-        trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(gd(c))) for c in cols])))
-        body = he.Table(*trs, class_="table-solid")
+        table = he.mktable(trs, class_="table-solid")
+        table.insert(0, he.Thead(he.Tr(*tds)))
+        body = table
     return base.page(ctx, "index", body)

@@ -18,7 +18,6 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         itm_title=itm_title,
         itm_type=itm_type,
         itm_rnd=False,
-        itm_difficulty=None,
         itm_usr=session.usr_id(ctx),
         itm_visible=True,
         itm_is_mcq=itm_is_mcq,

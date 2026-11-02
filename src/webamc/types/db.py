@@ -16,23 +16,14 @@ db_base_val_t = (
 
 db_map_t = dict[str, db_base_val_t]
 
-db_query_result_t = tp_ext.TypedDict(
-    "db_query_result_t",
-    {
-        "values": list[list[db_map_t]] | list[db_map_t],
-        "readable_values": list[list[db_map_t]] | list[db_map_t]
-    },
-    total=False
-)
+class db_query_result_t(tp_ext.TypedDict):
+    values: tp.NotRequired[list[list[db_map_t]] | list[db_map_t]]
+    readable_values: tp.NotRequired[list[list[db_map_t]] | list[db_map_t]]
 
-db_where_t = tp_ext.TypedDict(
-    "db_where_t",
-    {
-        "col": str,
-        "op": tp.Literal["=", "like"],
-        "val": db_base_val_t
-    }
-)
+class db_where_t(tp_ext.TypedDict):
+    col: str
+    op: tp.Literal["=", "like"]
+    val: db_base_val_t
 
 db_query_type_t = tp.Literal[
     "delete",
@@ -41,13 +32,9 @@ db_query_type_t = tp.Literal[
     "update"
 ]
 
-db_query_t = tp_ext.TypedDict(
-    "db_query_t",
-    {
-        "type": db_query_type_t,
-        "table": str,
-        "values": db_map_t,
-        "where": list[db_where_t]
-    },
-    total=False
-)
+class db_query_t(tp_ext.TypedDict):
+    type: db_query_type_t
+    table: str
+    values: tp.NotRequired[db_map_t]
+    where: tp.NotRequired[list[db_where_t]]
+    

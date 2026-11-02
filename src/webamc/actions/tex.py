@@ -8,17 +8,12 @@ tex_err_code_t = tp.Literal[
     "error_parse",
     "info_no_question"
 ]
-tex_qst_t = tp.TypedDict(
-    "tex_qst_t",
-    {
-        "result": tex_err_code_t,
-        "qst_type": types.question_type_t,
-        "itm_code": str,
-        "question": TexSoup.TexNode,
-        "choices": list[TexSoup.TexNode]
-    },
-    total=False
-)
+class tex_qst_t(tp_ext.TypedDict):
+    result: tp.NotRequired[tex_err_code_t]
+    qst_type: tp.NotRequired[types.question_type_t]
+    itm_code: tp.NotRequired[str]
+    question: tp.NotRequired[TexSoup.TexNode]
+    choices: tp.NotRequired[list[TexSoup.TexNode]]
 tex_result_t = tuple[tex_err_code_t, list[tex_qst_t]]
 tex_error_msg: dict[tex_err_code_t, str] = {
     "success": "",

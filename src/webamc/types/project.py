@@ -18,10 +18,12 @@ action_t = tp.Literal[
     "send_annotated_sheets",
     "send_notification_mail"
 ]
+
 source_type_t = tp.Literal[
     "tex",
     "txt"
 ]
+
 cmd_t = tp.Literal[
     "decode",
     "analyse",
@@ -38,26 +40,21 @@ cmd_t = tp.Literal[
     "imprime",
     "read-pdfform"
 ]
-data_t = tp_ext.TypedDict(
-    "data_t", {
-        "assoc_attr": int,
-        "code": str,
-        "title": str,
-        "amc_code": str,
-        "threshold": float,
-        "copies": int,
-        "groups": list[int]
-    },
-    total=False
-)
-action_params_t = tp_ext.TypedDict(
-    "action_params_t", {
-        "copy": None | int,
-        "student": None | int,
-        "id": None | str
-    },
-    total=False
-)
+
+class data_t(tp_ext.TypedDict):
+    assoc_attr: tp.NotRequired[int]
+    code: tp.NotRequired[str]
+    title: tp.NotRequired[str]
+    amc_code: tp.NotRequired[str]
+    threshold: tp.NotRequired[float]
+    copies: tp.NotRequired[int]
+    groups: tp.NotRequired[list[int]]
+
+class action_params_t(tp_ext.TypedDict):
+    copy: tp.NotRequired[None | int]
+    student: tp.NotRequired[None | int]
+    id: tp.NotRequired[None | str]
+
 file_t = tp.Literal[
     "csv_list",
     "json_status",
@@ -76,21 +73,17 @@ file_t = tp.Literal[
     "zip_sheets",
     "zip_tex"
 ]
-file_status_t = tp.TypedDict(
-    "file_status_t", {
-        "exists": bool,
-        "size": None | int,
-        "date": None | datetime.datetime
-    }
-)
-status_t = tp_ext.TypedDict(
-    "status_t", {
-        "source_type": source_type_t,
-        "done": dict[action_t, bool],
-        "doable": dict[action_t, tuple[bool, list[tuple[str, str]]]],
-        "history": list[tuple[action_t, datetime.datetime, bool]],
-        "data": data_t,
-        "files": dict[file_t, file_status_t],
-        "warning": dict[action_t, bool]
-    }
-)
+
+class file_status_t(tp.TypedDict):
+    exists: bool
+    size: None | int
+    date: None | datetime.datetime
+
+class status_t(tp.TypedDict):
+    source_type: source_type_t
+    done: dict[action_t, bool]
+    doable: dict[action_t, tuple[bool, list[tuple[str, str]]]]
+    history: list[tuple[action_t, datetime.datetime, bool]]
+    data: data_t
+    files: dict[file_t, file_status_t]
+    warning: dict[action_t, bool]

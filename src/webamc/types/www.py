@@ -3,15 +3,6 @@ import typing_extensions as tp_ext
 
 from . import project, txt, item, db
 
-
-json_response_t = tp_ext.TypedDict(
-    "json_response_t",
-    {
-        "success": bool,
-        "msgs": list[str],
-        "result": None | tp.Any
-    }
-)
 static_img_t = tp.Literal[
     "add",
     "arrow-clockwise",
@@ -19,7 +10,6 @@ static_img_t = tp.Literal[
     "arrow-left",
     "arrow-right",
     "arrow-up",
-    "broom",
     "checkmark",
     "database",
     "dismiss",
@@ -30,15 +20,17 @@ static_img_t = tp.Literal[
     "edit",
     "exam",
     "group",
+    "group-add",
+    "group-delete",
     "help",
     "home",
     "inbox",
-    "list",
     "mail",
     "mcq",
     "menu",
     "person",
     "person-add",
+    "person-delete",
     "play",
     "projects",
     "settings",
@@ -48,9 +40,9 @@ static_img_t = tp.Literal[
     "tag",
     "trash",
     "unlink",
-    "upload",
-    "warning",
+    "upload"
 ]
+
 path_t = tp.Literal[
     "/",
     "/admin/oper/submit",
@@ -102,12 +94,14 @@ path_t = tp.Literal[
     "/ticket/oper/password-change",
     "/stats/page/dashboard",
 ]
+
 mail_file_t = tp.Literal[
     "account-creation",
     "eaddr-change",
     "password-change",
     "project-notification-mail"
 ]
+
 oper_code_t = tp.Literal[
     "err",
     "err_action_required",
@@ -148,6 +142,7 @@ help_t = tp.Literal[
     "item_submit",
     "project"
 ]
+
 page_t = tp.Literal[
     "admin",
     "auth",
@@ -161,6 +156,7 @@ page_t = tp.Literal[
     "stats",
     "ticket"
 ]
+
 sub_page_t = tp.Literal[
     "admin_database",
     "admin_submit",
@@ -175,6 +171,7 @@ sub_page_t = tp.Literal[
     "ticket_error",
     "ticket_password_change"
 ]
+
 class args_oper_t(tp.TypedDict):
     action_params: tp.NotRequired[project.action_params_t]
     action: tp.NotRequired[project.action_t]
@@ -208,6 +205,11 @@ class args_oper_t(tp.TypedDict):
     usr_fst_name: tp.NotRequired[str]
     usr_id: tp.NotRequired[None | int]
     usr_name: tp.NotRequired[str]
+
+class json_response_t(tp_ext.TypedDict):
+    success: bool
+    msgs: list[str]
+    result: None | tp.Any
 
 
 def oper_code_to_txt(c: oper_code_t) -> txt.txt_t:

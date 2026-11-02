@@ -88,3 +88,11 @@ class DBDeletionOfItemReferencedInExamSubmission(DBException):
             "param_err_item_referenced_in_exam_submission",
             self.itm_code
         )
+
+
+class DBDeletionOfExamWithSubmissions(DBException):
+    def __init__(self, exm_title: str):
+        super().__init__()
+        self.exm_title = exm_title
+    def msg(self) -> str:
+        return lang.txt("err_exam_deletion_forbidden")

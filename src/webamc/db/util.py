@@ -10,7 +10,7 @@ def get_tbl(t: types.db_tbl_t) -> Table:
     if isinstance(t, Table):
         return t
     if isinstance(t, str):
-        return struct["tbls"][t]["def"]
+        return struct["tbls"][t]["tdef"]
     return t.__table__  # type: ignore
 
 
@@ -60,7 +60,7 @@ def get_tbl_code(t: types.db_tbl_t) -> Column[tp.Any] | None:
 
 def get_col(c: types.db_col_t) -> Column[tp.Any]:
     if isinstance(c, str):
-        return struct["cols"][c]["def"]
+        return struct["cols"][c]["cdef"]
     if isinstance(c, InstrumentedAttribute):
         return get_col(c.name)
     return c
@@ -108,32 +108,20 @@ def get_tbl_updatable_cols(t: types.db_tbl_t) -> tp.Generator[Column[tp.Any]]:
             yield c
 
 
-db_struct_tbl_t = tp.TypedDict(
-    "db_struct_tbl_t",
-    {
-        "meta": DeclarativeMeta,
-        "def": Table,
-        "cols": list[Column[tp.Any]],
-        "pkey": Column[tp.Any],
-        "fkeys": dict[Column[tp.Any], list[Column[tp.Any]]]
-    },
-    total=True
-)
-db_struct_col_t = tp.TypedDict(
-    "db_struct_col_t",
-    {
-        "def": Column[tp.Any],
-        "tbl": Table
-    },
-    total=True
-)
-db_struct_t = tp.TypedDict(
-    "db_struct_t",
-    {
-        "tbls": dict[str, db_struct_tbl_t],
-        "cols": dict[str, db_struct_col_t]
-    }
-)
+class db_struct_tbl_t(tp.TypedDict):
+    meta: DeclarativeMeta
+    tdef: Table
+    cols: list[Column[tp.Any]]
+    pkey: Column[tp.Any]
+    fkeys: dict[Column[tp.Any], list[Column[tp.Any]]]
+
+class db_struct_col_t(tp.TypedDict):
+    cdef: Column[tp.Any]
+    tbl: Table
+
+class db_struct_t(tp.TypedDict):
+    tbls: dict[str, db_struct_tbl_t]
+    cols: dict[str, db_struct_col_t]
 
 
 struct: db_struct_t
@@ -152,7 +140,7 @@ def _init(base: tp.Any) -> None:
         tbl = tbl_cls.__table__
         struct["tbls"][tbl.name] = {
             "meta": tbl_cls,
-            "def": tbl,
+            "tdef": tbl,
             "cols": list(tbl.columns),
             "pkey": next(col for col in tbl.columns if col.primary_key),
             "fkeys": {
@@ -163,7 +151,7 @@ def _init(base: tp.Any) -> None:
         }
         for col in tbl.columns:
             struct["cols"][col.name] = {
-                "def": col,
+                "cdef": col,
                 "tbl": tbl
             }
         done.add(tbl_cls)
@@ -174,7 +162,7 @@ def _init(base: tp.Any) -> None:
     # only one column forms the primary key
     for tbl, tbl_def in struct["tbls"].items():
         assert 1 == len(
-            [col for col in tbl_def["def"].columns if col.primary_key]
+            [col for col in tbl_def["tdef"].columns if col.primary_key]
         )
 
     # a foreign or a primary key can only be an integer

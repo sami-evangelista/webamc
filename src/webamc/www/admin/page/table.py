@@ -84,12 +84,8 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     # one row per result
     r: tp.Any
     for row in query.all():
-        r = row
-        def get_val(c: types.db_col_t) -> types.db_base_val_t:
-            result = getattr(r, db_util.get_col_name(c))
-            return tp.cast(types.db_base_val_t, result)
         attrs = www_db_util.get_attributes(
-            ctx, get_val, *[c.name for c in cols]
+            ctx, row, *[c.name for c in cols]
         )
         tds = [he.Td(attr) for _, attr in attrs]
         pkey_val = getattr(row, pkey.name)

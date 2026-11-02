@@ -227,12 +227,6 @@ null. Therefore this attribute is mandatory in exercise tex files
 question, the code is directly extracted from the tex code (i.e.,
 \lstinlinetex{id-qst} in \lstinlinetex{\\begin\{question\}\{id-qst\}}).
 %%%%%
-\paragraph{Attribute \name{DIFFICULTY}}
-This defines the difficulty of the component. It is an integer ranging
-from 1 to 5. This is useful if you want to create question packs based
-on their difficulty (see this
-\cref{subsec:submission/json-file-format}).
-%%%%%
 \paragraph{Attribute \name{INSTANCES}}
 This defines the number of unique variations (instances) to generate
 for the component. It must be an integer. When set to a value greater
@@ -292,7 +286,6 @@ table:
     & \file{\_mcq.tex} & \file{\_webamc.tex} & \file{qst-XXX.tex}\\
     \hline
     \name{CODE}       & 2 & 0 & 2 & 0 & 0\\
-    \name{DIFFICULTY} & 1 & 0 & 1 & 1 & 1\\
     \name{INSTANCES}  & 0 & 0 & 0 & 1 & 1\\
     \name{RND}        & 1 & 0 & 1 & 1 & 1\\
     \name{STANDALONE} & 0 & 0 & 0 & 1 & 1\\
@@ -404,12 +397,8 @@ specify how to pick these questions. It consists basically of a
 sequence of operations successively applied. Available operations are:
 \begin{itemize}
 \item \verb+all+: select all available questions
-\item \verb+sort+: sort questions (by \verb+difficulty+ or by
-  \verb+code+)
 \item \verb+shuf+: select questions randomly
 \item \verb+head+: select the first questions from those selected so far
-\item \verb+by-difficulty+: select questions based on their
-  difficulty
 \item \verb+by-tag+: select questions based on their tags
 \end{itemize}
 
@@ -453,8 +442,8 @@ Here are a few examples:
 
 It is also possible to realise the union of several selections using
 lists of operations. For example, this specifies a question pack with
-all questions having the \name{linux} tag or with a difficulty level
-strictly less than 3 ordered randomly.
+all questions having the \name{linux} tag followed by 5 questions
+having the \name{math} tag.
 \lstinputlisting[language=json]{../examples/mcq/packs/union/_pack.json}
 
 Last, note that the web interface also provides a form to directly

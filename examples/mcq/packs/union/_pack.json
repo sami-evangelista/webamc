@@ -1,14 +1,14 @@
-{
-   "op": "shuf",
-   "content": [
-      {
-         "op": "by-tag",
-         "arg": ["linux"]
-      },
-      {
-         "op": "by-difficulty",
-         "rev": true,
-         "arg": [3, 4, 5]
-      }
-   ]
-}
+[
+    {
+        "op": "by-tag",
+        "arg": ["linux"]
+    },
+    {
+        "op": "head",
+        "arg": 5,
+        "content": {
+            "op": "by-tag",
+            "arg": ["math"]
+        }
+    }
+]

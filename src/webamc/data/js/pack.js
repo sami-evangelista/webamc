@@ -2,9 +2,6 @@ const pack_filters = {
     'all': {
         'title': 'seq_pack_take_all'
     },
-    'by-difficulty': {
-        'title': 'seq_pack_take_by_difficulty'
-    },
     'by-tag': {
         'title': 'seq_pack_take_by_tag'
     },
@@ -13,9 +10,6 @@ const pack_filters = {
     },
     'shuf': {
         'title': 'seq_pack_take_shuf'
-    },
-    'sort': {
-        'title': 'seq_pack_take_sort'
     }
 };
 
@@ -129,7 +123,7 @@ class Filter {
             'op': this.op,
             ...(this.op != 'all' && this.op != 'shuff' && this.arg != null ?
                 {'arg': this.pack.format_array(this.arg)} : {}),
-            ...(((this.op.includes('with')) || this.op == 'sort')
+            ...((this.op.includes('by-'))
                 && this.rev != null ? {'rev': this.rev} : {}),
             ...(this.content.length > 0 ? 
                 {'content': this.content.length > 1 ? 
@@ -144,45 +138,6 @@ class Filter {
 class Pack {
     format_array(array) {
         return array;
-    }
-    async ask_args_for_difficulty(title) {
-        const _this = this;
-        const f = async function(resolve) {
-            let html = '<div>';
-            for(var i = 1; i <= 5; i ++) {
-                html += '<label>'
-                    + `<input type="checkbox" id="${_this.id}-diff-${i}">`
-                    + i + '</label>';
-            }
-            html += '</div>'
-                + '<label>'
-                + `<input type="checkbox" id="${_this.id}-rev-diff">`
-                + Lang['seq_pack_reverse_selection'] + '</label>';
-            const onyes = function (evt) {
-                const selected = [];
-                for(let i = Constants.min_diff;
-                    i <= Constants.max_diff;
-                    i ++) {
-                    if($('#' + _this.id + '-diff-' + i).prop('checked')) {
-                        selected.push(i);
-                    }
-                }
-                if(selected.length > 0) {
-                    const data = {
-                        'value': selected,
-                        'rev': $('#' + _this.id + '-rev-diff').prop('checked')
-                    };
-                    resolve(data);
-                } else {
-                    evt.cancel = true;
-                }
-            };
-            const onno = function() {
-                resolve(null);
-            }
-            alertify.webamc_dialog(title, html, onyes, onno);
-        };
-        return new Promise(f);
     }
     async ask_args_for_tag(title) {
         const _this = this;
@@ -214,45 +169,6 @@ class Pack {
         };
         return new Promise(f);
     }
-    async ask_args_for_sort(title) {
-        const _this = this;
-        const f = async function(resolve) {
-            const html = `
-               <div>
-                 <select id="${_this.id}-sort">
-                   <option value="difficulty" selected>
-                     ${Lang['col_desc_itm_difficulty']}
-                   </option>
-                   <option value="code">
-                     ${Lang['col_desc_itm_code']}
-                   </option>
-                 </select>
-               </div>
-               <label>
-                 <input type="checkbox" id="${_this.id}-rev-sort">
-                 ${Lang['seq_pack_reverse_selection']}
-               </label>`;
-            const onyes = function(evt) {
-                const pref = '#' + _this.id;
-                const rev = $(pref + '-rev-sort').prop('checked');
-                const value = $(pref + '-sort').val();
-                if(!value) {
-                    evt.cancel = true;
-                    return;
-                }
-                const data = {
-                    'value': value,
-                    'rev': rev
-                };
-                resolve(data);
-            };
-            const onno = function(evt) {
-                resolve(null);
-            };
-            alertify.webamc_dialog(title, html, onyes, onno);
-        }
-        return new Promise(f);
-    }
     async ask_args_for_head(title) {
         const _this = this;
         const f = async function(resolve) {
@@ -278,9 +194,7 @@ class Pack {
         const title = Lang[pack_filters[op]['title']];
         const fun = {
             'head': this.ask_args_for_head,
-            'by-difficulty': this.ask_args_for_difficulty,
-            'by-tag': this.ask_args_for_tag,
-            'sort': this.ask_args_for_sort
+            'by-tag': this.ask_args_for_tag
         };
         if(!(op in fun)) {
             arg_selected = false;
@@ -293,8 +207,6 @@ class Pack {
             case 'head':
                 arg_selected = args;
                 break;
-            case 'sort':
-            case 'by-difficulty':
             case 'by-tag':
                 arg_selected = args['value'];
                 if(arg_selected) {

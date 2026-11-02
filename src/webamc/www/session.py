@@ -92,8 +92,8 @@ def active_registration(
 ) -> None | tuple[tables.Registration, tables.Exam]:
     check_logged_in(ctx)
     # TODO: move to queries
-    liste = ctx.req.session.get("reg_id")
-    reg_id = liste[0] if liste is not None else None
+    l = ctx.req.session.get("reg_id")
+    reg_id = l[0] if l is not None else None
     if reg_id is None:
         return None
     row = ctx.dbs.query(

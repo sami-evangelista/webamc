@@ -1,35 +1,24 @@
 :root {
-    --color-student-status-online: green;
-    --color-student-status-inactive: orange;
-    --color-student-status-not-started: red;
-    --color-exam-status-upcoming: #0056b3;
-    --color-exam-status-in-progress: #28a745;
-    --color-exam-status-finished: #6c757d;
+    --color-usr-status-online: green;
+    --color-usr-status-inactive: orange;
+    --color-usr-status-not-started: red;
+    --color-usr-status-finished: #666666;
+    --color-exam-status-upcoming: blue;
+    --color-exam-status-in-progress: green;
+    --color-exam-status-finished: #666666;
 }
 
-.exam-details {
-    display: none;
-    background: var(--color-exam-details-background);
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-    white-space: normal;
-    word-wrap: break-word;
+.usr-status-online {
+    color: var(--color-usr-status-online);
 }
-
-.student-status-online {
-    color: var(--color-student-status-online);
-    font-weight: bold;
+.usr-status-not-started {
+    color: var(--color-usr-status-not-started);
 }
-.student-status-not-started {
-    color: var(--color-student-status-not-started);
-    font-weight: bold;
+.usr-status-inactive {
+    color: var(--color-usr-status-inactive);
 }
-.student-status-inactive {
-    color: var(--color-student-status-inactive);
-    font-weight: bold;
+.usr-status-finished {
+    color: var(--color-usr-status-finished);
 }
 .exam-status-upcoming {
     color: var(--color-exam-status-upcoming);

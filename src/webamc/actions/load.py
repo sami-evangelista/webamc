@@ -4,7 +4,7 @@ import json
 import typing as tp
 from pathlib import Path
 from sqlalchemy.orm import Session as ORMSession
-import typeguard
+from pydantic import TypeAdapter, ValidationError
 
 from webamc.all import *
 from webamc.db import tables, op
@@ -117,17 +117,24 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
 
         return result
 
-    num_map: dict[int, int] = dict()
     json_file = dir_path / comp.JSON_SPEC
-    if json_file.is_file():
-        items: list[comp.item_t] = typeguard.check_type(
-            json.loads(json_file.read_text()), list[comp.item_t]
+    if not json_file.is_file():
+        return
+
+    try:
+        items: list[comp.item_t] = tp.cast(
+            list[comp.item_t], json.loads(json_file.read_text())
         )
-        with op.Session() as dbs, dbs.begin():
-            for item in items:
-                itm_id = load_item(dbs, item)
-                if itm_id is not None:
-                    num_map[item["num"]] = itm_id
+        TypeAdapter(list[comp.item_t]).validate_python(items)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        output.error(f"invalid {comp.JSON_SPEC} file in archive !")
+        return
+    with op.Session() as dbs, dbs.begin():
+        num_map: dict[int, int] = dict()
+        for item in items:
+            itm_id = load_item(dbs, item)
+            if itm_id is not None:
+                num_map[item["num"]] = itm_id
 
 
 def action(archive: str, usr_id: int) -> None:

@@ -75,7 +75,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
 
     # list all questions
     questions = sorted(
-        set(item for row in exam_result for item in row[3]),
+        set(item for row in exam_result for item in row["qst_answers"]),
         key=lambda item: str(item.itm_code)
     )
     fst_qst_col = get_column_letter(COL_IDX_QUESTION_START + 1)
@@ -98,15 +98,15 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         else:
             cell.alignment = center_align
 
-    for usr, sub, items, qst_answers, qst_scores in exam_result:
-        is_absent = sub is None
+    for exm_row in exam_result:
+        is_absent = exm_row["sub"] is None
         row_idx = ws.max_row + 1
         row: list[str | int] = [
-            usr.usr_name.upper(),
-            usr.usr_fst_name.title(),
-            usr.usr_code.title()
+            exm_row["usr"].usr_name.upper(),
+            exm_row["usr"].usr_fst_name.title(),
+            exm_row["usr"].usr_code.title()
         ]
-        score = sum(qst_scores.get(qst, 0) for qst in questions)
+        score = sum(exm_row["qst_score"].get(qst, 0) for qst in questions)
         if is_absent:
             row.append("")
         else:
@@ -114,8 +114,8 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
                 f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})"
             )
         for qst in questions:
-            if qst in qst_scores:
-                row.append(max(qst_scores[qst], 0))
+            if qst in exm_row["qst_score"]:
+                row.append(max(exm_row["qst_score"][qst], 0))
             else:
                 row.append("")
         ws.append(row)
@@ -128,14 +128,14 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         # the user is absent or the question did not appear)
         for i, qst in enumerate(questions, start=1):
             col_idx = i + COL_IDX_QUESTION_START
-            if qst not in items:
+            if qst not in exm_row["items"]:
                 ws.cell(row=row_idx, column=col_idx).fill = absent_fill
 
         # color cells of questions that the user did have but did not
         # answer
         for i, qst in enumerate(questions, start=1):
             col_idx = i + COL_IDX_QUESTION_START
-            if qst in items and qst not in qst_scores:
+            if qst in exm_row["items"] and qst not in exm_row["qst_score"]:
                 ws.cell(row=row_idx, column=col_idx).fill = no_answer_fill
 
     # adjust column widths containing names, first name, ...

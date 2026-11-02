@@ -7,6 +7,16 @@ from webamc.all import *
 from . import tables
 
 
+class exam_usr_result_t(tp_ext.TypedDict):
+    usr: tables.Usr
+    reg: tables.Registration
+    sub: None | tables.Submission
+    items: set[tables.Item]
+    qst_answers: dict[tables.Item, set[tables.Item]]
+    qst_score: dict[tables.Item, int]
+exam_result_t = tp.Iterator[exam_usr_result_t]
+
+
 def get_grps(
         dbs: Session,
         usr_id: int
@@ -186,133 +196,6 @@ def get_ticket(
     return row._tuple()
 
 
-def get_exam_monitoring(
-        dbs: Session,
-        exm_id: int
-) -> types.exam_monitoring_t | None:
-
-    # get exam info
-    exam = dbs.query(
-        tables.Exam
-    ).where(
-        tables.Exam.exm_id == exm_id
-    ).first()
-    if not exam:
-        return None
-
-    # count the number of questions each registered user answered
-    query_answers = dbs.query(
-        tables.Registration.reg_usr,
-        tables.ItemRelation.itr_parent
-    ).select_from(
-        tables.Registration
-    ).where(
-        tables.Registration.reg_exam == exm_id
-    ).join(
-        tables.Submission,
-        tables.Submission.sub_exm_registration == tables.Registration.reg_id
-    ).join(
-        tables.Answer,
-        tables.Answer.ans_submission == tables.Submission.sub_id
-    ).join(
-        tables.ItemInstance,
-        tables.ItemInstance.iti_id == tables.Answer.ans_instance
-    ).join(
-        tables.Item,
-        tables.Item.itm_id == tables.ItemInstance.iti_item
-    ).where(
-        tables.Item.itm_type == types.ITEM_TYPE_CHOICE
-    ).join(
-        tables.ItemRelation,
-        tables.ItemRelation.itr_child == tables.Item.itm_id
-    )
-    answered_count: dict[int, set[int]] = dict()
-    for row_answer in query_answers.all():
-        usr_id, itm_id = row_answer._tuple()
-        answered_count.setdefault(usr_id, set()).add(itm_id)
-
-    # list (usr, registration, submission) for this exam. submission
-    # may be None if the user has not started the exam.
-    query = dbs.query(
-        tables.Usr,
-        tables.Registration,
-        tables.Submission
-    ).select_from(
-        tables.Registration
-    ).where(
-        tables.Registration.reg_exam == exm_id
-    ).join(
-        tables.Usr,
-        tables.Usr.usr_id == tables.Registration.reg_usr
-    ).outerjoin(
-        tables.Submission,
-        tables.Registration.reg_id == tables.Submission.sub_exm_registration
-    ).order_by(
-        tables.Usr.usr_name,
-        tables.Usr.usr_fst_name
-    )
-
-    now = datetime.datetime.now()
-    students_data: list[types.student_monitoring_t] = []
-    for row in query.all():
-        usr, reg, sub = row._tuple()
-        student_status: types.exam_student_status_t = "not-started"
-        last_seen: datetime.datetime | None = None
-        score = 0.0
-        total_questions = 0
-        if sub is not None:
-            assert sub.sub_exm_date_update is not None
-            assert sub.sub_exm_content is not None
-            last_seen = sub.sub_exm_date_update
-            content = tp.cast(
-                types.mcq_content_t,
-                json.loads(sub.sub_exm_content)
-            )
-            student_status = "online"
-            if now - last_seen > datetime.timedelta(minutes=5):
-                student_status = "inactive"
-            total_questions = sum(
-                1 for c, _ in types.mcq_enum_items(content)
-                if c["itm_type"] == types.ITEM_TYPE_QUESTION
-            )
-            #detailed_scores = get_student_detailed_scores(
-            #    dbs, exam.exm_mcq, sub.exs_id
-            #)
-            #score = sum(detailed_scores.values())
-            score = 0
-
-        if usr.usr_id not in answered_count:
-            count = 0
-        else:
-            count = len(answered_count[usr.usr_id])
-        students_data.append({
-            "reg_id": int(reg.reg_id),
-            "usr_name": str(usr.usr_name),
-            "usr_fst_name": str(usr.usr_fst_name),
-            "status": student_status,
-            "last_seen": last_seen,
-            "answered_count": count,
-            "total_questions": total_questions,
-            "score": score
-        })
-
-    # exam status
-    exam_status: types.exam_status_t
-    if now < exam.exm_start:
-        exam_status = "upcoming"
-    elif now > exam.end_time():
-        exam_status = "finished"
-    else:
-        exam_status = "in-progress"
-
-    return {
-        "status": exam_status,
-        "start": exam.exm_start,
-        "end": exam.end_time(),
-        "students": students_data
-    }
-
-
 def gen_pack_questions(
         dbs: Session,
         item: tables.Item,
@@ -346,21 +229,6 @@ def gen_pack_questions(
             return result.order_by(o)
         if oper == "head":
             return result.limit(int(arg))
-        if oper == "sort":
-            try:
-                by = {
-                    "difficulty": tables.Item.itm_difficulty,
-                    "code": tables.Item.itm_code
-                }[str(arg)]
-            except KeyError:
-                pass
-            else:
-                return result.order_by(by.desc() if rev else by)
-        if oper == "by-difficulty":
-            return result.where(
-                tables.Item.itm_difficulty.in_(arg) if not rev
-                else tables.Item.itm_difficulty.not_in(arg)
-            )
         if oper == "by-tag":
             sub = dbs.query(
                 tables.Item.itm_id.distinct()
@@ -726,18 +594,11 @@ def get_usr_items(
     ).all()
 
 
-exam_usr_result_t = tuple[
-    tables.Usr,
-    None | tables.Submission,
-    set[tables.Item],
-    dict[tables.Item, set[tables.Item]],
-    dict[tables.Item, int]
-]
-exam_result_t = tp.Iterator[exam_usr_result_t]
 def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
     item_alias = aliased(tables.Item)
     query = dbs.query(
         tables.Usr,
+        tables.Registration,
         tables.Submission,
         tables.Item,
         item_alias
@@ -771,14 +632,28 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
         tables.Usr.usr_fst_name,
         tables.Usr.usr_code
     )
-    prev: None | tuple[tables.Usr, tables.Submission] = None
+
+    def current() -> exam_usr_result_t:
+        assert prev is not None
+        return {
+            "usr": prev[0],
+            "reg": prev[1],
+            "sub": prev[2],
+            "items": items,
+            "qst_answers": qst_answers,
+            "qst_score": qst_scores
+        }
+
+    prev: None | tuple[
+        tables.Usr, tables.Registration, tables.Submission
+    ] = None
     qst_answers: dict[tables.Item, set[tables.Item]] = dict()
     qst_scores: dict[tables.Item, int] = dict()
     items: set[tables.Item] = set()
     for row in query:
-        usr, sub, item, item_parent = row._tuple()
-        if prev is not None and (usr, sub) != prev:
-            yield prev[0], prev[1], items, qst_answers, qst_scores
+        usr, reg, sub, item, item_parent = row._tuple()
+        if prev is not None and (usr, reg, sub) != prev:
+            yield current()
             qst_answers = dict()
             qst_scores = dict()
             items = set()
@@ -796,6 +671,12 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
                     qst_scores[item_parent] += 1
                 else:
                     qst_scores[item_parent] -= 1
-        prev = usr, sub
+        prev = usr, reg, sub
     if prev is not None:
-        yield prev[0], prev[1], items, qst_answers, qst_scores
+        yield current()
+
+
+def get_exam(dbs: Session, exm_id: int) -> tables.Exam:
+    result = dbs.query(tables.Exam).where(tables.Exam.exm_id == exm_id).first()
+    assert result is not None
+    return result

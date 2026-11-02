@@ -4,9 +4,6 @@ from webamc.www.db import util as www_db_util
 
 
 def page(ctx: context.Context) -> fa.Response:
-    def get_val(c: types.db_col_t) -> types.db_base_val_t:
-        result = getattr(usr, db_util.get_col_name(c))
-        return tp.cast(types.db_base_val_t, result)
     def get_rights(rights: list[types.usr_right_t]) -> he.Element:
         if not session.has_submission_right(ctx):
             return he.Empty()
@@ -27,7 +24,7 @@ def page(ctx: context.Context) -> fa.Response:
     trs: list[he.Element] = list()
     for txt, attr in www_db_util.get_attributes(
         ctx,
-        get_val,
+        usr,
         tables.Usr.usr_code,
         tables.Usr.usr_fst_name,
         tables.Usr.usr_name,

@@ -9,6 +9,8 @@ def page(ctx: context.Context, exm_id: int) -> he.Element:
         return title + " (" + fmt.fmt_datetime(exam.exm_start) + ")"
 
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
+    if exams == list():
+        return he.Txt("info_no_exam_available")
 
     trs = list()
 

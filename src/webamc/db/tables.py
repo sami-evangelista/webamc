@@ -13,6 +13,10 @@ Base = declarative_base()
 now = sa.func.now()
 
 
+def implies(left: str, right: str) -> CheckConstraint:
+    return CheckConstraint(f"not ({left}) or ({right})")
+    
+
 # definition of some foreign key column types
 class RefUsr(ct.ForeignKey):
     pass
@@ -37,10 +41,6 @@ class RefRegistration(ct.ForeignKey):
 
 
 # definition of some enumeration column types
-class ItemDifficulty(ct.IntEnum):
-    values = {
-        t: str(t) for t in types.literal_type_values(types.item_difficulty_t)
-    }
 class ItemType(ct.IntEnum):
     values = {
         t: str(t) for t in types.literal_type_values(types.item_type_t)
@@ -254,9 +254,9 @@ class Ticket(Base):
             "tkt_usr"
         ),
         # user is null => it is an account creation ticket
-        CheckConstraint(
-            f"tkt_type = {types.TICKET_ACCOUNT_CREATION} "
-            "or tkt_usr is not null"
+        implies(
+            "tkt_usr is null",
+            f"tkt_type = {types.TICKET_ACCOUNT_CREATION}"
         ),
     )
 
@@ -507,13 +507,6 @@ class Item(Base):
             "ui_updatable": True
         }
     )
-    itm_difficulty: int | None = sa.Column(  # type: ignore
-        ItemDifficulty,
-        info={
-            "ui_visible": True,
-            "ui_updatable": True
-        }
-    )
     itm_date: datetime.datetime = sa.Column(
         ct.DateTime,
         nullable=False,
@@ -564,26 +557,23 @@ class Item(Base):
             ItemType.get_constraint("itm_type")
         ),
         CheckConstraint(
-            ItemDifficulty.get_constraint("itm_difficulty")
-        ),
-        CheckConstraint(
             QstType.get_constraint("itm_qst_type")
         ),
         # it is a pack => pack spec is not null
-        CheckConstraint(
-            f"itm_type <> {types.ITEM_TYPE_PACK} "
-            "or itm_pack_spec is not null"
+        implies(
+            f"itm_type = {types.ITEM_TYPE_PACK}",
+            "itm_pack_spec is not null"
         ),
         # it is an mcq => it is a pack or an exercise
-        CheckConstraint(
-            "not itm_is_mcq "
-            f"or itm_type = {types.ITEM_TYPE_EXERCISE} "
-            f"or itm_type = {types.ITEM_TYPE_PACK}"
+        implies(
+            "itm_is_mcq",
+            f"(itm_type = {types.ITEM_TYPE_EXERCISE} "
+            f"or itm_type = {types.ITEM_TYPE_PACK})"
         ),
         # no code => it is a choice
-        CheckConstraint(
-            "itm_code is not null "
-            f"or itm_type = {types.ITEM_TYPE_CHOICE}"
+        implies(
+            "itm_code is null",
+            f"itm_type = {types.ITEM_TYPE_CHOICE}"
         ),
         ForeignKeyConstraint(
             ["itm_usr"],
@@ -854,16 +844,15 @@ class Submission(Base):
             ["item.itm_id"],
             ondelete="CASCADE"
         ),
-        CheckConstraint(
-            f"sub_type <> {types.SUBMISSION_TYPE_EXAM} "
-            "or (sub_exm_content is not null "
+        implies(
+            f"sub_type = {types.SUBMISSION_TYPE_EXAM}",
+            "sub_exm_content is not null "
             "and sub_exm_registration is not null "
-            "and sub_exm_date_update is not null)"
+            "and sub_exm_date_update is not null"
         ),
-        CheckConstraint(
-            f"sub_type <> {types.SUBMISSION_TYPE_REVIEW} "
-            "or (sub_rev_usr is not null "
-            "and sub_rev_mcq is not null)"
+        implies(
+            f"sub_type = {types.SUBMISSION_TYPE_REVIEW}",
+            "sub_rev_usr is not null and sub_rev_mcq is not null"
         )
     )
 
@@ -1241,6 +1230,20 @@ def create_listeners() -> tp.Any:
                 todo.append(parent)
                 done.add(parent)
 
+    def on_delete_exam(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: Exam
+    ) -> None:
+        query = select(
+            Submission
+        ).where(
+            (Registration.reg_exam == target.exm_id)
+            & (Submission.sub_exm_registration == Registration.reg_id)
+        )
+        if conn.execute(query).first() is not None:
+            raise errors.DBDeletionOfExamWithSubmissions(target.exm_title)
+
     # checks performed during or insert or update
     def basic_checks(
             tbl: sa.sql.schema.Table,
@@ -1357,6 +1360,7 @@ def create_listeners() -> tp.Any:
         sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
     sa.event.listen(Item, "before_delete", on_delete_item)
     sa.event.listen(ItemRelation, "before_delete", on_delete_item_relation)
+    sa.event.listen(Exam, "before_delete", on_delete_exam)
     sa.event.listen(ItemRelation, "before_insert", on_insert_item_relation)
 
 create_listeners()

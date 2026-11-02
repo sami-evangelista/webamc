@@ -147,7 +147,8 @@ def get_attribute(
     val_escape_html, val = val_fmt(ctx, col, val)
     element_val = he.Str(val, escape=val_escape_html)
     if not updatable:
-        return element_val
+        result: he.Element = he.Span(element_val)
+        return result
 
     div_id = f"div-{col_name}-{id_}"
     js = f"db_col_show_input({id_}, '{col_name}', '{pkey_name}')"
@@ -243,16 +244,17 @@ def get_txt_and_input(
 
 def get_attributes(
         ctx: context.Context,
-        get_val: tp.Callable[[types.db_col_t], types.db_base_val_t],
+        row: tables.Base,
         *col: types.db_col_t,
         updatable: bool = True
 ) -> tp.Generator[tuple[he.Element, he.Element]]:
     pkey: None | types.db_col_t = None
-    val: int
+    val_pkey: int
     for c in col:
         if pkey is None:
             pkey = db_util.get_tbl_pkey(db_util.get_col_tbl(c))
-            val = tp.cast(int, get_val(pkey.name))
-        a = get_attribute(ctx, c, get_val(c), val, updatable=updatable)
+            val_pkey = tp.cast(int, getattr(row, db_util.get_col_name(pkey)))
+        val = tp.cast(int, getattr(row, db_util.get_col_name(c)))
+        a = get_attribute(ctx, c, val, val_pkey, updatable=updatable)
         l = base.field_label(desc.col_txt(c))
         yield (l, a)

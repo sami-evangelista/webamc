@@ -1,5 +1,7 @@
+import json
 import typing as tp
 import typing_extensions as tp_ext
+from pydantic import TypeAdapter, ValidationError
 
 
 question_type_t = tp.Literal[0, 1]
@@ -16,10 +18,6 @@ ITEM_TYPE_EXERCISE: item_type_t = 1
 ITEM_TYPE_PACK: item_type_t = 2
 ITEM_TYPE_QUESTION: item_type_t = 3
 
-item_difficulty_t = tp.Literal[1, 2, 3, 4, 5]
-ITEM_MIN_DIFFICULTY: item_difficulty_t = 1
-ITEM_MAX_DIFFICULTY: item_difficulty_t = 5
-
 usr_right_t = tp.Literal[1, 2]
 USR_RIGHT_VIEW: usr_right_t = 1
 USR_RIGHT_SUBMIT: usr_right_t = 2
@@ -35,29 +33,13 @@ SUBMISSION_TYPE_REVIEW: ticket_type_t = 1
 
 pack_op_t = tp.Literal[
     "all",
-    "by-difficulty",
     "by-tag",
     "head",
-    "shuf",
-    "sort"
+    "shuf"
 ]
-
-dict_pack_spec_t = tp_ext.TypedDict(
-    "dict_pack_spec_t",
-    {
-        "op": pack_op_t,
-        "arg": tp.Any,
-        "rev": bool,
-        "content": "pack_spec_t"
-    },
-    total=False
-)
-
-pack_spec_t = tp.Union[list["dict_pack_spec_t"], dict_pack_spec_t]
 
 item_mdata_t = tp.Literal[
     "CODE",
-    "DIFFICULTY",
     "INSTANCES",
     "RND",
     "STANDALONE",
@@ -66,17 +48,36 @@ item_mdata_t = tp.Literal[
     "VISIBLE"
 ]
 
-mcq_content_t = tp_ext.TypedDict(
-    "mcq_content_t",
-    {
-        "itm_id": int,
-        "itm_type": item_type_t,
-        "itm_qst_type": question_type_t,
-        "iti_id": int,
-        "iti_num": int,
-        "children": None | list["mcq_content_t"]
-    }
-)
+exam_status_t = tp.Literal[
+    "finished",
+    "in-progress",
+    "upcoming"
+]
+
+exam_usr_status_t = tp.Literal[
+    "inactive",
+    "not-started",
+    "online",
+    "finished"
+]
+
+class mcq_content_t(tp_ext.TypedDict):
+    itm_id: int
+    itm_type: item_type_t
+    itm_qst_type: question_type_t
+    iti_id: int
+    iti_num: int
+    children: None | list["mcq_content_t"]
+
+class dict_pack_spec_t(tp.TypedDict):
+    op: tp.NotRequired[pack_op_t]
+    arg: tp.NotRequired[tp.Any]
+    rev: tp.NotRequired[bool]
+    content: tp.NotRequired[
+        tp.Union[list["dict_pack_spec_t"], "dict_pack_spec_t"]
+    ]
+
+pack_spec_t = tp.Union[list[dict_pack_spec_t], dict_pack_spec_t]
 
 
 def mcq_enum_items(
@@ -87,3 +88,20 @@ def mcq_enum_items(
     if content["children"] is not None:
         for c in content["children"]:
             yield from mcq_enum_items(c, content)
+
+
+def check_pack_spec(spec: str) -> pack_spec_t:
+    try:
+        parsed = json.loads(spec)
+        TypeAdapter(pack_spec_t).validate_python(parsed)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        raise ValueError from ex
+    return tp.cast(pack_spec_t, parsed)
+
+
+def check_item_mdata(mdata: str) -> item_mdata_t:
+    try:
+        TypeAdapter(item_mdata_t).validate_python(mdata)
+    except ValidationError as ex:
+        raise ValueError from ex
+    return tp.cast(item_mdata_t, mdata)

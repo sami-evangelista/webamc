@@ -4,17 +4,13 @@ from webamc.www.all import *
 from webamc.db import tables, queries
 
 
-_form_ctx_t = tp.TypedDict(
-    "_form_ctx_t",
-    {
-        "is_root": bool,
-        "exe_id": int,
-        "qst_id": int,
-        "exe_num": int,
-        "qst_num": int,
-        "content": dict[int, dict[int, list[int]]]
-    }
-)
+class form_ctx_t(tp_ext.TypedDict):
+    is_root: bool
+    exe_id: int
+    qst_id: int
+    exe_num: int
+    qst_num: int
+    content: dict[int, dict[int, list[int]]]
 
 
 def page(ctx: context.Context, itm_id: int) -> fa.Response:
@@ -26,8 +22,8 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
 
     # if an exam registration is active
     active_registration = session.active_registration(ctx)
-    exam: tables.Exam | None = None
-    registration: tables.Registration | None = None
+    exam: tp.Optional[tables.Exam] = None
+    registration: tp.Optional[tables.Registration] = None
     if active_registration is None:
         session.check_can_view_mcq(ctx, itm_id)
     else:
@@ -39,7 +35,7 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
     content, choices = _setup(ctx, item, exam, registration)
 
     elements: list[he.Element] = list()
-    form_ctx: _form_ctx_t = {
+    form_ctx: form_ctx_t = {
         "is_root": True,
         "exe_id": 0,
         "qst_id": 0,
@@ -151,7 +147,8 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
         "mcq",
         body,
         title=str(item.itm_title),
-        side_buttons=side_buttons
+        side_buttons=side_buttons,
+        show_menu=registration is None
     )
 
 
@@ -283,7 +280,7 @@ def _form_question(
         ctx: context.Context,
         item: tables.Item,
         iti_num: int | None,
-        form_ctx: _form_ctx_t
+        form_ctx: form_ctx_t
 ) -> he.Element:
 
     form_ctx["qst_id"] = item.itm_id
@@ -369,7 +366,7 @@ def _form_exercise(
         ctx: context.Context,
         item: tables.Item,
         children: tp.Sequence[types.mcq_content_t],
-        form_ctx: _form_ctx_t
+        form_ctx: form_ctx_t
 ) -> he.Element:
     form_ctx["exe_id"] = item.itm_id
     form_ctx["content"][item.itm_id] = dict()
@@ -434,7 +431,7 @@ def _form_exercise(
 def _form_item(
         ctx: context.Context,
         content: types.mcq_content_t,
-        form_ctx: _form_ctx_t
+        form_ctx: form_ctx_t
 ) -> he.Element:
 
     # it's a question

@@ -1,7 +1,8 @@
 import json
 import sys
+import typing as tp
 from pathlib import Path
-import typeguard
+from pydantic import TypeAdapter, ValidationError
 
 from webamc.util import termout
 from webamc.types import all as types
@@ -33,11 +34,12 @@ def load(cfg_file: str | None = None) -> None:
             termout.error(f"config file {path} does not exist")
     else:
         try:
-            CONFIG = typeguard.check_type(
-                json.loads(path.read_text(encoding="utf-8")),
-                types.conf_t
+            CONFIG = tp.cast(
+                types.conf_t,
+                json.loads(path.read_text(encoding="utf-8"))
             )
-        except json.decoder.JSONDecodeError:
+            TypeAdapter(types.conf_t).validate_python(CONFIG)
+        except (ValidationError, json.decoder.JSONDecodeError):
             termout.warning(f"malformed configuration file {path}")
 
 

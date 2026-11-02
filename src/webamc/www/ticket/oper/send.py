@@ -1,6 +1,6 @@
 from webamc.www.all import *
 from webamc import mailing
-from webamc.db import tables, col_types as ct
+from webamc.db import tables
 from webamc.util import security
 
 

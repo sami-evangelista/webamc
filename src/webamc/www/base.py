@@ -12,30 +12,15 @@ from . import html_elements as he, session, context, mtype
 sub_page_generator_t = tp.Callable[
     tp.Concatenate[context.Context, ...], he.Element
 ]
-sub_page_spec_t = tp_ext.TypedDict(
-    "sub_page_spec_t",
-    {
-        "dev": bool,
-        "img": types.static_img_t,
-        "gen": sub_page_generator_t
-    }
-)
-page_layout_t = tp_ext.TypedDict(
-    "page_layout_t",
-    {
-        "page": types.page_t,
-        "default": types.sub_page_t,
-        "sub_pages": dict[types.sub_page_t, sub_page_spec_t]
-    }
-)
+class sub_page_spec_t(tp_ext.TypedDict):
+    dev: bool
+    img: types.static_img_t
+    gen: sub_page_generator_t
+class page_layout_t(tp_ext.TypedDict):
+    page: types.page_t
+    default: types.sub_page_t
+    sub_pages: dict[types.sub_page_t, sub_page_spec_t]
 page_title_t = str | types.txt_t
-menu_item_t = tuple[
-    tp.Callable[[context.Context], bool],
-    bool,
-    types.static_img_t,
-    types.txt_t,
-    types.path_t
-]
 css_urls = [
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0"
     + "/build/css/alertify.min.css",
@@ -47,52 +32,76 @@ js_urls = [
     "https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js",
     "https://cdn.jsdelivr.net/npm/chart.js"
 ]
+class menu_item_t(tp_ext.TypedDict):
+    cond: tp.Callable[[context.Context], bool]
+    dev: bool
+    img: types.static_img_t
+    txt: types.txt_t
+    route: types.path_t
 menu_items: list[menu_item_t] = [
-    (lambda ctx: True,
-     False,
-     "signout",
-     "word_disconnection",
-     "/auth/oper/logout"),
-    (session.ne_inbox,
-     True,
-     "inbox",
-     "page_title_inbox",
-     "/inbox/page/list"),
-    (session.has_submission_right,
-     True,
-     "projects",
-     "page_title_project",
-     "/project/page/main"),
-    (session.has_submission_right,
-     False,
-     "mcq",
-     "page_title_item",
-     "/item/page/main"),
-    (session.has_submission_right,
-     True,
-     "exam",
-     "page_title_exam",
-     "/exam/page/main"),
-    (session.has_submission_right,
-     True,
-     "stats",
-     "page_title_stats",
-     "/stats/page/dashboard"),
-    (session.is_admin,
-     False,
-     "settings",
-     "page_title_admin",
-     "/admin/page/main"),
-    (lambda ctx: True,
-     True,
-     "person",
-     "page_title_profile",
-     "/profile/page/main"),
-    (lambda ctx: True,
-     False,
-     "home",
-     "page_title_index",
-     "/")
+    {
+        "cond": lambda ctx: True,
+        "dev": False,
+        "img": "signout",
+        "txt": "word_disconnection",
+        "route": "/auth/oper/logout"
+    },
+    {
+        "cond": session.ne_inbox,
+        "dev": True,
+        "img": "inbox",
+        "txt": "page_title_inbox",
+        "route": "/inbox/page/list"
+    },
+    {
+        "cond": session.has_submission_right,
+        "dev": True,
+        "img": "projects",
+        "txt": "page_title_project",
+        "route": "/project/page/main"
+     },
+    {
+        "cond": session.has_submission_right,
+        "dev": False,
+        "img": "mcq",
+        "txt": "page_title_item",
+        "route": "/item/page/main"
+    },
+    {
+        "cond": session.has_submission_right,
+        "dev": True,
+        "img": "exam",
+        "txt": "page_title_exam",
+        "route": "/exam/page/main"
+    },
+    {
+        "cond": session.has_submission_right,
+        "dev": True,
+        "img": "stats",
+        "txt": "page_title_stats",
+        "route": "/stats/page/dashboard"
+    },
+    {
+        "cond": session.is_admin,
+        "dev": False,
+        "img": "settings",
+        "txt": "page_title_admin",
+        "route": "/admin/page/main"
+    },
+    {
+        "cond": lambda ctx: True,
+        "dev": True,
+        "img": "person",
+        "txt": "page_title_profile",
+        "route": "/profile/page/main"
+    },
+    {
+        "cond": lambda ctx: True,
+        "dev": False,
+        "img": "home",
+        "txt": "page_title_index",
+        "route": "/"
+    }
 ]
 
 
@@ -137,7 +146,8 @@ def page(
         body: he.Element,
         title: None | str = None,
         sub_pg: None | types.sub_page_t = None,
-        side_buttons: None | list[he.Element] = None
+        side_buttons: None | list[he.Element] = None,
+        show_menu: bool = True
 ) -> fa.Response:
 
     # set the page title
@@ -150,13 +160,13 @@ def page(
             )
 
     # menu (none if not connected)
-    if not session.is_logged_in(ctx):
+    if not session.is_logged_in(ctx) or not show_menu:
         div_menu: he.Element = he.Empty()
     else:
         imgs = [
-            static_img(img, txt, mkuri(path))
-            for (enabled, dev, img, txt, path) in menu_items
-            if enabled(ctx) and not (dev and not config.CONFIG["dev"])
+            static_img(m["img"], m["txt"], mkuri(m["route"]))
+            for m in menu_items
+            if m["cond"](ctx) and not (m["dev"] and not config.CONFIG["dev"])
         ]
         div_name = he.Div(
             he.Str(str(session.usr_name(ctx))),
@@ -404,8 +414,6 @@ def gen_js_constants() -> str:
         "key_qst_prev": config.CONFIG["key_qst_prev"],
         "key_switch_mode": config.CONFIG["key_switch_mode"],
         "mcq_save_period": 10,
-        "max_diff": types.ITEM_MAX_DIFFICULTY,
-        "min_diff": types.ITEM_MIN_DIFFICULTY,
         "ticket_account_creation": types.TICKET_ACCOUNT_CREATION,
         "ticket_eaddr_change": types.TICKET_EADDR_CHANGE,
         "ticket_password_change": types.TICKET_PASSWORD_CHANGE,
@@ -520,4 +528,4 @@ def mkhelp(
 
 
 def field_label(e: he.Txt) -> he.Element:
-    return he.Span(e, class_="field-label")
+    return he.Span(e)

@@ -13,9 +13,9 @@ def _check_right(ctx: context.Context, query: types.db_query_t) -> None:
 
 @router.post("/db/oper/query")
 def oper_query(req: fa.Request, args: types.args_oper_t) -> fa.Response:
-    from .oper import query as oper_query
+    from .oper import query
     with context.Context(req) as ctx:
-        return oper_query.data(ctx, args)
+        return query.data(ctx, args)
 
 
 @router.get("/db/page/input")

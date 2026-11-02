@@ -42,12 +42,13 @@ const exam_dashboard_select = function () {
 }
 
 
-const exam_register = function () {
+const exam_register = function (what) {
     const data = {
         'exm_id': base_input_value('exm_id'),
-        'grp_id': base_input_value('grp_id'),
-        'usr_id': base_input_value('usr_id')
+        'usr_id': null,
+        'grp_id': null
     };
+    data[what] = base_input_value(what);
     if(data['exm_id'] != null
        && (data['grp_id'] != null || data['usr_id'] != null)) {
 	const success = function (result) {
@@ -57,8 +58,6 @@ const exam_register = function () {
 	const url = Constants.path_exam_oper_register;
 	xhr_post_oper(url, data, success);
     }
-    $('#grp_id').val('');
-    $('#usr_id').val('');
 }
 
 
@@ -68,7 +67,7 @@ const exam_select_all_registrations = function () {
 }
 
 
-const exam_delete_registrations = function () {
+const exam_unregister = function () {
     let queries = [];
     const handle_checkbox = function(_, checkbox) {
 	if($(checkbox).prop('checked')) {

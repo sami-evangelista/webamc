@@ -16,7 +16,6 @@
     --color-code-mcq: #4488CC;
     --color-code-exercise: #88CC44;
     --color-code-question:  #CC8844;
-    --color-exam-details-background: #CCCCEE;
     --color-warning: #CC3333;
     --color-error: #FF8888;
     --color-success: #88FF88;
@@ -325,9 +324,4 @@ input,select {
 .tag-color-box {
     border: 3px solid;
     border-radius: 2px;
-}
-
-.field-label {
-    font-weight: bold;
-    color: var(--color-struct);
 }

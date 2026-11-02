@@ -5,7 +5,6 @@ import shutil
 import uuid
 import multiprocessing
 from concurrent import futures
-import typeguard
 import pymupdf
 from PIL import Image
 
@@ -15,74 +14,62 @@ from . import tex, output
 
 JSON_SPEC = "items.json"
 
-amc_mdata_t = tp.TypedDict(
-    "amc_mdata_t",
-    {
-        "itm_code": str,
-        "itm_difficulty": int,
-        "itm_rnd": bool,
-        "itm_tags": list[str],
-        "itm_title": str,
-        "itm_visible": bool,
-        "itm_instances": int,
-        "itm_qst_standalone": bool
-    },
-    total=False
-)
-instance_t = tp.TypedDict(
-    "instance_t",
-    {
-        "iti_img": bytes,
-        "iti_num": int,
-        "iti_seed": int,
-        "png": str
-    },
-    total=False
-)
-item_t = tp.TypedDict(
-    "item_t",
-    {
-        "num": int,
-        "tags": list[str],
-        "tex_file": str,
-        "itm_cho_correct": bool,
-        "itm_cho_last": bool,
-        "itm_code": str,
-        "itm_difficulty": int,
-        "itm_is_mcq": bool,
-        "itm_rnd": bool,
-        "itm_title": str,
-        "itm_type": types.item_type_t,
-        "itm_usr": int,
-        "itm_visible": bool,
-        "itm_pack_spec": str,
-        "itm_qst_standalone": bool,
-        "itm_qst_type": types.question_type_t,
-        "instances": list[instance_t],
-        "itr_order": int,
-        "itr_parent": int
-    },
-    total=False
-)
-qst_template_t = tp.TypedDict(
-    "qst_template_t",
-    {
-        "item": item_t,
-        "qst_data": tp.Any,
-        "choices": list[tuple[item_t, str, int]]
-    }
-)
-ctx_t = tp.TypedDict(
-    "ctx_t",
-    {
-        "num": int,
-        "headers": list[tuple[str, str]],
-        "stack": list[tuple[str, int, int]],
-        "mdata": list[amc_mdata_t],
-        "tex2pdf_exe": Path | None,
-        "log_dir": Path | None
-    }
-)
+class amc_mdata_t(tp_ext.TypedDict):
+    itm_code: tp.NotRequired[str]
+    itm_rnd: tp.NotRequired[bool]
+    itm_tags: tp.NotRequired[list[str]]
+    itm_title: tp.NotRequired[str]
+    itm_visible: tp.NotRequired[bool]
+    itm_instances: tp.NotRequired[int]
+    itm_qst_standalone: tp.NotRequired[bool]
+class instance_t(tp_ext.TypedDict):
+    iti_img: tp.NotRequired[bytes]
+    iti_num: tp.NotRequired[int]
+    iti_seed: tp.NotRequired[int]
+    png: tp.NotRequired[str]
+class item_t(tp_ext.TypedDict):
+    num: tp.NotRequired[int]
+    tags: tp.NotRequired[list[str]]
+    tex_file: tp.NotRequired[str]
+    itm_cho_correct: tp.NotRequired[bool]
+    itm_cho_last: tp.NotRequired[bool]
+    itm_code: tp.NotRequired[str]
+    itm_is_mcq: tp.NotRequired[bool]
+    itm_rnd: tp.NotRequired[bool]
+    itm_title: tp.NotRequired[str]
+    itm_type: tp.NotRequired[types.item_type_t]
+    itm_usr: tp.NotRequired[int]
+    itm_visible: tp.NotRequired[bool]
+    itm_pack_spec: tp.NotRequired[str]
+    itm_qst_standalone: tp.NotRequired[bool]
+    itm_qst_type: tp.NotRequired[types.question_type_t]
+    instances: tp.NotRequired[list[instance_t]]
+    itr_order: tp.NotRequired[int]
+    itr_parent: tp.NotRequired[int]
+class qst_template_t(tp_ext.TypedDict):
+    item: item_t
+    qst_data: tp.Any
+    choices: list[tuple[item_t, str, int]]
+class ctx_t(tp_ext.TypedDict):
+    num: int
+    headers: list[tuple[str, str]]
+    stack: list[tuple[str, int, int]]
+    mdata: list[amc_mdata_t]
+    tex2pdf_exe: Path | None
+    log_dir: Path | None
+class task_t(tp_ext.TypedDict):
+    input_tex: tp.NotRequired[Path]
+    output_dir: tp.NotRequired[Path]
+    item: tp.NotRequired[item_t]
+    mcq_dir: tp.NotRequired[Path | None]
+    tex_content: tp.NotRequired[str | None]
+    info: tp.NotRequired[str | None]
+    headers: tp.NotRequired[list[tuple[str, str]]]
+    instance_id: tp.NotRequired[int]
+    png_file: tp.NotRequired[Path]
+    seed: tp.NotRequired[int]
+    dyn_code: tp.NotRequired[str | None]
+    dyn_vars: tp.NotRequired[dict[str, str]]
 CTX: ctx_t = {
     "num": 0,
     "headers": list(),
@@ -93,36 +80,14 @@ CTX: ctx_t = {
 }
 WEBAMC_COMMENT = "%webamc "
 
-
-# task type used for tasks
-task_t = tp.TypedDict(
-    "task_t",
-    {
-        "input_tex": Path,
-        "output_dir": Path,
-        "item": item_t,
-        "mcq_dir": Path | None,
-        "tex_content": str | None,
-        "info": str | None,
-        "headers": list[tuple[str, str]],
-        "instance_id": int,
-        "png_file": Path,
-        "seed": int,
-        "dyn_code": str | None,
-        "dyn_vars": dict[str, str]
-    },
-    total=False
-)
-
 # tasks used for multiprocessing
 TASKS: list[task_t] = []
 
 
 def _check_item_mdata(mdata: str) -> None | types.item_mdata_t:
     try:
-        result = typeguard.check_type(mdata, types.item_mdata_t)
-        return tp.cast(types.item_mdata_t, result)
-    except typeguard.TypeCheckError:
+        return types.check_item_mdata(mdata)
+    except ValueError:
         return None
 
 
@@ -218,8 +183,6 @@ def parse_amc_mdata(
                         result["itm_tags"] = [val]
                     else:
                         result["itm_tags"].append(val)
-                elif mdata == "DIFFICULTY":
-                    result["itm_difficulty"] = int(val)
                 elif mdata == "CODE":
                     result["itm_code"] = val
                 elif mdata == "TITLE":

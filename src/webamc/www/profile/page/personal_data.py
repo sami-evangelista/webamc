@@ -4,9 +4,6 @@ from webamc.www.db import util as www_db_util
 
 
 def page(ctx: context.Context) -> he.Element:
-    def get_val(c: types.db_col_t) -> types.db_base_val_t:
-        result = getattr(usr, db_util.get_col_name(c))
-        return tp.cast(types.db_base_val_t, result)
 
     usr = queries.get_usr(ctx.dbs, session.usr_id(ctx))
     assert usr is not None
@@ -14,7 +11,7 @@ def page(ctx: context.Context) -> he.Element:
     trs = list()
     for txt, attr in www_db_util.get_attributes(
         ctx,
-        get_val,
+        usr,
         tables.Usr.usr_code,
         tables.Usr.usr_fst_name,
         tables.Usr.usr_name,

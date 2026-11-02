@@ -36,12 +36,9 @@ def page(
     if item.itm_type in {types.ITEM_TYPE_EXERCISE, types.ITEM_TYPE_QUESTION}:
         cols.append(tables.Item.itm_rnd)
     if item.itm_type == types.ITEM_TYPE_QUESTION:
-        cols.append(tables.Item.itm_difficulty)
         cols.append(tables.Item.itm_qst_type)
         cols.append(tables.Item.itm_qst_standalone)
-    def get_val(col: types.db_col_t) -> types.db_base_val_t:
-        return getattr(item, db_util.get_col_name(col))  # type: ignore
-    for label, inpt in www_db_util.get_attributes(ctx, get_val, *cols):
+    for label, inpt in www_db_util.get_attributes(ctx, item, *cols):
         trs.append(label)
         trs.append(inpt)
 
