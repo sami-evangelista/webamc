@@ -1,4 +1,5 @@
 from pathlib import Path
+import random
 import subprocess
 import traceback
 import shutil
@@ -25,7 +26,6 @@ class amc_mdata_t(tp_ext.TypedDict):
 class instance_t(tp_ext.TypedDict):
     iti_img: tp.NotRequired[bytes]
     iti_num: tp.NotRequired[int]
-    iti_seed: tp.NotRequired[int]
     png: tp.NotRequired[str]
 class item_t(tp_ext.TypedDict):
     num: tp.NotRequired[int]
@@ -520,7 +520,7 @@ def _compile_question(
         else:
             # creating a unique and reproducible seed value for this
             # specific instance
-            seed_val = (instance_id * 123456789) % 2147483647
+            seed_val = random.randint(0, 2 ** 32 - 1)
             dyn_vars = dict()
 
             # execute external python script and fetch its VAR dict
@@ -547,7 +547,6 @@ def _compile_question(
 
             main_item["instances"].append({
                 "iti_num": instance_id,
-                "iti_seed": seed_val,
                 "png": str(png_file)
             })
 
@@ -574,7 +573,6 @@ def _compile_question(
 
                 cho_item["instances"].append({
                     "iti_num": instance_id,
-                    "iti_seed": seed_val,
                     "png": str(png_cho)
                 })
 
@@ -663,7 +661,6 @@ def _compile_dir_traversal(
             png_file = _generate_png_path()
             item["instances"] = [{
                 "iti_num": 1,
-                "iti_seed": 0,
                 "png": str(png_file)
             }]
 

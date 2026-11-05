@@ -25,6 +25,7 @@ class conf_t(tp_ext.TypedDict):
     db_user: str
     debug: bool
     dev: bool
+    exam_autosave_period: int
     icon_size: int
     json_file_pack: str
     key_qst_next: str

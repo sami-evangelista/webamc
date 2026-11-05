@@ -48,8 +48,17 @@ const base_ask_confirmation = function (question, js) {
 const base_relocate = function (url) {
     if(url == null) {
         console.error("No url specified !");
+    } else {
+        window.location.href = url;
     }
-    window.location.href = url;
+}
+
+const base_new_tab = function (url) {
+    if(url == null) {
+        console.error("No url specified !");
+    } else {
+        window.open(url, '_blank').focus();
+    }
 }
 
 

@@ -276,15 +276,10 @@ def mkuri(
 
 def img_src(
     ctx: context.Context,
-    itm_id: int,
-    iti_num: int | None = 1
+    iti_id: int,
+    iti_uuid: str
 ) -> str:
-    session.img_push(ctx, itm_id)
-    return mkuri(
-        "/img",
-        itm_id=itm_id,
-        iti_num=iti_num
-    )
+    return mkuri("/img", iti_id=iti_id, iti_uuid=iti_uuid)
 
 
 def redirect(url: str) -> fa.Response:
@@ -413,7 +408,7 @@ def gen_js_constants() -> str:
         "key_qst_next": config.CONFIG["key_qst_next"],
         "key_qst_prev": config.CONFIG["key_qst_prev"],
         "key_switch_mode": config.CONFIG["key_switch_mode"],
-        "mcq_save_period": 10,
+        "exam_autosave_period": config.CONFIG["exam_autosave_period"],
         "ticket_account_creation": types.TICKET_ACCOUNT_CREATION,
         "ticket_eaddr_change": types.TICKET_EADDR_CHANGE,
         "ticket_password_change": types.TICKET_PASSWORD_CHANGE,

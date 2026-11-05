@@ -134,19 +134,24 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
         ]
     else:
         btns += [
-            ("checkmark", "word_send", None, "mcq_save_answers()")
+            ("save", "word_send", None, "mcq_save_answers()")
         ]
-
     side_buttons = [
         base.static_img(img, title, title_args=title_args, js=js)
         for (img, title, title_args, js) in btns
     ]
 
+    # title
+    if exam is None:
+        title = item.itm_title
+    else:
+        title = exam.exm_title
+
     return base.page(
         ctx,
         "mcq",
         body,
-        title=str(item.itm_title),
+        title=title,
         side_buttons=side_buttons,
         show_menu=registration is None
     )
@@ -279,7 +284,7 @@ def _setup(
 def _form_question(
         ctx: context.Context,
         item: tables.Item,
-        iti_num: int | None,
+        iti_num: int,
         form_ctx: form_ctx_t
 ) -> he.Element:
 
@@ -290,7 +295,7 @@ def _form_question(
         id_=f"qst_{item.itm_id}_status",
         class_="status-box status-box-question status-unfilled"
     )
-    lbl = f"Question {form_ctx['qst_num']}"
+    lbl = lang.txt("word_question").title() + " " + str(form_ctx["qst_num"])
     if item.itm_title is not None:
         lbl = f"{lbl} - {item.itm_title}"
     lbl_status = he.Span(
@@ -315,7 +320,13 @@ def _form_question(
 
     trs: list[list[he.Element]] = list()
     for cho in cho_list:
-        img_file_path = base.img_src(ctx, cho.itm_id, iti_num)
+        iti = queries.get_item_instance(ctx.dbs, cho.itm_id, iti_num)
+        if iti is None:
+            continue
+        img: he.Element = he.Img(
+            src=base.img_src(ctx, iti.iti_id, iti.iti_uuid),
+            alt=f"cho-{cho.itm_id}"
+        )
 
         box_id = f"cho_{cho.itm_id}"
         box_name = f"cho_{item.itm_id}"
@@ -330,23 +341,21 @@ def _form_question(
             name=box_name,
             class_="choice-input"
         )
-        label = he.Label(
-            he.Img(
-                src=img_file_path,
-                alt=f"cho-{cho.itm_id}"
-            ),
-            for_=box_id
-        )
+        label = he.Label(img, for_=box_id)
         result_box = he.Div(
             id_=f"cho_{cho.itm_id}_status",
             class_="status-box status-box-choice"
         )
         trs.append([result_box, box, label])
 
-    img = he.Img(
-        src=base.img_src(ctx, item.itm_id, iti_num),
-        alt=f"qst-{item.itm_id}"
-    )
+    iti = queries.get_item_instance(ctx.dbs, item.itm_id, iti_num)
+    if iti is None:
+        img = he.Empty()
+    else:
+        img = he.Img(
+            src=base.img_src(ctx, iti.iti_id, iti.iti_uuid),
+            alt=f"qst-{item.itm_id}"
+        )
     div_body = he.Div(
         img,
         he.mktable(trs),
@@ -378,16 +387,15 @@ def _form_exercise(
     # exercice image
     exercise_elements: list[he.Element] = list()
 
-    # getting instances from db (it's only 1 for an exercice)
+    # getting instances from db
     instances = queries.get_instances(ctx.dbs, item.itm_id)
 
     # image checking
     if instances and instances[0].iti_img is not None:
-        first_instance_num = instances[0].iti_num
-
         img_file_path = base.img_src(
-            ctx, item.itm_id,
-            first_instance_num
+            ctx,
+            instances[0].iti_id,
+            instances[0].iti_uuid
         )
         exercise_elements += [
             he.Img(src=img_file_path, alt=f"exe-{item.itm_id}")
@@ -406,7 +414,7 @@ def _form_exercise(
     # if it is a normal exercise we return the title + the image + the
     # children. the image and children are enclosed in a div and the
     # whole is enclosed in another div.
-    title = f"Exercice {form_ctx['exe_num']}"
+    title = lang.txt("word_exercise").title() + " " + str(form_ctx["exe_num"])
     if item.itm_title is not None:
         title = title + " - " + item.itm_title
     span_title = he.Span(

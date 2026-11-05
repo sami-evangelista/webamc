@@ -17,11 +17,12 @@ def page_main(
 @router.get("/auth/oper/login-cas")
 def oper_login_cas(
         req: fa.Request,
-        args: types.args_oper_t
+        ticket: None | str = None,
+        next_url: None | str = None
 ) -> fa.Response:
     from .oper import login_cas
     with context.Context(req) as ctx:
-        return login_cas.data(ctx, args)
+        return login_cas.data(ctx, ticket, next_url)
 
 
 @router.get("/auth/oper/logout")

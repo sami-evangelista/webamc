@@ -37,4 +37,3 @@ class db_query_t(tp_ext.TypedDict):
     table: str
     values: tp.NotRequired[db_map_t]
     where: tp.NotRequired[list[db_where_t]]
-    

@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import util as db_util, desc, tables
+from webamc.db import util as db_util, desc
 from webamc.www.db import util as www_db_util
 
 
@@ -35,7 +35,7 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
             he.Td(he.Txt(desc.col_desc(col))),
             he.Td(*get_inputs(col))
         )
-        for col in db_util.get_tbl_visible_cols(tables.Item)
+        for col in db_util.get_tbl_visible_cols("item")
     ]
     table = he.Table(
         he.Tr(he.Td(he.Txt("word_type")), he.Td(select_type)),

@@ -10,7 +10,10 @@ ALL = {
     ".pdf": "application/pdf",
     ".png": "image/png",
     ".tex": "application/x-latex",
-    ".zip": "application/zip"
+    ".zip": "application/zip",
+    ".xlsx": (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 }
 
 

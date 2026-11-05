@@ -40,7 +40,6 @@ def page(ctx: context.Context) -> fa.Response:
             tables.Item.itm_date
         ]
         tds = [he.Td(he.Txt(desc.col_desc(c))) for c in cols]
-        gd = desc.col_desc
         table = he.mktable(trs, class_="table-solid")
         table.insert(0, he.Thead(he.Tr(*tds)))
         body = table

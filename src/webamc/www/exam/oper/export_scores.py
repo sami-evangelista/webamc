@@ -1,21 +1,21 @@
+from pathlib import Path
 import itertools
 import io
-import typing as tp
 import openpyxl
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.formatting.rule import FormulaRule
 
 from webamc.www.all import *
-from webamc.db import queries, tables
+from webamc.db import queries
 
 
 ROW_PREFIX_COLS: list[types.txt_t] = [
     "col_desc_usr_name",
     "col_desc_usr_fst_name",
     "col_desc_usr_code",
-    "word_score"
+    "word_score",
+    "word_max"
 ]
 USR_DATA_COLS = 3
 COL_IDX_QUESTION_START = len(ROW_PREFIX_COLS)
@@ -25,11 +25,15 @@ CHAR_WIDTH_MULT = 1.6
 
 def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
 
+    # get exam data
+    exam = queries.get_exam(ctx.dbs, exm_id)
+    exam_result = list(queries.get_exam_result(ctx.dbs, exm_id))
+
     # init excel file
     wb = openpyxl.Workbook()
     ws = wb.active
     assert isinstance(ws, Worksheet)  # security check
-    ws.title = "Notes Examen"
+    ws.title = lang.txt("word_scores")
 
     # styles
     header_font = Font(
@@ -65,13 +69,11 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         vertical="bottom"
     )
     thin_border = Border(
-        left=Side(style="thin"), 
-        right=Side(style="thin"), 
-        top=Side(style="thin"), 
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
         bottom=Side(style="thin")
     )
-
-    exam_result = list(queries.get_exam_result(ctx.dbs, exm_id))
 
     # list all questions
     questions = sorted(
@@ -81,6 +83,15 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
     fst_qst_col = get_column_letter(COL_IDX_QUESTION_START + 1)
     last_qst_col = get_column_letter(COL_IDX_QUESTION_START + len(questions))
 
+    # title row
+    ws.append([exam.exm_title])
+    ws.merge_cells(
+        start_row=1,
+        start_column=1,
+        end_row=1,
+        end_column=len(ROW_PREFIX_COLS) + len(questions)
+    )
+
     # header row
     headers = [lang.txt(t).title() for t in ROW_PREFIX_COLS]
     max_header_len = 0
@@ -88,15 +99,16 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         headers.append(str(item.itm_code))
         max_header_len = max(max_header_len, len(str(item.itm_code)))
     ws.append(headers)
-    for col_idx, cell in enumerate(ws[1], start=1):
-        cell.font = header_font
-        cell.fill = header_fill
-        if col_idx > COL_IDX_QUESTION_START:
-            cell.alignment = vertical_align
-            letter = get_column_letter(col_idx)
-            ws.column_dimensions[letter].width = ROTATED_CHAR_WIDTH
-        else:
-            cell.alignment = center_align
+    for row_idx in (1, 2):
+        for col_idx, cell in enumerate(ws[row_idx], start=1):
+            cell.font = header_font
+            cell.fill = header_fill
+            if col_idx > COL_IDX_QUESTION_START:
+                cell.alignment = vertical_align
+                letter = get_column_letter(col_idx)
+                ws.column_dimensions[letter].width = ROTATED_CHAR_WIDTH
+            else:
+                cell.alignment = center_align
 
     for exm_row in exam_result:
         is_absent = exm_row["sub"] is None
@@ -106,16 +118,19 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
             exm_row["usr"].usr_fst_name.title(),
             exm_row["usr"].usr_code.title()
         ]
-        score = sum(exm_row["qst_score"].get(qst, 0) for qst in questions)
         if is_absent:
             row.append("")
+            row.append("")
         else:
+            max_score = sum(exm_row["qst_max_score"].values())
             row.append(
                 f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})"
             )
+            row.append(max_score)
         for qst in questions:
             if qst in exm_row["qst_score"]:
-                row.append(max(exm_row["qst_score"][qst], 0))
+                score = max(0, exm_row["qst_score"][qst])
+                row.append(score)
             else:
                 row.append("")
         ws.append(row)
@@ -153,103 +168,16 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
     ):
         ws.cell(row=row_idx, column=col_idx).border = thin_border
 
-    """
-
-    # calculate statistics fields
-    total_questions = len(questions_data)
-
-    # auto-fit row height for vertical text
-    ws.row_dimensions[1].height = max(40, max_header_len * 6)
-
-    # compute boundaries for excel formulas
-    last_row = 3 + len(student_records)
-    last_col_letter = get_column_letter(5 + len(questions_data))
-
-    # write row 2: max points row (using excel formula)
-    row2 = [
-        "", "", "Note Max", f"=MAX(D4:D{last_row})", float(total_questions)
-    ]
-    for _ in questions_data:
-        row2.append(1.0)
-    ws.append(row2)
-
-    # write row 3: average row (using excel formulas for percentages)
-    row3 = ["", "", "Moyenne", f"=AVERAGE(D4:D{last_row})", ""]
-    for i in range(len(questions_data)):
-        col_letter = get_column_letter(6 + i)
-        # Excel AVERAGE ignores empty/text cells automatically!
-        row3.append(f"=AVERAGE({col_letter}4:{col_letter}{last_row})")
-    ws.append(row3)
-
-    # format rows 1, 2 and 3
-    for row_idx in [1, 2, 3]:
-        for col_idx, cell in enumerate(ws[row_idx], start=1):
-            cell.font = bold_font
-            if row_idx == 1 and col_idx > 5:
-                cell.alignment = vertical_align
-            elif row_idx in [2, 3] and col_idx >= 4:
-                cell.alignment = center_align
-
-                # apply percentage format to success rates in row 3
-                if row_idx == 3 and col_idx > 5:
-                    cell.number_format = '0%'
-                elif isinstance(cell.value, (int, float)):
-                    cell.number_format = '0.0'
-
-    # fill student rows
-    for record in student_records:
-        student = record["data"]
-        is_absent = record["is_absent"]
-        scores_dict = record["scores"]
-
-
-        # set sum formula instead of fixed score
-        if is_absent:
-            note_formula = "ABS"
-        else:
-            note_formula = f"{current_row}:{last_col_letter}{current_row}"
-            note_formula = f"SUM(F{note_formula})"
-
-        row_data = [
-            student["usr_name"],
-            student["usr_fst_name"],
-            student["usr_login"],
-            note_formula,
-            float(student["total_questions"])
-        ]
-
-        # add 1 or 0 for questions
-        for qst_id, _ in questions_data:
-            if is_absent:
-                row_data.append("")
-            else:
-                val = 1 if scores_dict.get(qst_id, 0.0) > 0 else 0
-                row_data.append(val)
-
-        ws.append(row_data)
-        current_row = ws.max_row
-
-        # center and format student cells (cols >= 4)
-        for col_idx in range(4, len(row_data) + 1):
-            cell = ws.cell(row=current_row, column=col_idx)
-            cell.alignment = center_align
-            # force float formatting display (.0)
-            if isinstance(cell.value, (int, float)):
-                cell.number_format = '0.0'
-
-    # apply conditional formatting for incorrect/empty answers
-    score_range = f"F4:{last_col_letter}{last_row}"
-"""
+    filename = lang.txt("word_scores") + "-" + exam.exm_title.replace(" ", "_")
     headers_response = {
-        'Content-Disposition':
-        f'attachment; filename="notes_examen_{exm_id}.xlsx"'
+        "Content-Disposition":
+        f"attachment; filename=\"{filename}.xlsx\""
     }
     stream = io.BytesIO()
     wb.save(stream)
     stream.seek(0)
-    mtype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return fa.Response(
         content=stream.read(),
-        media_type=mtype,
+        media_type=mtype.get_mtype(Path(f"{filename}.xlsx")),
         headers=headers_response
     )

@@ -1,4 +1,5 @@
-from sqlalchemy.orm import declarative_base
+import uuid
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
 from sqlalchemy import (
@@ -8,14 +9,13 @@ from sqlalchemy import (
 from webamc.all import *
 from . import col_types as ct, errors
 
-Base = declarative_base()
 
 now = sa.func.now()
 
 
 def implies(left: str, right: str) -> CheckConstraint:
     return CheckConstraint(f"not ({left}) or ({right})")
-    
+
 
 # definition of some foreign key column types
 class RefUsr(ct.ForeignKey):
@@ -70,20 +70,24 @@ class SubmissionType(ct.IntEnum):
     }
 
 
+class Base(DeclarativeBase):
+    pass
+
+
 class Usr(Base):
     __tablename__ = "usr"
     info = {
         "code": "usr_code",
         "doc": "This table defines users."
     }
-    usr_id: int = sa.Column(
+    usr_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    usr_code: str = sa.Column(
+    usr_code: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -93,7 +97,7 @@ class Usr(Base):
             "doc": r"unique user code",
         }
     )
-    usr_eaddr: str = sa.Column(
+    usr_eaddr: Mapped[str] = mapped_column(
         ct.Eaddr,
         nullable=False,
         unique=True,
@@ -103,7 +107,7 @@ class Usr(Base):
             "doc": r"unique electronic address"
         }
     )
-    usr_fst_name: str = sa.Column(
+    usr_fst_name: Mapped[str] = mapped_column(
         ct.FstName,
         nullable=False,
         info={
@@ -112,7 +116,7 @@ class Usr(Base):
             "doc": r"first name"
         }
     )
-    usr_name: str = sa.Column(
+    usr_name: Mapped[str] = mapped_column(
         ct.Name,
         nullable=False,
         info={
@@ -134,14 +138,14 @@ class Attr(Base):
         "doc": """This table lists attributes that may be associated to
            users (e.g., student ID)."""
     }
-    atr_id: int = sa.Column(
+    atr_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    atr_code: str = sa.Column(
+    atr_code: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -151,7 +155,7 @@ class Attr(Base):
             "doc": r"unique attribute code"
         }
     )
-    atr_desc: str = sa.Column(
+    atr_desc: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -165,14 +169,14 @@ class Attr(Base):
 
 class UsrAttr(Base):
     __tablename__ = "usr_attr"
-    uat_id: int = sa.Column(
+    uat_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    uat_usr: int = sa.Column(
+    uat_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False,
         info={
@@ -181,7 +185,7 @@ class UsrAttr(Base):
             "doc": r"user (references {\tt usr.usr\_code})"
         }
     )
-    uat_attr: int = sa.Column(
+    uat_attr: Mapped[int] = mapped_column(
         RefAttr,
         nullable=False,
         info={
@@ -190,7 +194,7 @@ class UsrAttr(Base):
             "doc": r"attribute (references {\tt attr.atr\_code})"
         }
     )
-    uat_value: str = sa.Column(
+    uat_value: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         info={
@@ -220,26 +224,26 @@ class UsrAttr(Base):
 
 class Ticket(Base):
     __tablename__ = "ticket"
-    tkt_id: int = sa.Column(
+    tkt_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    tkt_type: types.ticket_type_t = sa.Column(
+    tkt_type: Mapped[types.ticket_type_t] = mapped_column(
         TicketType,
         nullable=False
     )
-    tkt_usr: int | None = sa.Column(  # type: ignore
+    tkt_usr: Mapped[int | None] = mapped_column(
         RefUsr
     )
-    tkt_eaddr: str = sa.Column(
+    tkt_eaddr: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
-    tkt_value: str = sa.Column(
+    tkt_value: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
-    tkt_deadline: datetime.datetime = sa.Column(
+    tkt_deadline: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False
     )
@@ -268,14 +272,14 @@ class CasAuth(Base):
         "doc": """This table controls CAS authentication. Each row
            gives access to one user."""
     }
-    cas_id: int = sa.Column(
+    cas_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    cas_enabled: bool = sa.Column(
+    cas_enabled: Mapped[bool] = mapped_column(
         ct.Boolean,
         default=False,
         nullable=False,
@@ -285,7 +289,7 @@ class CasAuth(Base):
             "doc": "1 if CAS authentication enabled for the user, 0 otherwise"
         }
     )
-    cas_login: str = sa.Column(
+    cas_login: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -295,7 +299,7 @@ class CasAuth(Base):
             "doc": "login of the user on the CAS server"
         }
     )
-    cas_usr: int = sa.Column(
+    cas_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False,
         unique=True,
@@ -326,14 +330,14 @@ class LocalAuth(Base):
            he/she has to first reset his/her password. If not empty,
            the password is given plain."""
     }
-    loc_id: int = sa.Column(
+    loc_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    loc_enabled: bool = sa.Column(
+    loc_enabled: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=False,
@@ -344,7 +348,7 @@ class LocalAuth(Base):
                user, 0 otherwise"""
         }
     )
-    loc_login: str = sa.Column(
+    loc_login: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -354,7 +358,7 @@ class LocalAuth(Base):
             "doc": r"login of the user"
         }
     )
-    loc_password: str = sa.Column(
+    loc_password: Mapped[str] = mapped_column(
         ct.Password,
         info={
             "ui_visible": True,
@@ -362,7 +366,7 @@ class LocalAuth(Base):
             "doc": "plain-text password (possibly empty)"
         }
     )
-    loc_usr: int = sa.Column(
+    loc_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False,
         unique=True,
@@ -390,14 +394,14 @@ class Tbl(Base):
            which can be administrated through the web interface, i.e.,
            for which CSV file submission is allowed."""
     }
-    tbl_id: int = sa.Column(
+    tbl_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    tbl_name: str = sa.Column(
+    tbl_name: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -411,14 +415,14 @@ class Tbl(Base):
 
 class Admin(Base):
     __tablename__ = "admin"
-    adm_id: int = sa.Column(
+    adm_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    adm_usr: int = sa.Column(
+    adm_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False,
         info={
@@ -428,7 +432,7 @@ class Admin(Base):
                {\tt usr.usr\_code})"""
         }
     )
-    adm_tbl: int = sa.Column(
+    adm_tbl: Mapped[int] = mapped_column(
         RefTbl,
         nullable=False,
         info={
@@ -460,15 +464,15 @@ class Admin(Base):
 
 class Item(Base):
     __tablename__ = "item"
-    itm_id: int = sa.Column(
+    itm_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    itm_type: types.item_type_t = sa.Column(
+    itm_type: Mapped[types.item_type_t] = mapped_column(
         ItemType,
         nullable=False
     )
-    itm_code: str | None = sa.Column(  # type: ignore
+    itm_code: Mapped[str | None] = mapped_column(
         ct.ItemCode,
         info={
             "ui_visible": True,
@@ -476,7 +480,7 @@ class Item(Base):
             "check": "check_code"
         }
     )
-    itm_title: str | None = sa.Column(  # type: ignore
+    itm_title: Mapped[str | None] = mapped_column(
         ct.String,
         info={
             "ui_visible": True,
@@ -484,12 +488,12 @@ class Item(Base):
             "check": "check_title"
         }
     )
-    itm_is_mcq: bool = sa.Column(
+    itm_is_mcq: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=False
     )
-    itm_rnd: bool = sa.Column(
+    itm_rnd: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=True,
@@ -498,7 +502,7 @@ class Item(Base):
             "ui_updatable": True
         }
     )
-    itm_visible: bool = sa.Column(
+    itm_visible: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=True,
@@ -507,24 +511,24 @@ class Item(Base):
             "ui_updatable": True
         }
     )
-    itm_date: datetime.datetime = sa.Column(
+    itm_date: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False,
         server_default=now
     )
-    itm_usr: int = sa.Column(
+    itm_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False
     )
-    itm_pack_spec: str | None = sa.Column(  # type: ignore
+    itm_pack_spec: Mapped[str | None] = mapped_column(
         ct.PackSpec
     )
-    itm_qst_type: types.question_type_t = sa.Column(
+    itm_qst_type: Mapped[types.question_type_t] = mapped_column(
         QstType,
         default=types.QUESTION_TYPE_SINGLE,
         nullable=False
     )
-    itm_qst_standalone: bool = sa.Column(
+    itm_qst_standalone: Mapped[bool] = mapped_column(
         ct.Boolean,
         default=False,
         nullable=False,
@@ -533,17 +537,17 @@ class Item(Base):
             "ui_updatable": True
         }
     )
-    itm_cho_correct: bool = sa.Column(
+    itm_cho_correct: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=False
     )
-    itm_cho_last: bool = sa.Column(
+    itm_cho_last: Mapped[bool] = mapped_column(
         ct.Boolean,
         nullable=False,
         default=False
     )
-    itm_mcq_mode: types.mcq_mode_t = sa.Column(
+    itm_mcq_mode: Mapped[types.mcq_mode_t] = mapped_column(
         McqMode,
         nullable=False,
         default=types.MCQ_MODE_EXAM,
@@ -615,19 +619,19 @@ class Item(Base):
 
 class ItemRelation(Base):
     __tablename__ = "item_relation"
-    itr_id: int = sa.Column(
+    itr_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    itr_parent: int = sa.Column(
+    itr_parent: Mapped[int] = mapped_column(
         RefItem,
         nullable=False
     )
-    itr_child: int = sa.Column(
+    itr_child: Mapped[int] = mapped_column(
         RefItem,
         nullable=False
     )
-    itr_order: int = sa.Column(
+    itr_order: Mapped[int] = mapped_column(
         ct.Integer,
         nullable=False
     )
@@ -656,24 +660,24 @@ class ItemRelation(Base):
 
 class ItemInstance(Base):
     __tablename__ = "item_instance"
-    iti_id: int = sa.Column(
+    iti_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    iti_item: int = sa.Column(
+    iti_item: Mapped[int] = mapped_column(
         RefItem,
         nullable=False
     )
-    iti_num: int = sa.Column(
+    iti_num: Mapped[int] = mapped_column(
         ct.Integer,
         nullable=False
     )
-    iti_seed: int = sa.Column(
-        ct.Integer,
-        nullable=False
-    )
-    iti_img: bytes | None = sa.Column(  # type: ignore
+    iti_img: Mapped[bytes | None] = mapped_column(
         sa.LargeBinary
+    )
+    iti_uuid: Mapped[str] = mapped_column(
+        ct.String,
+        nullable=False
     )
     __table_args__ = (
         UniqueConstraint(
@@ -695,14 +699,14 @@ class Tag(Base):
         "doc": """This table defines tags that can be associated to MCQ
            items (e.g., questions)."""
     }
-    tag_id: int = sa.Column(
+    tag_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    tag_name: str = sa.Column(
+    tag_name: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -712,7 +716,7 @@ class Tag(Base):
             "doc": "unique tag name"
         }
     )
-    tag_desc: str | None = sa.Column(  # type: ignore
+    tag_desc: Mapped[str | None] = mapped_column(
         ct.String,
         info={
             "ui_visible": True,
@@ -720,7 +724,7 @@ class Tag(Base):
             "doc": "tag description (possibly empty)"
         }
     )
-    tag_color: str | None = sa.Column(  # type: ignore
+    tag_color: Mapped[str | None] = mapped_column(
         ct.Color,
         info={
             "ui_visible": True,
@@ -732,15 +736,15 @@ class Tag(Base):
 
 class ItemTag(Base):
     __tablename__ = "item_tag"
-    itg_id: int = sa.Column(
+    itg_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    itg_item: int = sa.Column(
+    itg_item: Mapped[int] = mapped_column(
         RefItem,
         nullable=False
     )
-    itg_tag: int = sa.Column(
+    itg_tag: Mapped[int] = mapped_column(
         RefTag,
         nullable=False
     )
@@ -764,19 +768,19 @@ class ItemTag(Base):
 
 class Registration(Base):
     __tablename__ = "registration"
-    reg_id: int = sa.Column(
+    reg_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    reg_usr: int = sa.Column(
+    reg_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False
     )
-    reg_exam: int = sa.Column(
+    reg_exam: Mapped[int] = mapped_column(
         RefExam,
         nullable=False
     )
-    reg_date: datetime.datetime = sa.Column(
+    reg_date: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False,
         server_default=now
@@ -801,31 +805,31 @@ class Registration(Base):
 
 class Submission(Base):
     __tablename__ = "submission"
-    sub_id: int = sa.Column(
+    sub_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    sub_type: int = sa.Column(
+    sub_type: Mapped[int] = mapped_column(
         SubmissionType,
         nullable=False
     )
-    sub_date: datetime.datetime = sa.Column(
+    sub_date: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False
     )
-    sub_exm_content: str | None = sa.Column(  # type: ignore
+    sub_exm_content: Mapped[str | None] = mapped_column(
         ct.String
     )
-    sub_exm_registration: int | None = sa.Column(  # type: ignore
+    sub_exm_registration: Mapped[int | None] = mapped_column(
         RefRegistration
     )
-    sub_exm_date_update: datetime.datetime | None = sa.Column(  # type: ignore
+    sub_exm_date_update: Mapped[datetime.datetime | None] = mapped_column(
         ct.DateTime
     )
-    sub_rev_usr: int | None = sa.Column(  # type: ignore
+    sub_rev_usr: Mapped[int | None] = mapped_column(
         RefUsr
     )
-    sub_rev_mcq: int | None = sa.Column(  # type: ignore
+    sub_rev_mcq: Mapped[int | None] = mapped_column(
         RefItem
     )
     __table_args__ = (
@@ -859,15 +863,15 @@ class Submission(Base):
 
 class Answer(Base):
     __tablename__ = "answer"
-    ans_id: int = sa.Column(
+    ans_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    ans_submission: int = sa.Column(
+    ans_submission: Mapped[int] = mapped_column(
         RefSubmission,
         nullable=False
     )
-    ans_instance: int = sa.Column(
+    ans_instance: Mapped[int] = mapped_column(
         RefItemInstance,
         nullable=False
     )
@@ -895,14 +899,14 @@ class Grp(Base):
         "code": "grp_name",
         "doc": "This table defines user groups."
     }
-    grp_id: int = sa.Column(
+    grp_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
         info={
             "ui_visible": True
         }
     )
-    grp_name: str = sa.Column(
+    grp_name: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         unique=True,
@@ -912,7 +916,7 @@ class Grp(Base):
             "doc": "unique group name"
         }
     )
-    grp_parent: int | None = sa.Column(  # type: ignore
+    grp_parent: Mapped[int | None] = mapped_column(
         RefGrp,
         info={
             "ui_visible": True,
@@ -935,11 +939,11 @@ class Grp(Base):
 
 class Exam(Base):
     __tablename__ = "exam"
-    exm_id: int = sa.Column(
+    exm_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    exm_title: str = sa.Column(
+    exm_title: Mapped[str] = mapped_column(
         ct.String,
         nullable=False,
         info={
@@ -947,7 +951,7 @@ class Exam(Base):
             "ui_updatable": True
         }
     )
-    exm_mcq: int = sa.Column(
+    exm_mcq: Mapped[int] = mapped_column(
         RefItem,
         nullable=False,
         info={
@@ -955,7 +959,7 @@ class Exam(Base):
             "ui_updatable": True
         }
     )
-    exm_start: datetime.datetime = sa.Column(
+    exm_start: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False,
         info={
@@ -963,7 +967,7 @@ class Exam(Base):
             "ui_updatable": True
         }
     )
-    exm_duration: int = sa.Column(
+    exm_duration: Mapped[int] = mapped_column(
         ct.PositiveInteger,
         nullable=False,
         default=60,
@@ -995,7 +999,7 @@ class UsrGrp(Base):
             "ui_visible": True
         }
     )
-    ugp_usr: int = sa.Column(
+    ugp_usr: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False,
         info={
@@ -1004,7 +1008,7 @@ class UsrGrp(Base):
             "doc": r"user (references {\tt usr.usr\_code})"
         }
     )
-    ugp_grp: int = sa.Column(
+    ugp_grp: Mapped[int] = mapped_column(
         RefGrp,
         nullable=False,
         info={
@@ -1013,7 +1017,7 @@ class UsrGrp(Base):
             "doc": r"group (references {\tt grp.grp\_name})"
         }
     )
-    ugp_right: types.usr_right_t = sa.Column(
+    ugp_right: Mapped[types.usr_right_t] = mapped_column(
         UsrRight,
         nullable=False,
         info={
@@ -1050,15 +1054,15 @@ class UsrGrp(Base):
 
 class McqGrp(Base):
     __tablename__ = "mcq_grp"
-    mgp_id: int = sa.Column(
+    mgp_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    mgp_mcq: int = sa.Column(
+    mgp_mcq: Mapped[int] = mapped_column(
         RefItem,
         nullable=False
     )
-    mgp_grp: int = sa.Column(
+    mgp_grp: Mapped[int] = mapped_column(
         RefGrp,
         nullable=False
     )
@@ -1082,36 +1086,36 @@ class McqGrp(Base):
 
 class Message(Base):
     __tablename__ = "message"
-    msg_id: int = sa.Column(
+    msg_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    msg_title: str = sa.Column(
+    msg_title: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
-    msg_code: str = sa.Column(
+    msg_code: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
-    msg_date: datetime.datetime = sa.Column(
+    msg_date: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime,
         nullable=False,
         server_default=now
     )
-    msg_from: int = sa.Column(
+    msg_from: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False
     )
-    msg_to: int = sa.Column(
+    msg_to: Mapped[int] = mapped_column(
         RefUsr,
         nullable=False
     )
-    msg_file: bytes = sa.Column(
+    msg_file: Mapped[bytes] = mapped_column(
         sa.LargeBinary,
         nullable=False
     )
-    msg_filename: str = sa.Column(
+    msg_filename: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
@@ -1202,6 +1206,26 @@ def create_listeners() -> tp.Any:
                 & (ItemRelation.itr_child == Item.itm_id)
             )
             conn.execute(query_delete)
+
+    def on_insert_exam(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: Exam
+    ) -> None:
+        # if the title is None we set it to the QCM's title
+        if target.exm_title in ("", None) and target.exm_mcq is not None:
+            query = select(Item).where(Item.itm_id == target.exm_mcq)
+            mcq = conn.execute(query).first()
+            if mcq is not None:
+                target.exm_title = mcq.itm_title
+
+    def on_insert_item_instance(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: ItemInstance
+    ) -> None:
+        if target.iti_uuid is None:
+            target.iti_uuid = uuid.uuid4().hex
 
     def on_insert_item_relation(
             mapper: Mapper[tp.Any],
@@ -1308,13 +1332,14 @@ def create_listeners() -> tp.Any:
                         [getattr(target, col.name) for col in cons.columns]
                     )
 
-    def insert_listener(t):  # type: ignore
+    listener_t = tp.Callable[[Mapper[tp.Any], Connection, tp.Any], None]
+    def insert_listener(t: tp.Type[Base]) -> listener_t:
         def result(
                 mapper: Mapper[tp.Any],
                 conn: Connection,
                 target: tp.Any
         ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__
+            tbl: sa.sql.schema.Table = t.__table__  # type: ignore
             tname = tbl.name
             basic_checks(tbl, conn, target, None)
 
@@ -1333,13 +1358,13 @@ def create_listeners() -> tp.Any:
                     raise errors.DBInvalidNullValue(tname, cname)
         return result
 
-    def update_listener(t):  # type: ignore
+    def update_listener(t: tp.Type[Base]) -> listener_t:
         def result(
                 mapper: Mapper[tp.Any],
                 conn: Connection,
                 target: tp.Any
         ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__
+            tbl: sa.sql.schema.Table = t.__table__  # type: ignore
             tname = tbl.name
             pkey = next(c for c in tbl.columns if c.primary_key)
             basic_checks(tbl, conn, target, getattr(target, pkey.name))
@@ -1355,12 +1380,14 @@ def create_listeners() -> tp.Any:
                     raise errors.DBInvalidNullValue(tname, cname)
         return result
     t: tp.Any
-    for t in Base.__subclasses__():
-        sa.event.listen(t, "before_insert", insert_listener(t))  # type: ignore
-        sa.event.listen(t, "before_update", update_listener(t))  # type: ignore
+    sa.event.listen(ItemInstance, "before_insert", on_insert_item_instance)
     sa.event.listen(Item, "before_delete", on_delete_item)
     sa.event.listen(ItemRelation, "before_delete", on_delete_item_relation)
+    sa.event.listen(Exam, "before_insert", on_insert_exam)
     sa.event.listen(Exam, "before_delete", on_delete_exam)
     sa.event.listen(ItemRelation, "before_insert", on_insert_item_relation)
+    for t in Base.__subclasses__():
+        sa.event.listen(t, "before_insert", insert_listener(t))
+        sa.event.listen(t, "before_update", update_listener(t))
 
 create_listeners()

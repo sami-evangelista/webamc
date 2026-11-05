@@ -82,7 +82,6 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     elements.append(script)
 
     # one row per result
-    r: tp.Any
     for row in query.all():
         attrs = www_db_util.get_attributes(
             ctx, row, *[c.name for c in cols]

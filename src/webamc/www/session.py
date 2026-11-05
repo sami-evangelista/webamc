@@ -112,16 +112,6 @@ def clear_active_registration(ctx: context.Context) -> None:
     ctx.req.session["reg_id"] = None
 
 
-def img_push(ctx: context.Context, itm_id: int) -> None:
-    check_logged_in(ctx)
-    ctx.req.session["imgs"].append(itm_id)
-
-
-def img_pushed(ctx: context.Context, itm_id: int) -> bool:
-    check_logged_in(ctx)
-    return itm_id in ctx.req.session["imgs"]
-
-
 def init(ctx: context.Context, usr: tables.Usr) -> None:
     req = ctx.req
     req.session["usr_code"] = str(usr.usr_code)

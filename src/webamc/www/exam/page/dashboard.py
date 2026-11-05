@@ -1,7 +1,6 @@
 from webamc.www.all import *
 from webamc.www.db import util as www_db_util
-from webamc.db import queries, util as db_util, tables
-from webamc.util import fmt
+from webamc.db import queries, tables
 
 
 def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
@@ -79,7 +78,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         span_status = he.Span(he.Txt(txt_status), class_=cls_status)
 
         # progress bar
-        answered = sum(1 for _, c in row["qst_answers"].items() if len(c) > 0) 
+        answered = sum(1 for _, c in row["qst_answers"].items() if len(c) > 0)
         progress = he.Progress(
             max_=str(max(1, len(row["qst_answers"]))),
             value=str(answered)
@@ -158,17 +157,52 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     str_no_usrs = he.Str(str(no_registered))
 
     # trs with all previous elements and exam attributes
+    uri = base.mkuri(
+        "/item/page/main",
+        sub_page="item_database",
+        itm_id=exam.exm_mcq
+    )
+    js_mcq_administrate = f"base_new_tab('{uri}')"
+    uri = base.mkuri(
+        "/mcq/page/form",
+        mcq_id=exam.exm_mcq
+    )
+    js_mcq_view = f"base_new_tab('{uri}')"
+    tr_mcq = [
+        he.Txt("col_desc_exm_mcq"),
+        he.ElementList(
+            www_db_util.get_attribute(
+                ctx,
+                tables.Exam.exm_mcq,
+                exam.exm_mcq,
+                exam.exm_id,
+                updatable=False
+            ),
+            base.static_img(
+                "edit",
+                "word_answer",
+                js=js_mcq_view,
+                style="vertical-align: middle;"
+            ),
+            base.static_img(
+                "settings",
+                "word_administrate",
+                js=js_mcq_administrate,
+                style="vertical-align: middle;"
+            )
+        )
+    ]
     trs = [
         list(e) for e in www_db_util.get_attributes(
             ctx,
             exam,
             tables.Exam.exm_title,
-            tables.Exam.exm_mcq,
             tables.Exam.exm_start,
             tables.Exam.exm_duration,
             updatable=False
         )
     ] + [
+        tr_mcq,
         [
             he.Txt("word_status"),
             span_exam_status
@@ -186,7 +220,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             str_no_usrs
         ]
     ]
-    
+
     # tr with buttons
     buttons: list[he.Element] = list()
     btn = base.static_img(

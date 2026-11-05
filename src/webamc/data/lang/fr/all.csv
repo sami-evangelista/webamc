@@ -275,6 +275,7 @@ word_file_name;nom du fichier
 word_filter;filtrer
 word_groups;groupes
 word_help;aide
+word_max;max
 word_mcq;qcm
 word_minutes;minutes
 word_mod_date;date de modification
@@ -289,6 +290,7 @@ word_restart;recommencer
 word_review;révision
 word_rights;droits
 word_score;note
+word_scores;notes
 word_send;envoyer
 word_sender;expéditeur
 word_size;taille

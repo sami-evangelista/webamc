@@ -61,6 +61,7 @@ CONFIG_DEFAULT: types.conf_t = {
     "db_user": "webamc_user",
     "debug": True,
     "dev": True,
+    "exam_autosave_period": 60,
     "icon_size": 24,
     "json_file_pack": "_pack.json",
     "key_qst_next": "d",
@@ -191,6 +192,10 @@ CONFIG_DESC_MD = {
     "dev":
     (False, True,
      "if true unstable features under development will be enabled"),
+    ###
+    "exam_autosave_period":
+    (False, True,
+     "defines, in seconds, the period of autosaves in exam mode"),
     ###
     "icon_size":
     (False, True,

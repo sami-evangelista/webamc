@@ -14,6 +14,7 @@ class exam_usr_result_t(tp_ext.TypedDict):
     items: set[tables.Item]
     qst_answers: dict[tables.Item, set[tables.Item]]
     qst_score: dict[tables.Item, int]
+    qst_max_score: dict[tables.Item, int]
 exam_result_t = tp.Iterator[exam_usr_result_t]
 
 
@@ -314,7 +315,7 @@ def _get_grps_loop(
         dbs: Session,
         usr_id: int,
         right: types.usr_right_t,
-        get_next: tp.Callable[[list[int]], list[int]]
+        get_next: tp.Callable[[list[int]], tp.Generator[int]]
 ) -> list[tables.Grp]:
     result = set(
         dbs.query(
@@ -339,26 +340,28 @@ def _get_grps_loop(
 
 
 def get_view_grps(dbs: Session, usr_id: int) -> list[tables.Grp]:
-    def get_next(todo: list[int]) -> list[int]:
-        return [
-            row[0] for row in dbs.query(
-                tables.Grp.grp_parent
-            ).where(
-                tables.Grp.grp_id.in_(todo)
-            ).all()
-        ]
+    def get_next(todo: list[int]) -> tp.Generator[int]:
+        query = dbs.query(
+            tables.Grp.grp_parent
+        ).where(
+            tables.Grp.grp_id.in_(todo)
+        )
+        for row in query:
+            grp_parent = row._tuple()[0]
+            if grp_parent is not None:
+                yield grp_parent
     return _get_grps_loop(dbs, usr_id, types.USR_RIGHT_VIEW, get_next)
 
 
 def get_submit_grps(dbs: Session, usr_id: int) -> list[tables.Grp]:
-    def get_next(todo: list[int]) -> list[int]:
-        return [
-            row[0] for row in dbs.query(
-                tables.Grp.grp_id
-            ).where(
-                tables.Grp.grp_parent.in_(todo)
-            ).all()
-        ]
+    def get_next(todo: list[int]) -> tp.Generator[int]:
+        query = dbs.query(
+            tables.Grp.grp_id
+        ).where(
+            tables.Grp.grp_parent.in_(todo)
+        )
+        for row in query:
+            yield row._tuple()[0]
     return _get_grps_loop(dbs, usr_id, types.USR_RIGHT_SUBMIT, get_next)
 
 
@@ -388,12 +391,12 @@ def get_admin_tables(dbs: Session, usr_id: int) -> list[tables.Tbl]:
     ).all()
 
 
-def get_img(dbs: Session, itm_id: int, iti_num: int = 1) -> bytes | None:
+def get_img(dbs: Session, iti_id: int, iti_uuid: str) -> bytes | None:
     instance = dbs.query(
         tables.ItemInstance
     ).where(
-        (tables.ItemInstance.iti_item == itm_id)
-        & (tables.ItemInstance.iti_num == iti_num)
+        (tables.ItemInstance.iti_id == iti_id)
+        & (tables.ItemInstance.iti_uuid == iti_uuid)
     ).first()
 
     if instance is None:
@@ -503,21 +506,6 @@ def get_student_detailed_scores(
     return result
     """
 
-def get_exam_questions(dbs: Session, mcq_id: int) -> list[tables.Item]:
-    return list()
-"""
-    direct_items = dbs.query(tables.Item.itm_id).filter(
-        tables.Item.itm_parent == mcq_id
-    ).all()
-    parent_ids = [mcq_id] + [item.itm_id for item in direct_items]
-    result = dbs.query(tables.Question).join(
-        tables.Item, tables.Question.qst_id == tables.Item.itm_id
-    ).filter(
-        tables.Item.itm_parent.in_(parent_ids)
-    ).all()
-    return result
-"""
-
 
 def list_recipients(
         dbs: Session,
@@ -611,7 +599,7 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
         tables.Usr.usr_id == tables.Registration.reg_usr
     ).outerjoin(
         tables.Submission,
-        tables.Submission.sub_exm_registration == tables.Registration.reg_id 
+        tables.Submission.sub_exm_registration == tables.Registration.reg_id
     ).outerjoin(
         tables.Answer,
         tables.Answer.ans_submission == tables.Submission.sub_id
@@ -633,6 +621,26 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
         tables.Usr.usr_code
     )
 
+    rows = query.all()
+
+    # get choices of questions to compute max score of each question
+    qst_ids = set(
+        item.itm_id
+        for _, _, _, item, _ in rows
+        if item is not None and item.itm_type == types.ITEM_TYPE_QUESTION
+    )
+    query_questions = dbs.query(
+        tables.Item,
+        item_alias
+    ).where(
+        (tables.Item.itm_id.in_(qst_ids))
+        & (tables.Item.itm_id == tables.ItemRelation.itr_parent)
+        & (item_alias.itm_id == tables.ItemRelation.itr_child)
+    )
+    qst_choices: dict[tables.Item, set[tables.Item]] = dict()
+    for qst, choice in query_questions:
+        qst_choices.setdefault(qst, set()).add(choice)
+
     def current() -> exam_usr_result_t:
         assert prev is not None
         return {
@@ -641,36 +649,44 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
             "sub": prev[2],
             "items": items,
             "qst_answers": qst_answers,
-            "qst_score": qst_scores
+            "qst_score": qst_score,
+            "qst_max_score": qst_max_score
         }
 
     prev: None | tuple[
         tables.Usr, tables.Registration, tables.Submission
     ] = None
     qst_answers: dict[tables.Item, set[tables.Item]] = dict()
-    qst_scores: dict[tables.Item, int] = dict()
+    qst_score: dict[tables.Item, int] = dict()
+    qst_max_score: dict[tables.Item, int] = dict()
     items: set[tables.Item] = set()
-    for row in query:
+    for row in rows:
         usr, reg, sub, item, item_parent = row._tuple()
         if prev is not None and (usr, reg, sub) != prev:
             yield current()
             qst_answers = dict()
-            qst_scores = dict()
+            qst_score = dict()
+            qst_max_score = dict()
             items = set()
         if item is not None:
             items.add(item)
             if item.itm_type == types.ITEM_TYPE_QUESTION:
                 qst_answers.setdefault(item, set())
+                max_score = sum(
+                    1 for c in qst_choices[item] if c.itm_cho_correct
+                )
+                qst_max_score[item] = max_score
             elif item.itm_type == types.ITEM_TYPE_CHOICE:
                 # itm_parent is the question of the choice
                 assert item_parent is not None
                 qst_answers.setdefault(item_parent, set())
                 qst_answers[item_parent].add(item)
-                qst_scores.setdefault(item_parent, 0)
+                qst_score.setdefault(item_parent, 0)
                 if item.itm_cho_correct:
-                    qst_scores[item_parent] += 1
+                    qst_score[item_parent] += 1
                 else:
-                    qst_scores[item_parent] -= 1
+                    qst_score[item_parent] -= 1
+
         prev = usr, reg, sub
     if prev is not None:
         yield current()

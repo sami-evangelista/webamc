@@ -8,9 +8,11 @@ cas_client_init = False
 cas_client: CASClient
 
 
-def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
-    ticket = args["ticket"]
-    next_url = args["next_url"]
+def data(
+        ctx: context.Context,
+        ticket: None | str,
+        next_url: None | str
+) -> fa.Response:
     if not config.CONFIG["auth_cas_enabled"]:
         raise fa.HTTPException(status_code=403)
     if ticket is None:

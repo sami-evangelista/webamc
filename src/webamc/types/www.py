@@ -33,6 +33,7 @@ static_img_t = tp.Literal[
     "person-delete",
     "play",
     "projects",
+    "save",
     "settings",
     "signout",
     "stats",

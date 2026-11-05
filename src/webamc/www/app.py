@@ -108,18 +108,14 @@ async def page_help(help_id: types.help_t) -> fa.Response:
 @app.get("/img")
 async def page_img(
     req: fa.Request,
-    itm_id: int,
-    iti_num: int = 1
+    iti_id: int,
+    iti_uuid: str
 ) -> fa.Response:
     with context.Context(req) as ctx:
-        img = queries.get_img(ctx.dbs, itm_id, iti_num)
+        img = queries.get_img(ctx.dbs, iti_id, iti_uuid)
         if img is None:
-            return fa.responses.HTMLResponse(
-                f"img-{itm_id}-inst-{iti_num}"
-            )
-        return fa.Response(
-            content=img, media_type="image/png"
-        )
+            return fa.responses.HTMLResponse(f"img-{iti_id}")
+        return fa.Response(content=img, media_type="image/png")
 
 
 @app.get("/")

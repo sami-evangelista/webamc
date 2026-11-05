@@ -363,5 +363,5 @@ const mcq_save_answers = function(callback = null) {
 
 
 const mcq_init_save_timer = function () {
-    setInterval(mcq_save_answers, Constants.mcq_save_period * 1000);    
+    setInterval(mcq_save_answers, Constants.exam_autosave_period * 1000);    
 }

@@ -1,4 +1,4 @@
-from webamc.db import queries, util as db_util, tables
+from webamc.db import queries, tables
 from webamc.www.all import *
 from webamc.www.db import util as www_db_util
 

@@ -1,7 +1,7 @@
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from webamc.www.all import *
-from webamc.db import tables, queries, util as db_util
+from webamc.db import tables, queries
 from webamc.www.db import util as www_db_util
 from . import database_list
 
@@ -12,12 +12,17 @@ def page(
         iti_num: int
 ) -> fa.Response:
 
+    # recover item and item_instance
     owner = queries.get_item_owner(ctx.dbs, itm_id)
     if owner is None or owner.usr_id != session.usr_id(ctx):
         raise fa.HTTPException(status_code=403)
-
     item = queries.get_item(ctx.dbs, itm_id)
-    all_instances = queries.get_instances(ctx.dbs, item.itm_id)
+    item_instances = queries.get_instances(ctx.dbs, item.itm_id)
+    item_instance = next(
+        (iti for iti in item_instances if iti.iti_num == iti_num), None
+    )
+    if item_instance is None:
+        raise fa.HTTPException(status_code=404)
 
     table_tags_id = f"table-item-tags-{item.itm_id}"
 
@@ -76,11 +81,11 @@ def page(
     ]
 
     img_instance = he.Img(
-        src=base.img_src(ctx, item.itm_id, iti_num),
+        src=base.img_src(ctx, item_instance.iti_id, item_instance.iti_uuid),
         alt=f"{item.itm_code}-inst-{iti_num}"
     )
-    if len(all_instances) == 1:
-        if all_instances[0].iti_img is not None:
+    if len(item_instances) == 1:
+        if item_instances[0].iti_img is not None:
             trs += [
                 base.field_label(he.Txt("word_statement")),
                 img_instance
@@ -91,7 +96,7 @@ def page(
                 he.Str(lang.txt("param_seq_instance_num", str(i.iti_num))),
                 value=i.iti_num
             ).add_flag("selected", i.iti_num == iti_num)
-            for i in all_instances
+            for i in item_instances
         ]
         onchange = (
             f"item_db_code_click({item.itm_id}, false, this.value);"
@@ -255,11 +260,13 @@ def _content_question(
         div_status = he.Div(
             class_=f"status-box status-box-answer status-{class_box}"
         )
-        img = he.Img(
-            src=base.img_src(ctx, cho.itm_id, iti_num),
-            alt=str(cho.itm_id)
-        )
-        trs.append([div_status, img])
+        iti = queries.get_item_instance(ctx.dbs, cho.itm_id, iti_num)
+        if iti is not None:
+            img = he.Img(
+                src=base.img_src(ctx, iti.iti_id, iti.iti_uuid),
+                alt=str(cho.itm_id)
+            )
+            trs.append([div_status, img])
     div_choices = he.Div(
         he.mktable(trs),
         class_="question-body-admin"

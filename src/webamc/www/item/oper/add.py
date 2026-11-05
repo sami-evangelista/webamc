@@ -30,8 +30,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     # insert into instance
     inst = tables.ItemInstance(
         iti_num=1,
-        iti_item=item.itm_id,
-        iti_seed=0
+        iti_item=item.itm_id
     )
     ctx.dbs.add(inst)
 

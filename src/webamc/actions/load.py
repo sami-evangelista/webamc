@@ -104,10 +104,9 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
 
             # ItemInstance object creation and added to db
             db_instance = tables.ItemInstance(
-                iti_item=result,             # parent id
-                iti_num=inst["iti_num"],     # instance num
-                iti_seed=inst["iti_seed"],   # seed used
-                iti_img=img_bin              # png
+                iti_item=result,
+                iti_num=inst["iti_num"],
+                iti_img=img_bin
             )
             dbs.add(db_instance)
             output.info(
@@ -126,7 +125,7 @@ def _load_dir(dir_path: Path, usr_id: int) -> None:
             list[comp.item_t], json.loads(json_file.read_text())
         )
         TypeAdapter(list[comp.item_t]).validate_python(items)
-    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+    except (ValidationError, json.decoder.JSONDecodeError):
         output.error(f"invalid {comp.JSON_SPEC} file in archive !")
         return
     with op.Session() as dbs, dbs.begin():
