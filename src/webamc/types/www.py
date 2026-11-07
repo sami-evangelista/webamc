@@ -41,7 +41,8 @@ static_img_t = tp.Literal[
     "tag",
     "trash",
     "unlink",
-    "upload"
+    "upload",
+    "view",
 ]
 
 path_t = tp.Literal[
@@ -73,7 +74,6 @@ path_t = tp.Literal[
     "/item/oper/move-child",
     "/item/oper/submit",
     "/mcq/page/form",
-    "/mcq/oper/correction",
     "/mcq/oper/finish",
     "/mcq/oper/save",
     "/profile/page/main",
@@ -173,11 +173,16 @@ sub_page_t = tp.Literal[
     "ticket_password_change"
 ]
 
+mcq_form_mode_t = tp.Literal[
+    "review",
+    "exam",
+    "view"
+]
+
 class args_oper_t(tp.TypedDict):
     action_params: tp.NotRequired[project.action_params_t]
     action: tp.NotRequired[project.action_t]
     choices: tp.NotRequired[dict[int, bool]]
-    content: tp.NotRequired[item.mcq_content_t]
     exm_id: tp.NotRequired[int]
     filters: tp.NotRequired[dict[str, tp.Any]]
     grp_id: tp.NotRequired[None | int]
@@ -198,6 +203,7 @@ class args_oper_t(tp.TypedDict):
     project_data: tp.NotRequired[dict[str, tp.Any]]
     query: tp.NotRequired[db.db_query_t | list[db.db_query_t]]
     questions: tp.NotRequired[dict[int, dict[int, bool]]]
+    sub_content: tp.NotRequired[item.mcq_content_t]
     tbl_id: tp.NotRequired[int]
     ticket: tp.NotRequired[str]
     tkt_type: tp.NotRequired[item.ticket_type_t]

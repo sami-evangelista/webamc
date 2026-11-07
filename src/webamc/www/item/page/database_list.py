@@ -133,7 +133,7 @@ def div_item(
         buttons.append(img_delete)
         img_delete = base.static_img(
             "trash",
-            "seq_delete_item_recursively",
+            "item_db_delete_recursively",
             js=(
                 "item_db_delete_recursively"
                 f"({item.itm_id}, {json.dumps(itm_id_parent)});"

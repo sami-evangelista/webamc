@@ -40,23 +40,25 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     trs = list()
     no_registered = 0
     for row in queries.get_exam_result(ctx.dbs, exm_id):
+        sub: tp.Optional[tables.Submission] = None
         no_registered += 1
         usr_name = row["usr"].fmt()
         tds: list[he.Element] = list()
 
-        if row["sub"] is None:
+        if row["sub_result"] is None:
             usr_status: types.exam_usr_status_t = "not-started"
         else:
-            assert row["sub"].sub_exm_date_update is not None
+            sub = row["sub_result"]["sub"]
+            assert sub.sub_exm_date_update is not None
             if exam_status == "finished":
                 usr_status = "finished"
-            elif now - row["sub"].sub_exm_date_update > five_min:
+            elif now - sub.sub_exm_date_update > five_min:
                 usr_status = "inactive"
             else:
                 usr_status = "online"
 
         # checkbox using reg_id for deletion actions
-        if row["sub"] is not None:
+        if row["sub_result"] is not None:
             tds.append(he.Empty())
         else:
             reg_id = row["reg"].reg_id
@@ -72,22 +74,41 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         # usr status
         txt_status = tp.cast(
             types.txt_t,
-            f"seq_exam_usr_status_{usr_status.replace('-', '_')}"
+            f"exam_usr_status_{usr_status.replace('-', '_')}"
         )
         cls_status = f"usr-status-{usr_status}"
         span_status = he.Span(he.Txt(txt_status), class_=cls_status)
 
         # progress bar
-        answered = sum(1 for _, c in row["qst_answers"].items() if len(c) > 0)
+        if row["sub_result"] is None:
+            no_questions = 0
+            no_answered = 0
+        else:
+            qst_answers = row["sub_result"]["qst_answers"]
+            no_questions = len(qst_answers)
+            no_answered = sum(1 for _, c in qst_answers.items() if len(c) > 0)
         progress = he.Progress(
-            max_=str(max(1, len(row["qst_answers"]))),
-            value=str(answered)
+            max_=str(max(1, no_questions)),
+            value=str(no_answered)
+        )
+
+        # view image
+        if sub is None:
+            sub_id = None
+        else:
+            sub_id = sub.sub_id
+        img_view = base.static_img(
+            "view",
+            "exam_view_submission",
+            js=f"exam_view_submission({json.dumps(sub_id)})",
+            target="_blank"
         )
 
         tds += [
             he.Str(usr_name),
             progress,
-            span_status
+            span_status,
+            img_view
         ]
         trs.append(tds)
 
@@ -117,7 +138,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     )
     img_grp_add = base.static_img(
         "group-add",
-        "seq_delete_selected_registrations",
+        "exam_register_group",
         js="exam_register('grp_id')",
         style="vertical-align: middle;"
     )
@@ -138,7 +159,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     )
     img_usr_add = base.static_img(
         "person-add",
-        "seq_delete_selected_registrations",
+        "exam_register_user",
         js="exam_register('usr_id')",
         style="vertical-align: middle;"
     )
@@ -146,7 +167,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     # exam status
     txt_status = tp.cast(
         types.txt_t,
-        f"seq_exam_status_{exam_status.replace('-', '_')}"
+        f"exam_status_{exam_status.replace('-', '_')}"
     )
     span_exam_status = he.Span(
         he.Txt(txt_status),
@@ -165,7 +186,8 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     js_mcq_administrate = f"base_new_tab('{uri}')"
     uri = base.mkuri(
         "/mcq/page/form",
-        mcq_id=exam.exm_mcq
+        mode="review",
+        itm_id=exam.exm_mcq
     )
     js_mcq_view = f"base_new_tab('{uri}')"
     tr_mcq = [
@@ -208,15 +230,15 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             span_exam_status
         ],
         [
-            he.Txt("seq_select_a_group_to_register"),
+            he.Txt("exam_select_a_group_to_register"),
             he.ElementList(select_grp, img_grp_add)
         ],
         [
-            he.Txt("seq_select_a_user_to_register"),
+            he.Txt("exam_select_a_user_to_register"),
             he.ElementList(select_usr, img_usr_add)
         ],
         [
-            he.Txt("seq_users_registered"),
+            he.Txt("exam_users_registered"),
             str_no_usrs
         ]
     ]
@@ -225,19 +247,19 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     buttons: list[he.Element] = list()
     btn = base.static_img(
         "trash",
-        "seq_delete_exam",
+        "exam_delete",
         js=f"exam_delete({exm_id})"
     )
     buttons.append(btn)
     btn = base.static_img(
         "group-delete",
-        "seq_delete_selected_registrations",
+        "exam_delete_selected_registrations",
         js="exam_unregister()"
     )
     buttons.append(btn)
     btn = base.static_img(
         "doc-table",
-        "seq_export_exam_scores",
+        "exam_export_scores",
         href=f"../oper/export-scores?exm_id={exm_id}"
     )
     buttons.append(btn)

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+sort -u -o txt txt
+
+(
+    echo '# automatically generated file
+# change file txt and rerun script create-txts
+
+import typing as tp
+
+
+txt_t = tp.Literal['
+    while read t
+    do
+        echo '    "'$t'",'
+    done < txt
+    echo ']'
+) > txt.py
+
+for lang in ../data/lang/*/*csv
+do
+    tmplang=$(mktemp)
+    tail +2 $lang | cut -d';' -f1 | sort -u &> $tmplang
+    diff txt $tmplang | grep '^<' | cut -d' ' -f2 | while read t
+    do
+        echo "$t;XXX"
+    done >> $lang
+    rm $tmplang
+done

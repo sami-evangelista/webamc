@@ -75,9 +75,17 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         bottom=Side(style="thin")
     )
 
-    # list all questions
+    # list all questions that appeared in exam submissions
     questions = sorted(
-        set(item for row in exam_result for item in row["qst_answers"]),
+        set(
+            item
+            for row in exam_result
+            for item in (
+                    list()
+                    if row["sub_result"] is None
+                    else row["sub_result"]["qst_answers"]
+            )
+        ),
         key=lambda item: str(item.itm_code)
     )
     fst_qst_col = get_column_letter(COL_IDX_QUESTION_START + 1)
@@ -111,25 +119,30 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
                 cell.alignment = center_align
 
     for exm_row in exam_result:
-        is_absent = exm_row["sub"] is None
         row_idx = ws.max_row + 1
         row: list[str | int] = [
             exm_row["usr"].usr_name.upper(),
             exm_row["usr"].usr_fst_name.title(),
             exm_row["usr"].usr_code.title()
         ]
-        if is_absent:
-            row.append("")
-            row.append("")
-        else:
-            max_score = sum(exm_row["qst_max_score"].values())
-            row.append(
-                f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})"
-            )
+        if exm_row["sub_result"] is not None:
+            items = exm_row["sub_result"]["items"]
+            qst_max_score = exm_row["sub_result"]["qst_max_score"]
+            qst_score = exm_row["sub_result"]["qst_score"]
+            qst_answers = exm_row["sub_result"]["qst_answers"]
+            max_score = sum(qst_max_score.values())
+            row.append(f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})")
             row.append(max_score)
+        else:
+            items = set()
+            qst_max_score = dict()
+            qst_score = dict()
+            qst_answers = dict()
+            row.append("")
+            row.append("")
         for qst in questions:
-            if qst in exm_row["qst_score"]:
-                score = max(0, exm_row["qst_score"][qst])
+            if qst in qst_score:
+                score = max(0, qst_score[qst])
                 row.append(score)
             else:
                 row.append("")
@@ -143,14 +156,14 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         # the user is absent or the question did not appear)
         for i, qst in enumerate(questions, start=1):
             col_idx = i + COL_IDX_QUESTION_START
-            if qst not in exm_row["items"]:
+            if qst not in items:
                 ws.cell(row=row_idx, column=col_idx).fill = absent_fill
 
         # color cells of questions that the user did have but did not
         # answer
         for i, qst in enumerate(questions, start=1):
             col_idx = i + COL_IDX_QUESTION_START
-            if qst in exm_row["items"] and qst not in exm_row["qst_score"]:
+            if qst in items and len(qst_answers) == 0:
                 ws.cell(row=row_idx, column=col_idx).fill = no_answer_fill
 
     # adjust column widths containing names, first name, ...

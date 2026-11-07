@@ -7,14 +7,17 @@ from webamc.all import *
 from . import tables
 
 
+class submission_result_t(tp_ext.TypedDict):
+    sub: tables.Submission
+    items: set[tables.Item]  # all items that appear in the submission
+    qst_answers: dict[tables.Item, set[tables.Item]]  # choices made for a qst
+    qst_score: dict[tables.Item, int]  # score for each question
+    qst_max_score: dict[tables.Item, int]  # max score for each question
+    cho_correct: dict[tables.Item, bool]  # correct choices
 class exam_usr_result_t(tp_ext.TypedDict):
     usr: tables.Usr
     reg: tables.Registration
-    sub: None | tables.Submission
-    items: set[tables.Item]
-    qst_answers: dict[tables.Item, set[tables.Item]]
-    qst_score: dict[tables.Item, int]
-    qst_max_score: dict[tables.Item, int]
+    sub_result: None | submission_result_t
 exam_result_t = tp.Iterator[exam_usr_result_t]
 
 
@@ -582,31 +585,33 @@ def get_usr_items(
     ).all()
 
 
-def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
+def get_submission_result(dbs: Session, sub_id: int) -> submission_result_t:
+    return get_submissions_result(dbs, [sub_id])[sub_id]
+
+
+def get_submissions_result(
+        dbs: Session,
+        sub_ids: tp.Iterable[int]
+) -> dict[int, submission_result_t]:
+    result: dict[int, submission_result_t] = dict()
+
+    # query all items included in the submission
     item_alias = aliased(tables.Item)
     query = dbs.query(
-        tables.Usr,
-        tables.Registration,
         tables.Submission,
         tables.Item,
         item_alias
     ).select_from(
-        tables.Registration
+        tables.Submission
     ).where(
-        tables.Registration.reg_exam == exm_id
+        tables.Submission.sub_id.in_(sub_ids)
     ).join(
-        tables.Usr,
-        tables.Usr.usr_id == tables.Registration.reg_usr
-    ).outerjoin(
-        tables.Submission,
-        tables.Submission.sub_exm_registration == tables.Registration.reg_id
-    ).outerjoin(
         tables.Answer,
         tables.Answer.ans_submission == tables.Submission.sub_id
-    ).outerjoin(
+    ).join(
         tables.ItemInstance,
         tables.ItemInstance.iti_id == tables.Answer.ans_instance
-    ).outerjoin(
+    ).join(
         tables.Item,
         tables.Item.itm_id == tables.ItemInstance.iti_item
     ).outerjoin(
@@ -615,18 +620,15 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
     ).outerjoin(
         item_alias,
         item_alias.itm_id == tables.ItemRelation.itr_parent
-    ).order_by(
-        tables.Usr.usr_name,
-        tables.Usr.usr_fst_name,
-        tables.Usr.usr_code
     )
 
     rows = query.all()
 
-    # get choices of questions to compute max score of each question
+    # get choices of all questions included in the submissions to
+    # compute max score of each question
     qst_ids = set(
         item.itm_id
-        for _, _, _, item, _ in rows
+        for _, item, _ in rows
         if item is not None and item.itm_type == types.ITEM_TYPE_QUESTION
     )
     query_questions = dbs.query(
@@ -641,58 +643,94 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
     for qst, choice in query_questions:
         qst_choices.setdefault(qst, set()).add(choice)
 
-    def current() -> exam_usr_result_t:
-        assert prev is not None
-        return {
-            "usr": prev[0],
-            "reg": prev[1],
-            "sub": prev[2],
-            "items": items,
-            "qst_answers": qst_answers,
-            "qst_score": qst_score,
-            "qst_max_score": qst_max_score
+    for sub, item, item_parent in rows:
+        if sub.sub_id not in result:
+            result[sub.sub_id] = {
+                "sub": sub,
+                "items": set(),
+                "qst_answers": dict(),
+                "qst_score": dict(),
+                "qst_max_score": dict(),
+                "cho_correct": dict()
+            }
+        result_sub = result[sub.sub_id]
+        result_sub["items"].add(item)
+        if item.itm_type == types.ITEM_TYPE_QUESTION:
+            result_sub["qst_answers"].setdefault(item, set())
+            result_sub["qst_score"].setdefault(item, 0)
+            max_score = sum(1 for c in qst_choices[item] if c.itm_cho_correct)
+            result_sub["qst_max_score"][item] = max_score
+        elif item.itm_type == types.ITEM_TYPE_CHOICE:
+            # itm_parent is the question of the choice
+            assert item_parent is not None
+            result_sub["qst_answers"].setdefault(item_parent, set())
+            result_sub["qst_answers"][item_parent].add(item)
+            result_sub["qst_score"].setdefault(item_parent, 0)
+            if item.itm_cho_correct:
+                result_sub["qst_score"][item_parent] += 1
+                result_sub["cho_correct"][item] = True
+            else:
+                result_sub["qst_score"][item_parent] -= 1
+                result_sub["cho_correct"][item] = False
+
+    return result
+
+
+def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
+    query = dbs.query(
+        tables.Usr,
+        tables.Registration,
+        tables.Submission
+    ).select_from(
+        tables.Registration
+    ).where(
+        tables.Registration.reg_exam == exm_id
+    ).join(
+        tables.Usr,
+        tables.Usr.usr_id == tables.Registration.reg_usr
+    ).outerjoin(
+        tables.Submission,
+        tables.Submission.sub_exm_registration == tables.Registration.reg_id
+    ).order_by(
+        tables.Usr.usr_name,
+        tables.Usr.usr_fst_name,
+        tables.Usr.usr_code
+    )
+    rows = query.all()
+    sub_ids = set(sub.sub_id for _, _, sub in rows if sub is not None)
+    sub_results = get_submissions_result(dbs, sub_ids)
+    for usr, reg, sub in rows:
+        yield {
+            "usr": usr,
+            "reg": reg,
+            "sub_result": sub_results[sub.sub_id] if sub is not None else None
         }
-
-    prev: None | tuple[
-        tables.Usr, tables.Registration, tables.Submission
-    ] = None
-    qst_answers: dict[tables.Item, set[tables.Item]] = dict()
-    qst_score: dict[tables.Item, int] = dict()
-    qst_max_score: dict[tables.Item, int] = dict()
-    items: set[tables.Item] = set()
-    for row in rows:
-        usr, reg, sub, item, item_parent = row._tuple()
-        if prev is not None and (usr, reg, sub) != prev:
-            yield current()
-            qst_answers = dict()
-            qst_score = dict()
-            qst_max_score = dict()
-            items = set()
-        if item is not None:
-            items.add(item)
-            if item.itm_type == types.ITEM_TYPE_QUESTION:
-                qst_answers.setdefault(item, set())
-                max_score = sum(
-                    1 for c in qst_choices[item] if c.itm_cho_correct
-                )
-                qst_max_score[item] = max_score
-            elif item.itm_type == types.ITEM_TYPE_CHOICE:
-                # itm_parent is the question of the choice
-                assert item_parent is not None
-                qst_answers.setdefault(item_parent, set())
-                qst_answers[item_parent].add(item)
-                qst_score.setdefault(item_parent, 0)
-                if item.itm_cho_correct:
-                    qst_score[item_parent] += 1
-                else:
-                    qst_score[item_parent] -= 1
-
-        prev = usr, reg, sub
-    if prev is not None:
-        yield current()
 
 
 def get_exam(dbs: Session, exm_id: int) -> tables.Exam:
     result = dbs.query(tables.Exam).where(tables.Exam.exm_id == exm_id).first()
+    assert result is not None
+    return result
+
+
+def get_submission(
+        dbs: Session,
+        sub_id: int
+) -> tuple[tables.Submission, tables.Registration | None, tables.Exam | None]:
+    result = dbs.query(
+        tables.Submission,
+        tables.Registration,
+        tables.Exam
+    ).select_from(
+        tables.Submission
+    ).where(
+        tables.Submission.sub_id == sub_id
+    ).outerjoin(
+        tables.Registration,
+        tables.Registration.reg_id == tables.Submission.sub_exm_registration
+    ).outerjoin(
+        tables.Exam,
+        tables.Exam.exm_id == tables.Registration.reg_exam
+    ).first()
     assert result is not None
     return result

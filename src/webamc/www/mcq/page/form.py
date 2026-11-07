@@ -5,37 +5,86 @@ from webamc.db import tables, queries
 
 
 class form_ctx_t(tp_ext.TypedDict):
+    mode: types.mcq_form_mode_t
     is_root: bool
     exe_id: int
     qst_id: int
     exe_num: int
     qst_num: int
     content: dict[int, dict[int, list[int]]]
+    sub_result: None | queries.submission_result_t
 
 
-def page(ctx: context.Context, itm_id: int) -> fa.Response:
+def page(
+        ctx: context.Context,
+        mode: types.mcq_form_mode_t,
+        itm_id: int | None,
+        sub_id: int | None
+) -> fa.Response:
 
     session.check_logged_in(ctx)
+    item: tables.Item
+    exam: tables.Exam | None = None
+    reg: tables.Registration | None = None
+
+    # check parameters and rights
+    if mode == "review":
+        if itm_id is None:
+            raise fa.HTTPException(status_code=422)
+        session.check_can_view_mcq(ctx, itm_id)
+    elif mode == "exam":
+        active_reg = session.active_registration(ctx)
+        if active_reg is None:
+            raise fa.HTTPException(status_code=422)
+        reg, exam = active_reg
+        itm_id = exam.exm_mcq
+    elif mode == "view":
+        def owns(itm_id: int) -> bool:
+            owner = queries.get_item_owner(ctx.dbs, itm_id)
+            return owner is not None and owner.usr_id == usr_id
+        if sub_id is None:
+            raise fa.HTTPException(status_code=422)
+        usr_id = session.usr_id(ctx)
+        sub, reg, exam = queries.get_submission(ctx.dbs, sub_id)
+        if not (
+                sub.sub_rev_usr == usr_id
+                or (reg is not None and reg.reg_usr == usr_id)
+                or (sub.sub_rev_mcq is not None and owns(sub.sub_rev_mcq))
+                or (exam is not None and owns(exam.exm_mcq))
+        ):
+            raise fa.HTTPException(status_code=403)
+        if sub.sub_rev_mcq is not None:
+            itm_id = sub.sub_rev_mcq
+        elif exam is not None:
+            itm_id = exam.exm_mcq
+        else:
+            assert False
+    else:
+        assert False
 
     # get item
     item = queries.get_item(ctx.dbs, itm_id)
 
-    # if an exam registration is active
-    active_registration = session.active_registration(ctx)
-    exam: tp.Optional[tables.Exam] = None
-    registration: tp.Optional[tables.Registration] = None
-    if active_registration is None:
-        session.check_can_view_mcq(ctx, itm_id)
-    else:
-        registration, exam = active_registration
-        if exam.exm_mcq != itm_id:
-            raise fa.HTTPException(status_code=403)
-
     # setup and generate the content
-    content, choices = _setup(ctx, item, exam, registration)
+    content, choices = _setup(ctx, mode, item, exam, reg)
+
+    # in view mode get submission result
+    if mode != "view":
+        subres = None
+    else:
+        if sub_id is None:
+            raise fa.HTTPException(status_code=422)
+        subres = queries.get_submission_result(ctx.dbs, sub_id)
+        choices = list(
+            cho.itm_id
+            for qst, qst_choices in subres["qst_answers"].items()
+            for cho in qst_choices
+        )
 
     elements: list[he.Element] = list()
     form_ctx: form_ctx_t = {
+        "mode": mode,
+        "sub_result": subres,
         "is_root": True,
         "exe_id": 0,
         "qst_id": 0,
@@ -76,12 +125,14 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
 
     # initialise boxes initially checked
     for cho_id in choices:
-        js += f"$('#cho_' + {cho_id}).prop('checked', true);"
-        js += f"\nmcq_on_choice_click({cho_id});"
-        js += "\nmcq_changes_done = false;"
+        js += f"\n$('#cho_' + {cho_id}).prop('checked', true);"
+        if subres is None:
+            js += f"\nmcq_on_choice_click({cho_id});"
+    js += "\nmcq_changes_done = false;"
 
     # exam mode => initiate the timer
-    if exam is not None:
+    if mode == "exam":
+        assert exam is not None
         div_timer = he.Div(
             he.Span(he.Str(""), id_="exam-timer-text"),
             id_="exam-timer"
@@ -111,40 +162,45 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
     cfg = config.CONFIG
     btns: list[
         tuple[types.static_img_t, types.txt_t, None | tuple[str], str]
-    ] = [
-        ("arrow-right",
-         "param_seq_next_question",
-         (cfg["key_qst_next"], ),
-         "mcq_move_qst_next()"),
-        #
-        ("arrow-left",
-         "param_seq_previous_question",
-         (cfg["key_qst_prev"], ),
-         "mcq_move_qst_prev()"),
-        #
-        ("switch-mode",
-         "param_seq_switch_mode",
-         (cfg["key_switch_mode"], ),
-         "mcq_switch_mode()")
-    ]
-    if exam is None:
-        btns += [
-            ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
-            ("checkmark", "word_send", None, "mcq_validate()")
-        ]
+    ] = list()
+    if mode == "view":
+        side_buttons = None
     else:
         btns += [
-            ("save", "word_send", None, "mcq_save_answers()")
+            ("arrow-right",
+             "param_seq_next_question",
+             (cfg["key_qst_next"], ),
+             "mcq_move_qst_next()"),
+            #
+            ("arrow-left",
+             "param_seq_previous_question",
+             (cfg["key_qst_prev"], ),
+             "mcq_move_qst_prev()"),
+            #
+            ("switch-mode",
+             "param_seq_switch_mode",
+             (cfg["key_switch_mode"], ),
+             "mcq_switch_mode()")
         ]
-    side_buttons = [
-        base.static_img(img, title, title_args=title_args, js=js)
-        for (img, title, title_args, js) in btns
-    ]
+        if mode != "exam":
+            btns += [
+                ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
+                ("checkmark", "word_send", None, "mcq_validate()")
+            ]
+        else:
+            btns += [
+                ("save", "word_send", None, "mcq_save_exam()")
+            ]
+        side_buttons = [
+            base.static_img(img, title, title_args=title_args, js=js)
+            for (img, title, title_args, js) in btns
+        ]
 
     # title
-    if exam is None:
+    if mode != "exam":
         title = item.itm_title
     else:
+        assert exam is not None
         title = exam.exm_title
 
     return base.page(
@@ -153,7 +209,7 @@ def page(ctx: context.Context, itm_id: int) -> fa.Response:
         body,
         title=title,
         side_buttons=side_buttons,
-        show_menu=registration is None
+        show_menu=reg is None
     )
 
 
@@ -243,14 +299,15 @@ def _gen_mcq_content(
 
 def _setup(
         ctx: context.Context,
+        mode: types.mcq_form_mode_t,
         item: tables.Item,
         exam: None | tables.Exam,
-        registration: None | tables.Registration
+        reg: None | tables.Registration
 ) -> tuple[types.mcq_content_t, list[int]]:
 
-    # in review mode we generate a new content each time the form is
-    # reloaded
-    if exam is None or registration is None:
+    # in a non exam mode we generate a new content each time the form
+    # is reloaded
+    if mode != "exam":
         return _gen_mcq_content(ctx, item), list()
 
     # in exam mode we generate the content once and save it in table
@@ -258,13 +315,12 @@ def _setup(
     # content. this guarantees that question packs always contain the
     # same questions and that questions/exercices always appear in the
     # same order
-    sub = queries.get_registration_submission(ctx.dbs, registration)
+    assert reg is not None
+    sub = queries.get_registration_submission(ctx.dbs, reg)
     if sub is not None:
-        assert sub.sub_exm_content is not None
-        content = tp.cast(types.mcq_content_t, json.loads(sub.sub_exm_content))
+        content = tp.cast(types.mcq_content_t, json.loads(sub.sub_content))
         choices = [
-            c.itm_id
-            for c in queries.get_submission_choices(ctx.dbs, sub)
+            c.itm_id for c in queries.get_submission_choices(ctx.dbs, sub)
         ]
     else:
         content = _gen_mcq_content(ctx, item)
@@ -272,8 +328,8 @@ def _setup(
         exs = tables.Submission(
             sub_type=types.SUBMISSION_TYPE_EXAM,
             sub_date=datetime.datetime.now(),
-            sub_exm_content=json.dumps(content),
-            sub_exm_registration=registration.reg_id,
+            sub_content=json.dumps(content),
+            sub_exm_registration=reg.reg_id,
             sub_exm_date_update=datetime.datetime.now()
         )
         ctx.dbs.add(exs)
@@ -291,10 +347,21 @@ def _form_question(
     form_ctx["qst_id"] = item.itm_id
     form_ctx["qst_num"] += 1
 
+    # question label and status
     box_status = he.Div(
         id_=f"qst_{item.itm_id}_status",
-        class_="status-box status-box-question status-unfilled"
+        class_="status-box status-box-question"
     )
+    subres = form_ctx["sub_result"]
+    if subres is None or len(subres["qst_answers"][item]) == 0:
+        status = "unfilled"
+    elif subres["qst_score"][item] <= 0:
+        status = "wrong"
+    elif subres["qst_score"][item] == subres["qst_max_score"][item]:
+        status = "correct"
+    else:
+        status = "partially-correct"
+    js = f"mcq_set_qst_status({item.itm_id}, '{status}')"
     lbl = lang.txt("word_question").title() + " " + str(form_ctx["qst_num"])
     if item.itm_title is not None:
         lbl = f"{lbl} - {item.itm_title}"
@@ -303,14 +370,13 @@ def _form_question(
         id_=f"qst_{item.itm_id}_label",
         class_="question-number"
     )
-    tbl_status = he.Table(he.Tr(he.Td(box_status), he.Td(lbl_status)))
+    tbl_status = he.mktable([[box_status, lbl_status]])
 
     # generate choices
     cho_list = list(queries.get_children(ctx.dbs, item.itm_id))
     form_ctx["content"][form_ctx["exe_id"]][form_ctx["qst_id"]] = [
         int(cho.itm_id) for cho in cho_list
     ]
-
     if item.itm_rnd:
         cho_list_first = [cho for cho in cho_list if not cho.itm_cho_last]
         cho_list_last = [cho for cho in cho_list if cho.itm_cho_last]
@@ -340,12 +406,19 @@ def _form_question(
             type_=box_type,
             name=box_name,
             class_="choice-input"
+        ).add_flag(
+            "disabled", subres is not None
         )
         label = he.Label(img, for_=box_id)
         result_box = he.Div(
             id_=f"cho_{cho.itm_id}_status",
             class_="status-box status-box-choice"
         )
+        if subres is not None:
+            if subres["cho_correct"].get(cho, not cho.itm_cho_correct):
+                js += f"\nmcq_set_cho_status({cho.itm_id}, 'correct')"
+            else:
+                js += f"\nmcq_set_cho_status({cho.itm_id}, 'wrong')"
         trs.append([result_box, box, label])
 
     iti = queries.get_item_instance(ctx.dbs, item.itm_id, iti_num)
@@ -359,6 +432,7 @@ def _form_question(
     div_body = he.Div(
         img,
         he.mktable(trs),
+        he.Script(js),
         id_=f"qst_{item.itm_id}_body",
         class_="question-body"
     )

@@ -5,17 +5,15 @@ router = fa.APIRouter()
 
 
 @router.get("/mcq/page/form")
-def page_form(req: fa.Request, mcq_id: int) -> fa.Response:
+def page_form(
+        req: fa.Request,
+        mode: types.mcq_form_mode_t,
+        itm_id: None | int = None,
+        sub_id: None | int = None
+) -> fa.Response:
     from .page import form
     with context.Context(req) as ctx:
-        return form.page(ctx, mcq_id)
-
-
-@router.post("/mcq/oper/correction")
-def oper_correction(req: fa.Request, args: types.args_oper_t) -> fa.Response:
-    from .oper import correction
-    with context.Context(req) as ctx:
-        return correction.data(ctx, args)
+        return form.page(ctx, mode, itm_id, sub_id)
 
 
 @router.post("/mcq/oper/save")

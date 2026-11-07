@@ -1,5 +1,4 @@
 import io
-import re
 import shutil
 import subprocess
 import sqlite3
@@ -582,7 +581,8 @@ class Project:
         with zipfile.ZipFile(path, "w") as zf:
             for entry in pdf_dir.iterdir():
                 if entry.is_file() and entry.suffix == ".pdf":
-                    zf.write(entry, arcname=self.pcode / entry)
+                    arcname = Path(self.pcode) / entry.name
+                    zf.write(entry, arcname=arcname)
 
     def get_file(self, f: str) -> None | tuple[Path, str]:
         path = self.path(f)
@@ -881,7 +881,8 @@ class Project:
             self.source_type = "tex"
         else:
             return "err_project_invalid_source"
-        if Path(self.fpath("source")).is_file():
-            shutil.rmtree(self.fpath("source"))
-        os.link(src, self.fpath("source"))
+        path_source = Path(self.fpath("source"))
+        if path_source.is_file() or path_source.is_symlink():
+            path_source.unlink()
+        os.symlink(src, self.fpath("source"))
         return "succ"

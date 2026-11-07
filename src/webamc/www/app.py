@@ -128,7 +128,6 @@ async def page_index(req: fa.Request) -> fa.Response:
         # active exam => redirect to the mcq page
         registration = session.active_registration(ctx)
         if registration is not None:
-            _, exam = registration
-            url = base.mkuri("/mcq/page/form", mcq_id=exam.exm_mcq)
+            url = base.mkuri("/mcq/page/form", mode="exam")
             return fa.responses.RedirectResponse(url)
         return index.page(ctx)

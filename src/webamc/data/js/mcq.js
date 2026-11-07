@@ -28,13 +28,28 @@ var mcq_content;
 
 const mcq_set_status = function (html_id, status = null) {
     const elem = $('#' + html_id)
-        .removeClass('status-wrong')
-        .removeClass('status-correct')
-        .removeClass('status-unfilled')
-        .removeClass('status-filled');
+          .removeClass('status-wrong')
+          .removeClass('status-partially-correct')
+          .removeClass('status-correct')
+          .removeClass('status-unfilled')
+          .removeClass('status-filled')
+    ;
     if(status != null) {
         elem.addClass('status-' + status);
     }
+}
+
+
+const mcq_set_qst_status = function (qst_id, status) {
+    const html_id = 'qst_' + qst_id + '_status';
+    mcq_set_status(html_id, status);
+    mcq_set_status(html_id + '_rule', status);
+}
+
+
+const mcq_set_cho_status = function (cho_id, status) {
+    const html_id = 'cho_' + cho_id + '_status';
+    mcq_set_status(html_id, status);
 }
 
 
@@ -43,7 +58,7 @@ const mcq_collect_answers = function () {
         'itm_id': parseInt($('#itm_id').val()),
 	'choices': {},
 	'questions': {},
-        'content': mcq_content
+        'sub_content': mcq_content
     };
     for(let qst_id in mcq_qst_content) {
 	result['questions'][qst_id] = {};
@@ -57,32 +72,20 @@ const mcq_collect_answers = function () {
 }
 
 
-const mcq_post_form = function () {
-    const success = function (result) {
-        for(const [cho_id, correct] of Object.entries(result.result.cho)) {
-            const html_id = 'cho_' + cho_id + '_status';
-            const status = correct ? 'correct' : 'wrong';
-            mcq_set_status(html_id, status);
-        }
-        for(const [qst_id, correct] of Object.entries(result.result.qst)) {
-            const html_id = 'qst_' + qst_id + '_status';
-            const status = correct ? 'correct' : 'wrong';
-            mcq_set_status(html_id, status);
-            mcq_set_status(html_id + '_rule', status);
-        }
-        $('.choice-input').prop('disabled', true);
-        $('#btn-validate_mcq').hide();
-        mcq_set_mode(mcq_mode_all);
+const mcq_save_review = function () {
+    const go = function () {
+        const success = function (result) {
+            const url = Constants.path_mcq_page_form
+                  + '?mode=view'
+                  + '&sub_id=' + result['result']['sub_id'];
+            ;
+            base_relocate(url);
+        };
+        const url = Constants.path_mcq_oper_save;
+        const data = mcq_collect_answers();
+        xhr_post_oper(url, data, success);
     };
-    const data = mcq_collect_answers();
-    const url = Constants.path_mcq_oper_correction
-          + '?itm_id=' + data['itm_id'];
-    xhr_post_oper(url, data, success);
-}
-
-
-const mcq_validate = function () {
-    base_ask_confirmation(Lang['qst_confirmation_mcq_form'], mcq_post_form);
+    base_ask_confirmation(Lang['qst_confirmation_mcq_form'], go);
 }
 
 
@@ -113,8 +116,7 @@ const mcq_reset_all = function () {
 
 const mcq_reset_question = function (qst_id) {
     if($('#qst_' + qst_id + '_status').hasClass('status-filled')) {
-        mcq_set_status('qst_' + qst_id + '_status', 'unfilled');
-        mcq_set_status('qst_' + qst_id + '_status_rule', 'unfilled');
+        mcq_set_qst_status(qst_id, correct ? 'correct' : 'unfilled');
         for(cho_id of mcq_qst_content[qst_id]) {
             $('#cho_' + cho_id).prop('checked', false);
         }
@@ -130,8 +132,7 @@ const mcq_on_choice_click = function (cho_id) {
             const status = cho_ids.every(function (x) {
                 return !$('#cho_' + x).is(':checked');
             }) ? 'unfilled' : 'filled';
-            mcq_set_status('qst_' + qst_id + '_status', status);
-            mcq_set_status('qst_' + qst_id + '_status_rule', status);
+            mcq_set_qst_status(qst_id, status);
         }
     }
 }
@@ -319,7 +320,7 @@ const mcq_init_timer = function (sec_duration, end_time) {
                 };
                 base_report_infos([Lang['info_exam_finished']], send_finish);
             };
-            mcq_save_answers(finish);
+            mcq_save_exam(finish);
             return false;
 	}
 
@@ -347,7 +348,7 @@ const mcq_init_timer = function (sec_duration, end_time) {
 };
 
 
-const mcq_save_answers = function(callback = null) {
+const mcq_save_exam = function(callback = null) {
     if(mcq_changes_done) {
         mcq_changes_done = false;
         const data = mcq_collect_answers();
@@ -363,5 +364,5 @@ const mcq_save_answers = function(callback = null) {
 
 
 const mcq_init_save_timer = function () {
-    setInterval(mcq_save_answers, Constants.exam_autosave_period * 1000);    
+    setInterval(mcq_save_exam, Constants.exam_autosave_period * 1000);    
 }

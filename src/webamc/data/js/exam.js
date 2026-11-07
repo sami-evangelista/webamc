@@ -97,3 +97,15 @@ const exam_unregister = function () {
 	base_ask_confirmation(question, go);
     }
 }
+
+
+const exam_view_submission = function (sub_id) {
+    if(sub_id != null) {
+        const url =
+              Constants.path_mcq_page_form 
+              + '?mode=view' 
+              + '&sub_id=' + sub_id
+        ;
+        window.open(url, '_blank').focus();
+    }
+}

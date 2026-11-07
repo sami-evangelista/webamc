@@ -3,6 +3,7 @@
     --color-status-rule-border: #000000;
     --color-status-wrong: red;
     --color-status-correct: green;
+    --color-status-partially-correct: orange;
     --color-status-unfilled: lightgray;
     --color-status-filled: blue;
     --color-status-current: yellow;
@@ -43,6 +44,9 @@
 }
 .status-correct {
     background-color: var(--color-status-correct);
+}
+.status-partially-correct {
+    background-color: var(--color-status-partially-correct);
 }
 .status-unfilled {
     background-color: var(--color-status-unfilled);

@@ -817,7 +817,7 @@ class Submission(Base):
         ct.DateTime,
         nullable=False
     )
-    sub_exm_content: Mapped[str | None] = mapped_column(
+    sub_content: Mapped[str] = mapped_column(
         ct.String
     )
     sub_exm_registration: Mapped[int | None] = mapped_column(
