@@ -255,3 +255,21 @@ const base_launch_computation = async function (comp) {
         base_wait_modal = null;
     }
 }
+
+
+const base_encode_url = function (base, args = null)  {
+    let result = base;
+    let fst = true;
+    if(args != null) {
+        for(const [key, val] of Object.entries(args)) {
+            if(fst) {
+                result += '?';
+            } else {
+                result += '&';
+            }
+            result += encodeURIComponent(key) + '=' + encodeURIComponent(val);
+            fst = false;
+        }
+    }
+    return result;
+}

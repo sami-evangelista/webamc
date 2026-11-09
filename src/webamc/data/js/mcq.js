@@ -75,11 +75,11 @@ const mcq_collect_answers = function () {
 const mcq_save_review = function () {
     const go = function () {
         const success = function (result) {
-            const url = Constants.path_mcq_page_form
-                  + '?mode=view'
-                  + '&sub_id=' + result['result']['sub_id'];
-            ;
-            base_relocate(url);
+            const args = {
+                'mode': 'view',
+                'sub_id': result['result']['sub_id']
+            };
+            base_relocate(base_encode_url(Constants.path_mcq_page_form, args));
         };
         const url = Constants.path_mcq_oper_save;
         const data = mcq_collect_answers();

@@ -101,11 +101,20 @@ const exam_unregister = function () {
 
 const exam_view_submission = function (sub_id) {
     if(sub_id != null) {
-        const url =
-              Constants.path_mcq_page_form 
-              + '?mode=view' 
-              + '&sub_id=' + sub_id
-        ;
+        const args = {
+            'mode': 'view',
+            'sub_id': sub_id
+        };
+        const url = base_encode_url(Constants.path_mcq_page_form, args);
         window.open(url, '_blank').focus();
     }
+}
+
+
+const exam_publish = function (exm_id) {
+    const data = {
+        'exm_id': base_input_value('exm_id')
+    };
+    const url = Constants.path_exam_oper_publish_scores;
+    xhr_post_oper(url, data);
 }

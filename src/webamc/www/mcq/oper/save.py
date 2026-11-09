@@ -13,8 +13,8 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         sub = queries.get_registration_submission(ctx.dbs, reg)
         assert sub is not None
 
-        # set submission update to now and delete old answers
-        sub.sub_exm_date_update = datetime.datetime.now()
+        # update submission date to now and delete old answers
+        sub.sub_date_update = datetime.datetime.now()
         ctx.dbs.query(
             tables.Answer
         ).where(
@@ -25,21 +25,23 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         # reading the content of the exam from the database and
         # overwrite the one we received from in the request, for
         # security
-        args["sub_content"] = json.loads(sub.sub_content)
+        args["sub_content"] = types.check_mcq_content(sub.sub_content)
 
     # no active registration => review mode
     else:
 
         itm_id = args["itm_id"]
         session.check_can_view_mcq(ctx, itm_id)
-        usr_id = session.usr_id(ctx)
 
         # create review submission linked to user and mcq
+        now = datetime.datetime.now()
         sub = tables.Submission(
             sub_type=types.SUBMISSION_TYPE_REVIEW,
-            sub_date=datetime.datetime.now(),
-            sub_content=args["sub_content"],
-            sub_rev_usr=usr_id,
+            sub_date=now,
+            sub_date_update=now,
+            sub_visible=True,
+            sub_content=json.dumps(args["sub_content"]),
+            sub_rev_usr=session.usr_id(ctx),
             sub_rev_mcq=itm_id
         )
         ctx.dbs.add(sub)

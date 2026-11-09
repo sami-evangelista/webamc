@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.www.exam import router
+from webamc.www.exam import util
 from webamc.db import queries, tables
 
 
@@ -7,7 +7,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     exm_id = args["exm_id"]
     grp_id = args["grp_id"]
     usr_id = args["usr_id"]
-    _, exam = router._get_exam(ctx, exm_id)
+    exam = util.get_exam(ctx, exm_id)[1]
     to_register: set[int] = set()
     if grp_id is not None:
         query = ctx.dbs.query(
@@ -51,7 +51,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         )
         ctx.dbs.add(reg)
     added = len(to_register) - len(prev)
-    txt = lang.txt("param_seq_registrations_done", str(added))
+    txt = lang.txt("exam_param_registrations_done", str(added))
     response = {
         "success": True,
         "msgs": [txt],

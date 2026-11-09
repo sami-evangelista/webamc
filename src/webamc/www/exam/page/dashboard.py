@@ -46,13 +46,15 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         tds: list[he.Element] = list()
 
         if row["sub_result"] is None:
-            usr_status: types.exam_usr_status_t = "not-started"
+            if exam_status == "finished":
+                usr_status: types.exam_usr_status_t = "absent"
+            else:
+                usr_status = "not-started"
         else:
             sub = row["sub_result"]["sub"]
-            assert sub.sub_exm_date_update is not None
             if exam_status == "finished":
                 usr_status = "finished"
-            elif now - sub.sub_exm_date_update > five_min:
+            elif now - sub.sub_date_update > five_min:
                 usr_status = "inactive"
             else:
                 usr_status = "online"
@@ -76,7 +78,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             types.txt_t,
             f"exam_usr_status_{usr_status.replace('-', '_')}"
         )
-        cls_status = f"usr-status-{usr_status}"
+        cls_status = f"exam-usr-status-{usr_status}"
         span_status = he.Span(he.Txt(txt_status), class_=cls_status)
 
         # progress bar
@@ -261,6 +263,12 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         "doc-table",
         "exam_export_scores",
         href=f"../oper/export-scores?exm_id={exm_id}"
+    )
+    buttons.append(btn)
+    btn = base.static_img(
+        "inbox-push",
+        "exam_publish_scores",
+        js=f"exam_publish({exm_id})"
     )
     buttons.append(btn)
     trs.append([he.Txt("word_actions"), he.ElementList(*buttons)])

@@ -31,6 +31,10 @@ submission_type_t = tp.Literal[0, 1]
 SUBMISSION_TYPE_EXAM: submission_type_t = 0
 SUBMISSION_TYPE_REVIEW: ticket_type_t = 1
 
+message_type_t = tp.Literal[0, 1]
+MESSAGE_TYPE_FILE: message_type_t = 0
+MESSAGE_TYPE_SUBMISSION: message_type_t = 1
+
 pack_op_t = tp.Literal[
     "all",
     "by-tag",
@@ -55,6 +59,7 @@ exam_status_t = tp.Literal[
 ]
 
 exam_usr_status_t = tp.Literal[
+    "absent",
     "inactive",
     "not-started",
     "online",
@@ -97,6 +102,15 @@ def check_pack_spec(spec: str) -> pack_spec_t:
     except (ValidationError, json.decoder.JSONDecodeError) as ex:
         raise ValueError from ex
     return tp.cast(pack_spec_t, parsed)
+
+
+def check_mcq_content(spec: str) -> mcq_content_t:
+    try:
+        parsed = json.loads(spec)
+        TypeAdapter(mcq_content_t).validate_python(parsed)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        raise ValueError from ex
+    return tp.cast(mcq_content_t, parsed)
 
 
 def check_item_mdata(mdata: str) -> item_mdata_t:

@@ -2,23 +2,27 @@
     --color-usr-status-online: green;
     --color-usr-status-inactive: orange;
     --color-usr-status-not-started: red;
-    --color-usr-status-finished: #666666;
+    --color-usr-status-finished: green;
+    --color-usr-status-absent: #666666;
     --color-exam-status-upcoming: blue;
     --color-exam-status-in-progress: green;
     --color-exam-status-finished: #666666;
 }
 
-.usr-status-online {
+.exam-usr-status-online {
     color: var(--color-usr-status-online);
 }
-.usr-status-not-started {
+.exam-usr-status-not-started {
     color: var(--color-usr-status-not-started);
 }
-.usr-status-inactive {
+.exam-usr-status-inactive {
     color: var(--color-usr-status-inactive);
 }
-.usr-status-finished {
+.exam-usr-status-finished {
     color: var(--color-usr-status-finished);
+}
+.exam-usr-status-absent {
+    color: var(--color-usr-status-absent);
 }
 .exam-status-upcoming {
     color: var(--color-exam-status-upcoming);

@@ -7,6 +7,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
 from webamc.www.all import *
+from webamc.www.exam import util
 from webamc.db import queries
 
 
@@ -26,7 +27,7 @@ CHAR_WIDTH_MULT = 1.6
 def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
 
     # get exam data
-    exam = queries.get_exam(ctx.dbs, exm_id)
+    exam = util.get_exam(ctx, exm_id)[1]
     exam_result = list(queries.get_exam_result(ctx.dbs, exm_id))
 
     # init excel file
@@ -127,23 +128,24 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         ]
         if exm_row["sub_result"] is not None:
             items = exm_row["sub_result"]["items"]
-            qst_max_score = exm_row["sub_result"]["qst_max_score"]
-            qst_score = exm_row["sub_result"]["qst_score"]
+            max_score = exm_row["sub_result"]["max_score"]
             qst_answers = exm_row["sub_result"]["qst_answers"]
-            max_score = sum(qst_max_score.values())
+            score = exm_row["sub_result"]["score"]
+            exm_score = max_score[
+                next(i for i in max_score if i.itm_id == exam.exm_mcq)
+            ]
             row.append(f"=SUM({fst_qst_col}{row_idx}:{last_qst_col}{row_idx})")
-            row.append(max_score)
+            row.append(exm_score)
         else:
             items = set()
-            qst_max_score = dict()
-            qst_score = dict()
+            max_score = dict()
+            score = dict()
             qst_answers = dict()
-            row.append("")
+            row.append(lang.txt("exam_usr_status_absent"))
             row.append("")
         for qst in questions:
-            if qst in qst_score:
-                score = max(0, qst_score[qst])
-                row.append(score)
+            if qst in score and len(qst_answers[qst]) > 0:
+                row.append(score[qst])
             else:
                 row.append("")
         ws.append(row)
@@ -163,7 +165,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         # answer
         for i, qst in enumerate(questions, start=1):
             col_idx = i + COL_IDX_QUESTION_START
-            if qst in items and len(qst_answers) == 0:
+            if qst in items and len(qst_answers[qst]) == 0:
                 ws.cell(row=row_idx, column=col_idx).fill = no_answer_fill
 
     # adjust column widths containing names, first name, ...

@@ -54,7 +54,7 @@ def page(ctx: context.Context, filters: dict[str, tp.Any]) -> fa.Response:
     elements = [div_item(ctx, item, None, None) for item in items]
 
     if not filters.get("display_num_found", True):
-        p = he.P(he.Str("&nbsp;", escape=False))
+        p = he.P(he.nbsp)
     else:
         p = he.P(he.Txt("param_seq_items_found", str(len(elements))))
 

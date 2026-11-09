@@ -25,6 +25,7 @@ static_img_t = tp.Literal[
     "help",
     "home",
     "inbox",
+    "inbox-push",
     "mail",
     "mcq",
     "menu",
@@ -59,6 +60,7 @@ path_t = tp.Literal[
     "/exam/page/main",
     "/exam/page/dashboard",
     "/exam/oper/export-scores",
+    "/exam/oper/publish-scores",
     "/exam/oper/register",
     "/help",
     "/img",
@@ -174,8 +176,8 @@ sub_page_t = tp.Literal[
 ]
 
 mcq_form_mode_t = tp.Literal[
-    "review",
     "exam",
+    "review",
     "view"
 ]
 

@@ -26,8 +26,14 @@ def page(
     item: tables.Item
     exam: tables.Exam | None = None
     reg: tables.Registration | None = None
+    sub: tables.Submission | None = None
+    subres: queries.submission_result_t | None = None
 
+
+    ###
     # check parameters and rights
+    ###
+
     if mode == "review":
         if itm_id is None:
             raise fa.HTTPException(status_code=422)
@@ -48,9 +54,13 @@ def page(
         sub, reg, exam = queries.get_submission(ctx.dbs, sub_id)
         if not (
                 sub.sub_rev_usr == usr_id
-                or (reg is not None and reg.reg_usr == usr_id)
-                or (sub.sub_rev_mcq is not None and owns(sub.sub_rev_mcq))
-                or (exam is not None and owns(exam.exm_mcq))
+                or (reg is not None
+                    and sub.sub_visible
+                    and reg.reg_usr == usr_id)
+                or (sub.sub_rev_mcq is not None
+                    and owns(sub.sub_rev_mcq))
+                or (exam is not None
+                    and owns(exam.exm_mcq))
         ):
             raise fa.HTTPException(status_code=403)
         if sub.sub_rev_mcq is not None:
@@ -65,21 +75,59 @@ def page(
     # get item
     item = queries.get_item(ctx.dbs, itm_id)
 
-    # setup and generate the content
-    content, choices = _setup(ctx, mode, item, exam, reg)
 
-    # in view mode get submission result
-    if mode != "view":
-        subres = None
-    else:
-        if sub_id is None:
-            raise fa.HTTPException(status_code=422)
+    ###
+    # compute form content and choices initially checked
+    ###
+
+    # in review mode we generate a new content. no choices checked
+    if mode == "review":
+        content = _gen_mcq_content(ctx, item)
+        choices = list()
+
+    # in view mode we get content and choices from the submission
+    elif mode == "view":
+        assert sub_id is not None
+        assert sub is not None
         subres = queries.get_submission_result(ctx.dbs, sub_id)
         choices = list(
             cho.itm_id
             for qst, qst_choices in subres["qst_answers"].items()
             for cho in qst_choices
         )
+        content = types.check_mcq_content(sub.sub_content)
+
+    # in exam mode we generate the content once and save it in table
+    # Submission. then, if the page is reloaded we recover the
+    # content. this guarantees that question packs always contain the
+    # same questions and that questions/exercices always appear in the
+    # same order
+    elif mode == "exam":
+        assert reg is not None
+        sub = queries.get_registration_submission(ctx.dbs, reg)
+        if sub is not None:
+            content = types.check_mcq_content(sub.sub_content)
+            choices = [
+                c.itm_id for c in queries.get_submission_choices(ctx.dbs, sub)
+            ]
+        else:
+            content = _gen_mcq_content(ctx, item)
+            choices = list()
+            now = datetime.datetime.now()
+            exs = tables.Submission(
+                sub_type=types.SUBMISSION_TYPE_EXAM,
+                sub_date=now,
+                sub_date_update=now,
+                sub_visible=False,
+                sub_content=json.dumps(content),
+                sub_exm_registration=reg.reg_id
+            )
+            ctx.dbs.add(exs)
+
+
+    ###
+    # now we can generate elements of the page 
+    ###
 
     elements: list[he.Element] = list()
     form_ctx: form_ctx_t = {
@@ -163,53 +211,50 @@ def page(
     btns: list[
         tuple[types.static_img_t, types.txt_t, None | tuple[str], str]
     ] = list()
-    if mode == "view":
-        side_buttons = None
-    else:
+    btns += [
+        ("arrow-right",
+         "mcq_param_next_question",
+         (cfg["key_qst_next"], ),
+         "mcq_move_qst_next()"),
+        #
+        ("arrow-left",
+         "mcq_param_prev_question",
+         (cfg["key_qst_prev"], ),
+         "mcq_move_qst_prev()"),
+        #
+        ("switch-mode",
+         "mcq_param_switch_mode",
+         (cfg["key_switch_mode"], ),
+         "mcq_switch_mode()")
+    ]
+    if mode == "exam":
         btns += [
-            ("arrow-right",
-             "param_seq_next_question",
-             (cfg["key_qst_next"], ),
-             "mcq_move_qst_next()"),
-            #
-            ("arrow-left",
-             "param_seq_previous_question",
-             (cfg["key_qst_prev"], ),
-             "mcq_move_qst_prev()"),
-            #
-            ("switch-mode",
-             "param_seq_switch_mode",
-             (cfg["key_switch_mode"], ),
-             "mcq_switch_mode()")
+            ("save", "word_send", None, "mcq_save_exam()")
         ]
-        if mode != "exam":
-            btns += [
-                ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
-                ("checkmark", "word_send", None, "mcq_validate()")
-            ]
-        else:
-            btns += [
-                ("save", "word_send", None, "mcq_save_exam()")
-            ]
-        side_buttons = [
-            base.static_img(img, title, title_args=title_args, js=js)
-            for (img, title, title_args, js) in btns
+    elif mode == "review":
+        btns += [
+            ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
+            ("checkmark", "word_send", None, "mcq_save_review()")
         ]
+    side_buttons = [
+        base.static_img(img, title, title_args=title_args, js=js)
+        for (img, title, title_args, js) in btns
+    ]
 
     # title
-    if mode != "exam":
+    if exam is None:
         title = item.itm_title
     else:
-        assert exam is not None
         title = exam.exm_title
 
+    show_menu = mode != "exam"
     return base.page(
         ctx,
         "mcq",
         body,
         title=title,
         side_buttons=side_buttons,
-        show_menu=reg is None
+        show_menu=show_menu
     )
 
 
@@ -297,46 +342,6 @@ def _gen_mcq_content(
     return result
 
 
-def _setup(
-        ctx: context.Context,
-        mode: types.mcq_form_mode_t,
-        item: tables.Item,
-        exam: None | tables.Exam,
-        reg: None | tables.Registration
-) -> tuple[types.mcq_content_t, list[int]]:
-
-    # in a non exam mode we generate a new content each time the form
-    # is reloaded
-    if mode != "exam":
-        return _gen_mcq_content(ctx, item), list()
-
-    # in exam mode we generate the content once and save it in table
-    # Submission. then, if the page is reloaded we recover the
-    # content. this guarantees that question packs always contain the
-    # same questions and that questions/exercices always appear in the
-    # same order
-    assert reg is not None
-    sub = queries.get_registration_submission(ctx.dbs, reg)
-    if sub is not None:
-        content = tp.cast(types.mcq_content_t, json.loads(sub.sub_content))
-        choices = [
-            c.itm_id for c in queries.get_submission_choices(ctx.dbs, sub)
-        ]
-    else:
-        content = _gen_mcq_content(ctx, item)
-        choices = list()
-        exs = tables.Submission(
-            sub_type=types.SUBMISSION_TYPE_EXAM,
-            sub_date=datetime.datetime.now(),
-            sub_content=json.dumps(content),
-            sub_exm_registration=reg.reg_id,
-            sub_exm_date_update=datetime.datetime.now()
-        )
-        ctx.dbs.add(exs)
-    result = (content, choices)
-    return result
-
-
 def _form_question(
         ctx: context.Context,
         item: tables.Item,
@@ -355,9 +360,9 @@ def _form_question(
     subres = form_ctx["sub_result"]
     if subres is None or len(subres["qst_answers"][item]) == 0:
         status = "unfilled"
-    elif subres["qst_score"][item] <= 0:
+    elif subres["score"][item] <= 0:
         status = "wrong"
-    elif subres["qst_score"][item] == subres["qst_max_score"][item]:
+    elif subres["score"][item] == subres["max_score"][item]:
         status = "correct"
     else:
         status = "partially-correct"
@@ -365,12 +370,25 @@ def _form_question(
     lbl = lang.txt("word_question").title() + " " + str(form_ctx["qst_num"])
     if item.itm_title is not None:
         lbl = f"{lbl} - {item.itm_title}"
-    lbl_status = he.Span(
+    span_status = he.Span(
         he.Str(lbl),
         id_=f"qst_{item.itm_id}_label",
         class_="question-number"
     )
-    tbl_status = he.mktable([[box_status, lbl_status]])
+    tds = [
+        he.Td(box_status, style="vertical-align: middle"),
+        he.Td(span_status, style="vertical-align: middle")
+    ]
+    if subres is not None:
+        score = (
+            str(subres["score"][item])
+            + " / " + str(subres["max_score"][item])
+        )
+        span_score = he.Span(he.Str(score), class_="mcq-score-box")
+        tds.append(
+            he.Td(he.nbsp, span_score, style="vertical-align: middle")
+        )
+    tbl_status = he.Table(he.Tr(*tds))
 
     # generate choices
     cho_list = list(queries.get_children(ctx.dbs, item.itm_id))
@@ -407,7 +425,7 @@ def _form_question(
             name=box_name,
             class_="choice-input"
         ).add_flag(
-            "disabled", subres is not None
+            "disabled", form_ctx["mode"]=="view"
         )
         label = he.Label(img, for_=box_id)
         result_box = he.Div(
@@ -451,6 +469,8 @@ def _form_exercise(
         children: tp.Sequence[types.mcq_content_t],
         form_ctx: form_ctx_t
 ) -> he.Element:
+
+    subres = form_ctx["sub_result"]
     form_ctx["exe_id"] = item.itm_id
     form_ctx["content"][item.itm_id] = dict()
     is_root = form_ctx["is_root"]
@@ -496,13 +516,27 @@ def _form_exercise(
         id_=f"exe_{item.itm_id}_label",
         class_="exercise-title"
     )
+    if subres is None:
+        element_title: he.Element = span_title
+    else:
+        score = (
+            str(subres["score"][item])
+            + " / " + str(subres["max_score"][item])
+        )
+        span_score = he.Span(he.Str(score), class_="mcq-score-box")
+        element_title = he.Table(
+            he.Tr(
+                he.Td(span_title, style="valign: middle"),
+                he.Td(he.nbsp, span_score, style="valign: middle")
+            )
+        )
     div_body = he.Div(
         *exercise_elements,
         id_=f"exe_{item.itm_id}_body",
         class_="exercise-body"
     )
     result = he.Div(
-        span_title,
+        element_title,
         div_body,
         id_=f"exe_{item.itm_id}",
         class_="exercise"

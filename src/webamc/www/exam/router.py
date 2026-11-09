@@ -1,24 +1,7 @@
 from webamc.www.all import *
-from webamc.db import queries, tables
 
 
 router = fa.APIRouter()
-
-
-def _get_exam(
-        ctx: context.Context,
-        exm_id: int
-) -> tuple[tables.Item, tables.Exam]:
-    result = next(
-        (item_exam
-         for item_exam in queries.get_usr_exams(
-                 ctx.dbs, session.usr_id(ctx)
-         )
-         if item_exam[1].exm_id == exm_id), None
-    )
-    if result is None:
-        raise fa.HTTPException(status_code=403)
-    return result
 
 
 @router.get("/exam/oper/export-scores")
@@ -36,6 +19,16 @@ def oper_register(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .oper import register
     with context.Context(req) as ctx:
         return register.data(ctx, args)
+
+
+@router.post("/exam/oper/publish-scores")
+def oper_publish_scores(
+        req: fa.Request,
+        args: types.args_oper_t
+) -> fa.Response:
+    from .oper import publish_scores
+    with context.Context(req) as ctx:
+        return publish_scores.data(ctx, args)
 
 
 @router.post("/exam/page/dashboard")

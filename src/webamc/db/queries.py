@@ -11,9 +11,9 @@ class submission_result_t(tp_ext.TypedDict):
     sub: tables.Submission
     items: set[tables.Item]  # all items that appear in the submission
     qst_answers: dict[tables.Item, set[tables.Item]]  # choices made for a qst
-    qst_score: dict[tables.Item, int]  # score for each question
-    qst_max_score: dict[tables.Item, int]  # max score for each question
+    max_score: dict[tables.Item, int]  # max score for each item
     cho_correct: dict[tables.Item, bool]  # correct choices
+    score: dict[tables.Item, int]  # score for each item
 class exam_usr_result_t(tp_ext.TypedDict):
     usr: tables.Usr
     reg: tables.Registration
@@ -649,29 +649,52 @@ def get_submissions_result(
                 "sub": sub,
                 "items": set(),
                 "qst_answers": dict(),
-                "qst_score": dict(),
-                "qst_max_score": dict(),
-                "cho_correct": dict()
+                "max_score": dict(),
+                "cho_correct": dict(),
+                "score": dict()
             }
         result_sub = result[sub.sub_id]
         result_sub["items"].add(item)
+        result_sub["score"].setdefault(item, 0)
+        result_sub["max_score"].setdefault(item, 0)
         if item.itm_type == types.ITEM_TYPE_QUESTION:
             result_sub["qst_answers"].setdefault(item, set())
-            result_sub["qst_score"].setdefault(item, 0)
-            max_score = sum(1 for c in qst_choices[item] if c.itm_cho_correct)
-            result_sub["qst_max_score"][item] = max_score
+            result_sub["max_score"][item] = sum(
+                1 for c in qst_choices[item] if c.itm_cho_correct
+            )
         elif item.itm_type == types.ITEM_TYPE_CHOICE:
             # itm_parent is the question of the choice
             assert item_parent is not None
             result_sub["qst_answers"].setdefault(item_parent, set())
             result_sub["qst_answers"][item_parent].add(item)
-            result_sub["qst_score"].setdefault(item_parent, 0)
+            result_sub["score"].setdefault(item_parent, 0)
             if item.itm_cho_correct:
-                result_sub["qst_score"][item_parent] += 1
+                result_sub["score"][item_parent] += 1
                 result_sub["cho_correct"][item] = True
             else:
-                result_sub["qst_score"][item_parent] -= 1
+                result_sub["score"][item_parent] -= 1
                 result_sub["cho_correct"][item] = False
+
+    # negative scores are changed to 0
+    for sub_id, subres in result.items():
+        for item, item_score in subres["score"].items():
+            subres["score"][item] = max(0, item_score)
+
+    # compute exercise scores
+    for sub_id, subres in result.items():
+        def loop(content: types.mcq_content_t) -> tuple[int, int]:
+            item = next(
+                i for i in subres["items"] if i.itm_id == content["itm_id"]
+            )
+            if content["children"] is not None:
+                for c in content["children"]:
+                    s, ms = loop(c)
+                    score[item] += s
+                    max_score[item] += ms
+            return score[item], max_score[item]
+        score = subres["score"]
+        max_score = subres["max_score"]
+        loop(types.check_mcq_content(result[sub_id]["sub"].sub_content))
 
     return result
 

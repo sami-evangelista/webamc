@@ -270,7 +270,7 @@ def file_name(f: types.file_t) -> str:
 
 
 def file_txt(f: types.file_t) -> types.txt_t:
-    result = tp.cast(types.txt_t, f"seq_project_file_{f}")
+    result = tp.cast(types.txt_t, f"project_file_{f}")
     assert result in types.literal_type_values(types.txt_t)
     return result
 
@@ -747,12 +747,13 @@ class Project:
                 name = fmt.fmt_name(dest_usr.usr_fst_name, dest_usr.usr_name)
                 filename = f"{self.pcode}_{name.replace(' ', '')}.pdf"
                 msg = tables.Message(
+                    msg_type=types.MESSAGE_TYPE_FILE,
                     msg_title=self.get_title(),
                     msg_code=self.pcode,
                     msg_from=from_usr.usr_id,
                     msg_to=dest_usr.usr_id,
-                    msg_file=f.read_bytes(),
-                    msg_filename=filename
+                    msg_file_content=f.read_bytes(),
+                    msg_file_name=filename
                 )
                 self.dbs.add(msg)
             return "succ"

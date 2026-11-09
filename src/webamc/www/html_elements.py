@@ -187,3 +187,5 @@ def mktable(
 ) -> Table:
     trs = [Tr(*(Td(cell) for cell in row))for row in content]
     return Table(*trs, **attrs)
+
+nbsp = Str("&nbsp;", escape=False)

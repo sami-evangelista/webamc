@@ -820,11 +820,15 @@ class Submission(Base):
     sub_content: Mapped[str] = mapped_column(
         ct.String
     )
+    sub_date_update: Mapped[datetime.datetime] = mapped_column(
+        ct.DateTime
+    )
     sub_exm_registration: Mapped[int | None] = mapped_column(
         RefRegistration
     )
-    sub_exm_date_update: Mapped[datetime.datetime | None] = mapped_column(
-        ct.DateTime
+    sub_exm_visible: Mapped[bool] = mapped_column(
+        ct.Boolean,
+        default=False
     )
     sub_rev_usr: Mapped[int | None] = mapped_column(
         RefUsr
@@ -850,9 +854,7 @@ class Submission(Base):
         ),
         implies(
             f"sub_type = {types.SUBMISSION_TYPE_EXAM}",
-            "sub_exm_content is not null "
-            "and sub_exm_registration is not null "
-            "and sub_exm_date_update is not null"
+            "sub_exm_registration is not null"
         ),
         implies(
             f"sub_type = {types.SUBMISSION_TYPE_REVIEW}",
