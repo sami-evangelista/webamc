@@ -4,28 +4,43 @@ from webamc.db import queries
 
 
 def page(ctx: context.Context) -> fa.Response:
-    trs: list[he.Element] = list()
+    trs: list[list[he.Element]] = list()
     for msg, usr in queries.list_messages(ctx.dbs, session.usr_id(ctx)):
         title = fmt.fmt_title(msg.msg_title)
-        href = base.mkuri("/inbox/page/msg", msg_id=msg.msg_id)
-        img = he.Img(
-            src=base.static_img_src("doc-pdf"),
-            class_="btn",
-            onclick=f"base_relocate('{href}')",
-            title=title,
-            alt=title
+        if msg.msg_type == types.MESSAGE_TYPE_FILE:
+            img: types.static_img_t = "doc-pdf"
+            href = base.mkuri(
+                "/inbox/page/msg",
+                msg_id=msg.msg_id
+            )
+        else:
+            img = "view"
+            href = base.mkuri(
+                "/mcq/page/form",
+                mode="view",
+                sub_id=msg.msg_sub
+            )
+        link = base.static_img(
+            img,
+            None,
+            href=href,
+            title_str=title
         )
-        tr = he.Tr(
-            he.Td(he.Str(title)),
-            he.Td(he.Str(fmt.fmt_name(usr.usr_fst_name, usr.usr_name))),
-            he.Td(he.Str(fmt.fmt_datetime(msg.msg_date))),
-            he.Td(img)
-        )
+        tr = [
+            he.Str(title),
+            he.Str(fmt.fmt_name(usr.usr_fst_name, usr.usr_name)),
+            he.Str(fmt.fmt_datetime(msg.msg_date)),
+            link
+        ]
         trs.append(tr)
-    if trs == list():
-        elem: he.Element = he.Txt("info_no_mcq_available")
+    if len(trs) == 0:
+        body: he.Element = he.Txt("info_no_mcq_available")
     else:
-        cols: list[types.txt_t] = ["word_title", "word_sender", "word_date"]
-        trs.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
-        elem = he.Table(*trs, class_="table-solid")
-    return base.page(ctx, "inbox", elem)
+        cols: list[types.txt_t] = [
+            "col_desc_msg_title",
+            "col_desc_msg_from",
+            "col_desc_msg_date"
+        ]
+        body = he.mktable(trs, class_="table-solid")
+        body.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))
+    return base.page(ctx, "inbox", body)

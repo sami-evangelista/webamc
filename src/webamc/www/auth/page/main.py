@@ -26,7 +26,7 @@ def page(ctx: context.Context) -> fa.Response:
             trs += [txt, element]
         a_conn = base.static_img(
             "checkmark",
-            "word_send",
+            "base_send",
             js="auth_send_login_local()",
             class_="submit"
         )
@@ -45,7 +45,7 @@ def page(ctx: context.Context) -> fa.Response:
 
         a_send = base.static_img(
             "checkmark",
-            "word_send",
+            "base_send",
             js="auth_send_password_change()",
             class_="submit"
         )
@@ -69,7 +69,7 @@ def page(ctx: context.Context) -> fa.Response:
     if config.CONFIG["auth_account_creation_enabled"]:
         a_create = base.static_img(
             "checkmark",
-            "word_send",
+            "base_send",
             js="auth_send_creation()",
             class_="submit"
         )

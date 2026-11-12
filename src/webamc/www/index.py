@@ -15,7 +15,7 @@ def page(ctx: context.Context) -> fa.Response:
             mode="review",
             itm_id=str(item.itm_id)
         )
-        a_fillin = base.static_img("edit", "word_answer", href=href)
+        a_fillin = base.static_img("edit", "base_answer", href=href)
         links.append(a_fillin)
         if has_admin_right:
             href = base.mkuri(
@@ -24,7 +24,7 @@ def page(ctx: context.Context) -> fa.Response:
                 itm_id=item.itm_id
             )
             links += [
-                base.static_img("settings", "word_administrate", href=href)
+                base.static_img("settings", "base_administrate", href=href)
             ]
         fields = [
             str(item.itm_title),

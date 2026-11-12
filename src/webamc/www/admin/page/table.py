@@ -36,7 +36,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     ]
     img_add = base.static_img(
         "checkmark",
-        "word_create",
+        "base_create",
         js=f"admin_add_row('{tbl_name}')"
     )
     tds.append(he.Td(img_add))
@@ -92,7 +92,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             f"admin_delete_row('{tbl_name}', "
             f"'{pkey.name}', {pkey_val})"
         )
-        img = base.static_img("trash", "word_delete", js=js)
+        img = base.static_img("trash", "base_delete", js=js)
         tds.append(he.Td(img))
         trs.append(he.Tr(*tds))
 

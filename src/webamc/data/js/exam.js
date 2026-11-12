@@ -19,13 +19,13 @@ const exam_delete = function (db_exm_id) {
         };
 	xhr_db_delete('exam', [where], success);
     }
-    const question = Lang['qst_confirmation_exam_deletion'];
+    const question = Lang['exam_qst_confirmation_exam_delete'];
     base_ask_confirmation(question, go);
 }
 
 
 const exam_dashboard_select = function () {
-    const exm_id = $('#exm_id').val();
+    const exm_id = base_input_value('exm_id');
     const dashboard = $('#div-exam-dashboard');
     if(exm_id == '' || exm_id == null) {
 	dashboard.html('');
@@ -87,7 +87,7 @@ const exam_unregister = function () {
     };
     $('.checkbox_registration').each(handle_checkbox);
     if(queries.length > 0) {
-	const question = Lang['qst_confirmation_registrations_delete'];
+	const question = Lang['exam_qst_confirmation_registrations_delete'];
 	const go = function(){
 	    const success = function (_) {
 		exam_dashboard_select();
@@ -100,7 +100,9 @@ const exam_unregister = function () {
 
 
 const exam_view_submission = function (sub_id) {
-    if(sub_id != null) {
+    if(sub_id == null) {
+        base_report_errors([Lang['exam_info_usr_not_started']]);
+    } else {
         const args = {
             'mode': 'view',
             'sub_id': sub_id

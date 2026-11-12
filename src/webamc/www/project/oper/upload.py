@@ -1,23 +1,22 @@
-from webamc.www.all import *
 from webamc import project
+from webamc.www.all import *
+from webamc.www.project import util
 
 
 def data(
         ctx: context.Context,
+        prj_id: int,
         action: types.action_t,
-        ufile: fa.UploadFile,
-        project_code: str
+        ufile: fa.UploadFile
 ) -> fa.Response:
-    upload_result: types.oper_code_t = "err"
     content = ufile.file.read()
-    upload_result = project.Project(
-        session.usr_code(ctx),
-        session.usr_name(ctx),
-        project_code
-    ).action(
+    code = project.action(
+        ctx.dbs,
+        session.usr_id(ctx),
+        util.get_project(ctx, prj_id),
         action,
         dict(),
         fname=ufile.filename,
         fcontent=content
     )
-    return base.wrap_code(upload_result)
+    return base.wrap_code(code)

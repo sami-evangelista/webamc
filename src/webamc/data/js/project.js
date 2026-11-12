@@ -7,14 +7,12 @@ const project_highlight_errors = function (ids) {
     for(const id of ids) {
         $('#' + id).addClass('error');
     }
-    setTimeout(
-        function() {
-            for(const id of ids) {
-                $('#' + id).removeClass('error');
-            }
-        },
-        base_tooltip_time * 1000
-    );
+    const done = function() {
+        for(const id of ids) {
+            $('#' + id).removeClass('error');
+        }
+    };
+    setTimeout(done, base_tooltip_time * 1000);
 }
 
 
@@ -32,9 +30,6 @@ const project_check_doable = function (action) {
         } else if(dep_type == 'action') {
             msgs.push(Lang['err_action_required']);
             id = 'label-action-' + dep;
-        } else if(dep_type == 'data') {
-            msgs.push(Lang['err_data_required']);
-            id = dep;
         }
         ids.push(id);
     }
@@ -45,14 +40,15 @@ const project_check_doable = function (action) {
 
 
 const project_new = function () {
-    const pcode = $('#new_project_code').val();
     const data = {
         'action': 'new',
-        'action_params': {},
-        'project_code': $('#new_project_code').val()
+        'prj_code': base_input_value('prj_code')
     };
-    const success = function(_) {
-        const url = Constants.path_project_page_main + '?pcode=' + pcode;
+    const success = function(result) {
+        const args = {
+            'prj_id': result.result['prj_id']
+        };
+        const url = base_encode_url(Constants.path_project_page_main, args);
         base_relocate(url);
     };
     xhr_post_oper(Constants.path_project_oper_action, data, success);
@@ -60,28 +56,16 @@ const project_new = function () {
 
 
 const project_init = function () {
-    const project_code = $('#project_code').val();
-    if(project_code == '' || project_code == null) {
+    const prj_id = base_input_value('prj_id');
+    if(prj_id == '' || prj_id == null) {
         return;
     }
     const url = Constants.path_project_oper_get_status;
     const success = function(response) {
         project_status = response.result;
-        const data = project_status.data;
-        const done = project_status.done;
-        const doable = project_status.doable;
-        const files = project_status.files;
-        const groups = data['groups'] ? data['groups'] : [];
-
-        // data
-	for(const [key, val] of Object.entries(data)) {
-            $('#' + key).val(val);
-        }
-        project_groups = new GrpTable(
-            'div-grps', project_usr_groups, groups, true, null, true, null
-        );
 
         // files
+        const files = project_status.files;
         for(const [f, fdata] of Object.entries(files)) {
             const exists = fdata['exists'];
             const img = $('#img-file-' + f);
@@ -100,6 +84,7 @@ const project_init = function () {
         }
 
         // doable
+        const doable = project_status.doable;
         for(const [act, [d, msgs]] of Object.entries(doable)) {
             const img = $('#img-action-' + act);
             if(d) {
@@ -108,23 +93,29 @@ const project_init = function () {
                 img.addClass('warning');
             }
         }
+
+        const done = project_status.done;
     };
     const data = {
-        'project_code': project_code
+        'prj_id': prj_id
     };
     xhr_post(url, success, data);
 }
 
 
-const project_load_project = function () {
-    const project_code = $('#project_code').val();
+const project_load = function () {
+    const prj_id = base_input_value('prj_id');
     const div_project = $('#div-project');
-    if(project_code == '' || project_code == null) {
+    if(prj_id == null) {
         div_project.html('');
     } else {
         const url = Constants.path_project_page_project;
-        const success = function(html) { div_project.html(html); };
-        const data = { 'project_code': project_code };
+        const success = function(html) {
+            div_project.html(html);
+        };
+        const data = {
+            'prj_id': prj_id
+        };
 	xhr_post(url, success, data, 'html');
     }
 }
@@ -136,7 +127,7 @@ const project_upload_action = function (action, file_id) {
         return;
     }
     const comp = async function() {
-        const project_code = $('#project_code').val();
+        const prj_id = base_input_value('prj_id');
         const form_data = new FormData();
         const url = Constants.path_project_oper_upload;
         const success = function(response) {
@@ -145,7 +136,7 @@ const project_upload_action = function (action, file_id) {
         }
         form_data.append('action', action);
         form_data.append('file_content', file_content);
-        form_data.append('project_code', project_code);
+        form_data.append('prj_id', prj_id);
         const query = {
             url: url,
             type: 'POST',
@@ -168,8 +159,8 @@ const project_action = function (action, params = null) {
     const comp = async function () {
         const url = Constants.path_project_oper_action;
         const data = {
+            'prj_id': base_input_value('prj_id'),
             'action': action,
-            'project_code': $('#project_code').val(),
             'action_params': {}
         };        
         const success = function(response) {
@@ -214,22 +205,21 @@ const project_manual_association_open = function () {
     if(!project_check_doable('associate_manual_prepare')) {
         return;
     }
-    const project_code = $('#project_code').val();
+    const prj_id = base_input_value('prj_id');
     const div_manual_association = $('#div-manual-association');
-    if(project_code != '' && project_code != null) {
-        const url = Constants.path_project_page_manual_association;
+    if(prj_id != null) {
         const success = function(response) {
-            base_report(response.msgs, response.success);
-            if(response.success) {
-	        div_manual_association.html(response.result);
-                div_manual_association.toggle();
-            }
+	    div_manual_association.html(response);
+            div_manual_association.toggle();
         };
-        const data = {
-            'project_code': project_code,
-            'action_params': base_input_values('#table-action-params')
+        const args = {
+            'prj_id': prj_id
         };
-	xhr_post(url, success, data);
+        const url = base_encode_url(
+            Constants.path_project_page_manual_association,
+            args
+        );
+	xhr_get(url, success);
     }
 }
 
@@ -245,28 +235,25 @@ const project_associate_manual = function (student, copy) {
     const params = {
         'student': student,
         'copy': copy,
-        'id': $('#assoc-' + student + '-' + copy).val()
+        'id': base_input_value('assoc-' + student + '-' + copy)
     };
     project_action('associate_manual', params);
 }
 
 
-const project_submit_data = function () {
-    const project_data = base_input_values('#table-action-data');
-    const url = Constants.path_project_oper_set_data;
-    const handle_response = function (response) {
-        base_report(response.msgs, response.success);
-        if(response.success) {
-            project_init();
-        } else {
-            project_highlight_errors(response.result);
-        }
-    }
-    delete project_data[project_groups.select_id()];
-    project_data['code'] = $('#project_code').val();
-    project_data['groups'] = project_groups.value;
-    const data = {
-        'project_data': project_data
+const project_add_group = function(grp_id, callback) {
+    const values = {
+        'pgp_grp': grp_id,
+        'pgp_project': base_input_value('prj_id')
     };
-    xhr_post(url, handle_response, data);
+    xhr_db_insert('prj_grp', values, callback);
+}
+
+
+const project_del_group = function(grp_id, callback) {
+    const where = [
+        { 'col': 'pgp_grp', 'op': '=', 'val': Number(grp_id) },
+        { 'col': 'pgp_project', 'op': '=', 'val': base_input_value('prj_id') }
+    ];
+    xhr_db_delete('prj_grp', where, callback);
 }

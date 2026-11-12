@@ -18,13 +18,13 @@ def page(
     )
     img_validate = base.static_img(
         "checkmark",
-        "word_validate",
+        "base_validate",
         size=24,
         js=f"db_col_send_update('{tbl}', {id_}, '{col_name}', '{col_id_name}')"
     )
     img_cancel = base.static_img(
         "dismiss",
-        "word_cancel",
+        "base_cancel",
         size=24,
         js=f"db_col_toggle({id_}, '{col_name}', '{col_id_name}')"
     )

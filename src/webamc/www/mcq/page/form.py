@@ -28,6 +28,7 @@ def page(
     reg: tables.Registration | None = None
     sub: tables.Submission | None = None
     subres: queries.submission_result_t | None = None
+    sub_usr_id: int | None = None
 
 
     ###
@@ -51,22 +52,39 @@ def page(
         if sub_id is None:
             raise fa.HTTPException(status_code=422)
         usr_id = session.usr_id(ctx)
-        sub, reg, exam = queries.get_submission(ctx.dbs, sub_id)
+        sub_reg_exam = queries.get_submission(ctx.dbs, sub_id)
+        if sub_reg_exam is None:
+            raise fa.HTTPException(status_code=422)
+        sub, reg, exam = sub_reg_exam
         if not (
-                sub.sub_rev_usr == usr_id
-                or (reg is not None
-                    and sub.sub_visible
-                    and reg.reg_usr == usr_id)
-                or (sub.sub_rev_mcq is not None
-                    and owns(sub.sub_rev_mcq))
-                or (exam is not None
-                    and owns(exam.exm_mcq))
+                # review submission made by the user
+                (sub.sub_rev_usr == usr_id
+                 and sub.sub_visible)
+                or
+                # exam submission made by the user
+                (reg is not None
+                 and sub.sub_visible
+                 and reg.reg_usr == usr_id)
+                or
+                # review submission made for an mcq owned by the user
+                (sub.sub_rev_mcq is not None
+                 and owns(sub.sub_rev_mcq))
+                or
+                # exam submission made for an exam owned by the user
+                (exam is not None
+                 and owns(exam.exm_mcq))
         ):
             raise fa.HTTPException(status_code=403)
-        if sub.sub_rev_mcq is not None:
+        if sub.sub_type == types.SUBMISSION_TYPE_REVIEW:
+            assert sub.sub_rev_mcq is not None
+            assert sub.sub_rev_usr is not None
             itm_id = sub.sub_rev_mcq
-        elif exam is not None:
+            sub_usr_id = sub.sub_rev_usr
+        elif sub.sub_type == types.SUBMISSION_TYPE_EXAM:
+            assert exam is not None
+            assert reg is not None
             itm_id = exam.exm_mcq
+            sub_usr_id = reg.reg_usr
         else:
             assert False
     else:
@@ -123,13 +141,15 @@ def page(
                 sub_exm_registration=reg.reg_id
             )
             ctx.dbs.add(exs)
+    else:
+        raise fa.HTTPException(status_code=422)
 
 
     ###
-    # now we can generate elements of the page 
+    # now we can generate elements of the page
     ###
 
-    elements: list[he.Element] = list()
+    body: list[he.Element] = list()
     form_ctx: form_ctx_t = {
         "mode": mode,
         "sub_result": subres,
@@ -143,19 +163,20 @@ def page(
     element_mcq = _form_item(ctx, content, form_ctx)
 
     # top rule with status boxes
-    status_cells: list[he.Element] = list()
+    tds: list[he.Element] = list()
     js = ""
     fst = True
     for exe_id, exe_qsts in form_ctx["content"].items():
         if not fst:
-            empty_td = he.Td(he.Div(class_="status-box"))
-            status_cells += [empty_td, empty_td]
+            empty_td = he.Div(class_="mcq-status-box")
+            tds += [empty_td, empty_td]
         fst = fst and len(exe_qsts) == 0
-        status_cells += [
-            he.Td(
-                he.Div(
-                    id_=f"qst_{qst_id}_status_rule",
-                    class_="status-box status-box-question status-unfilled"
+        tds += [
+            he.Div(
+                id_=f"qst_{qst_id}_status_rule",
+                class_=(
+                    "mcq-status-box mcq-status-box-question "
+                    "mcq-status-unfilled"
                 )
             ) for qst_id in exe_qsts
         ]
@@ -164,12 +185,19 @@ def page(
             js += "\n" + f"mcq_new_qst({qst_id}, {exe_id})"
             for cho_id in cho_ids:
                 js += "\n" + f"mcq_new_cho({cho_id}, {qst_id})"
-    if status_cells != list():
-        status = he.Div(he.Table(he.Tr(*status_cells)), class_="status-rule")
-        elements.append(status)
-    js += f"\nmcq_init({json.dumps(content)});"
+    if len(tds) > 0:
+        status = he.Div(
+            he.mktable([tds]),
+            class_="mcq-status-rule"
+        )
+        body.append(status)
+    if mode == "view":
+        init_mode = "mcq_mode_all"
+    else:
+        init_mode = "mcq_mode_one_by_one"
+    js += f"\nmcq_init({init_mode}, {json.dumps(content)});"
 
-    elements.append(element_mcq)
+    body.append(element_mcq)
 
     # initialise boxes initially checked
     for cho_id in choices:
@@ -181,17 +209,40 @@ def page(
     # exam mode => initiate the timer
     if mode == "exam":
         assert exam is not None
-        div_timer = he.Div(
-            he.Span(he.Str(""), id_="exam-timer-text"),
-            id_="exam-timer"
-        )
         d = exam.end_time()
         js += f"\nvar sec_duration = 60 * {exam.exm_duration};"
         js += f"\nvar end_time = new Date({d.year}, {d.month - 1}, {d.day}, "
         js += f"{d.hour}, {d.minute});"
         js += "\nmcq_init_timer(sec_duration, end_time);"
         js += "\nmcq_init_save_timer();"
-        elements.append(div_timer)
+        div_timer = he.Div(
+            he.Span(he.Str(""), id_="mcq-exam-timer-text"),
+            id_="mcq-exam-timer"
+        )
+        body.append(div_timer)
+
+    # view mode => create the div containing total score and user name
+    #   if the user that made the submission is not the connected user
+    if mode == "view":
+        assert subres is not None
+        assert sub_usr_id is not None
+        total_score_elements: list[he.Element] = list()
+        if sub_usr_id != usr_id:
+            usr = queries.get_usr(ctx.dbs, sub_usr_id)
+            assert usr is not None
+            total_score_elements = [
+                he.Str(usr.fmt()), he.nbsp, he.Str("-"), he.nbsp
+            ]
+        txt = he.Txt(
+            "mcq_param_total_score",
+            str(subres["score"][item]) + " / " + str(subres["max_score"][item])
+        )
+        total_score_elements.append(txt)
+        div_total_score = he.Div(
+            *total_score_elements,
+            class_="mcq-total-score-box"
+        )
+        body.append(div_total_score)
 
     # hidden input containing mcq-id
     hidden_id = he.Input(
@@ -199,12 +250,7 @@ def page(
         type_="hidden",
         value=item.itm_id
     )
-    elements.append(hidden_id)
-
-    body = he.ElementList(
-        *elements,
-        he.Script(js)
-    )
+    body.append(hidden_id)
 
     # side buttons
     cfg = config.CONFIG
@@ -229,12 +275,12 @@ def page(
     ]
     if mode == "exam":
         btns += [
-            ("save", "word_send", None, "mcq_save_exam()")
+            ("save", "base_send", None, "mcq_save_exam()")
         ]
     elif mode == "review":
         btns += [
-            ("arrow-clockwise", "word_restart", None, "mcq_reset_all()"),
-            ("checkmark", "word_send", None, "mcq_save_review()")
+            ("arrow-clockwise", "base_restart", None, "mcq_reset_all()"),
+            ("checkmark", "base_send", None, "mcq_save_review()")
         ]
     side_buttons = [
         base.static_img(img, title, title_args=title_args, js=js)
@@ -251,7 +297,7 @@ def page(
     return base.page(
         ctx,
         "mcq",
-        body,
+        he.ElementList(*body, he.Script(js)),
         title=title,
         side_buttons=side_buttons,
         show_menu=show_menu
@@ -355,7 +401,7 @@ def _form_question(
     # question label and status
     box_status = he.Div(
         id_=f"qst_{item.itm_id}_status",
-        class_="status-box status-box-question"
+        class_="mcq-status-box mcq-status-box-question"
     )
     subres = form_ctx["sub_result"]
     if subres is None or len(subres["qst_answers"][item]) == 0:
@@ -367,13 +413,13 @@ def _form_question(
     else:
         status = "partially-correct"
     js = f"mcq_set_qst_status({item.itm_id}, '{status}')"
-    lbl = lang.txt("word_question").title() + " " + str(form_ctx["qst_num"])
+    title = lang.txt("base_question").title() + " " + str(form_ctx["qst_num"])
     if item.itm_title is not None:
-        lbl = f"{lbl} - {item.itm_title}"
+        title = f"{title} - {item.itm_title}"
     span_status = he.Span(
-        he.Str(lbl),
+        he.Str(title),
         id_=f"qst_{item.itm_id}_label",
-        class_="question-number"
+        class_="mcq-question-number"
     )
     tds = [
         he.Td(box_status, style="vertical-align: middle"),
@@ -430,7 +476,7 @@ def _form_question(
         label = he.Label(img, for_=box_id)
         result_box = he.Div(
             id_=f"cho_{cho.itm_id}_status",
-            class_="status-box status-box-choice"
+            class_="mcq-status-box mcq-status-box-choice"
         )
         if subres is not None:
             if subres["cho_correct"].get(cho, not cho.itm_cho_correct):
@@ -452,14 +498,14 @@ def _form_question(
         he.mktable(trs),
         he.Script(js),
         id_=f"qst_{item.itm_id}_body",
-        class_="question-body"
+        class_="mcq-question-body"
     )
 
     return he.Div(
         tbl_status,
         div_body,
         id_=f"qst_{item.itm_id}",
-        class_="question"
+        class_="mcq-question"
     )
 
 
@@ -508,13 +554,13 @@ def _form_exercise(
     # if it is a normal exercise we return the title + the image + the
     # children. the image and children are enclosed in a div and the
     # whole is enclosed in another div.
-    title = lang.txt("word_exercise").title() + " " + str(form_ctx["exe_num"])
+    title = lang.txt("base_exercise").title() + " " + str(form_ctx["exe_num"])
     if item.itm_title is not None:
         title = title + " - " + item.itm_title
     span_title = he.Span(
         he.Str(title),
         id_=f"exe_{item.itm_id}_label",
-        class_="exercise-title"
+        class_="mcq-exercise-title"
     )
     if subres is None:
         element_title: he.Element = span_title
@@ -533,13 +579,13 @@ def _form_exercise(
     div_body = he.Div(
         *exercise_elements,
         id_=f"exe_{item.itm_id}_body",
-        class_="exercise-body"
+        class_="mcq-exercise-body"
     )
     result = he.Div(
         element_title,
         div_body,
         id_=f"exe_{item.itm_id}",
-        class_="exercise"
+        class_="mcq-exercise"
     )
     return result
 

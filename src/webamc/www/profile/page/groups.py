@@ -8,8 +8,8 @@ def page(ctx: context.Context) -> he.Element:
             return he.Empty()
         elements: list[he.Element] = list()
         rmap: dict[types.usr_right_t, types.txt_t] = {
-            types.USR_RIGHT_VIEW: "word_view",
-            types.USR_RIGHT_SUBMIT: "word_submission"
+            types.USR_RIGHT_VIEW: "base_view",
+            types.USR_RIGHT_SUBMIT: "base_submission"
         }
         for i, r in enumerate(rights):
             if i > 0:
@@ -24,7 +24,7 @@ def page(ctx: context.Context) -> he.Element:
         )
     trs = list()
     if session.has_submission_right(ctx):
-        trs.append([he.Empty(), he.Txt("word_rights")])
+        trs.append([he.Empty(), he.Txt("base_rights")])
     trs += [
         [he.Div(he.Str(grp.grp_name), class_="group-name"), get_rights(rights)]
         for grp, rights in groups.values()

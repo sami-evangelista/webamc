@@ -8,6 +8,11 @@ class DBException(Exception):
         return lang.txt("err_db_invalid_request")
 
 
+class DBIOError(DBException):
+    def msg(self) -> str:
+        return lang.txt("err_io")
+
+
 class DBInvalidValue(DBException):
     def __init__(self, tbl: str, col: str, val: types.db_base_val_t):
         super().__init__(tbl)

@@ -5,7 +5,7 @@ from webamc.www.db.util import get_txt_and_input
 
 def page(ctx: context.Context, itm_id: None | int) -> he.Element:
     def get_trs() -> tp.Generator[list[he.Element]]:
-        yield [base.field_label(he.Txt("word_type"))]
+        yield [base.field_label(he.Txt("base_type"))]
         yield [select_type]
         for txt, inpt in get_txt_and_input(
                 ctx,
@@ -17,8 +17,8 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
         yield [base.field_label(he.Txt("seq_content_type"))]
         yield [select_content_type]
     select_type = he.Select(
-        he.Option(he.Txt("word_mcq"), value="mcq"),
-        he.Option(he.Txt("word_exercise"), value="exe"),
+        he.Option(he.Txt("base_mcq"), value="mcq"),
+        he.Option(he.Txt("base_exercise"), value="exe"),
         id_="itm_exe_or_mcq"
     )
     select_content_type = he.Select(
@@ -34,7 +34,7 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
     ).set_data("type", "integer")
     img_validate = base.static_img(
         "checkmark",
-        "word_validate",
+        "base_validate",
         js="item_add()",
         class_="submit"
     )

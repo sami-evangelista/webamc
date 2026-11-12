@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.session import Session
 from sqlalchemy.engine.base import Connection
@@ -18,9 +19,9 @@ class ColType:
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "NA"
+            return "--"
         if isinstance(val, str) and str(val) == "":
-            return "-"
+            return "--"
         return str(val)
     @classmethod
     def val_fmt(
@@ -35,6 +36,9 @@ class ColType:
     @classmethod
     def get_input(cls, col: sa.Column[tp.Any], **kwargs: tp.Any) -> ui.Input:
         return cls.input_type(col, cls.js_type)
+    @classmethod
+    def default(cls) -> types.db_base_val_t:
+        return None
 
 
 class Date(sa.Date, ColType):
@@ -51,7 +55,7 @@ class Date(sa.Date, ColType):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "NA"
+            return "--"
         if not isinstance(val, datetime.date):
             raise ValueError
         return fmt.fmt_date(val)
@@ -71,7 +75,7 @@ class DateTime(sa.DateTime, ColType):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "NA"
+            return "--"
         if isinstance(val, str):
             val = datetime.datetime.fromisoformat(val)
         if not isinstance(val, datetime.datetime):
@@ -98,26 +102,57 @@ class Boolean(sa.Boolean, ColType):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val:
-            return lang.txt("word_yes")
-        return lang.txt("word_no")
+            return lang.txt("base_yes")
+        return lang.txt("base_no")
 
 
-class Integer(sa.Integer, ColType):
+t = tp.TypeVar("t")
+class Number[t](ColType):
     input_type = ui.Number
     doc_color = "red"
-    js_type = "integer"
+    min_val: tp.Optional[t] = None
+    max_val: tp.Optional[t] = None
+    step: t
+    @classmethod
+    def _val_convert(cls, val: tp.Any) -> float | int:
+        raise ValueError
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
+        result = cls._val_convert(val)
+        if cls.min_val is not None and result < cls._val_convert(cls.min_val):
+            raise ValueError
+        if cls.max_val is not None and result > cls._val_convert(cls.max_val):
+            raise ValueError
+        return result
+    @classmethod
+    def get_input(cls, col: sa.Column[tp.Any], **kwargs: tp.Any) -> ui.Input:
+        result = ui.Number(col, cls.js_type, step=cls._val_convert(cls.step))
+        return result
+
+
+class Integer(sa.Integer, Number[int]):
+    js_type = "integer"
+    step = 1
+    @classmethod
+    def _val_convert(cls, val: tp.Any) -> float | int:
         return int(val)
 
 
 class PositiveInteger(Integer):
+    min_val = 0
+
+
+class Float(sa.Float[float], Number[float]):
+    js_type = "float"
+    step = 0.01
     @classmethod
-    def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        result = int(val)
-        if result < 0:
-            raise ValueError
-        return result
+    def _val_convert(cls, val: tp.Any) -> float | int:
+        return float(val)
+
+
+class Ratio(Float):
+    max_val = 1.0
+    min_val = 0.0
 
 
 class ConstrainedString(String):
@@ -161,7 +196,7 @@ class Name(String):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "-"
+            return "--"
         return str(val).upper()
 
 
@@ -169,8 +204,14 @@ class FstName(String):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "-"
+            return "--"
         return str(val).title()
+
+
+class Uuid(String):
+    @classmethod
+    def default(cls) -> types.db_base_val_t:
+        return uuid.uuid4().hex
 
 
 class Password(ConstrainedString):
@@ -181,18 +222,6 @@ class Password(ConstrainedString):
         if val is None:
             return None
         return security.hash_password(str(val))
-
-
-class ItemCode(ConstrainedString):
-    regexp = r"[a-zA-Z0-9.\-_/]+"
-
-
-class PackSpec(LargeString):
-    input_type = ui.Textarea
-    @classmethod
-    def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        types.check_pack_spec(str(val))
-        return str(val)
 
 
 class IntEnum(Integer):
@@ -210,7 +239,7 @@ class IntEnum(Integer):
     @classmethod
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         if val is None:
-            return "NA"
+            return "--"
         return str(cls.values[cls.val_chk(val, **kwargs)])
     @classmethod
     def get_values(cls, **kwargs: tp.Any) -> dict[int, str]:
@@ -237,7 +266,7 @@ class ForeignKey(IntEnum):
     def _val_fmt(cls, val: types.db_base_val_t, **kwargs: tp.Any) -> str:
         from . import util
         if val is None:
-            return "NA"
+            return "--"
         dbs = tp.cast(Session, kwargs["dbs"])
         tbl = util.get_tbl_meta(util.get_col_tbl(cls.col))
         row = dbs.query(tbl).where(cls.col == val).first()
@@ -252,3 +281,19 @@ class ForeignKey(IntEnum):
         if "where" in kwargs:
             query = query.where(sa.and_(*kwargs["where"]))
         return {getattr(o, cls.col.name): cls.fmt(o) for o in query.all()}
+
+
+class ItemCode(ConstrainedString):
+    regexp = r"[a-zA-Z0-9.\-_/]+"
+
+
+class ProjectCode(ConstrainedString):
+    regexp = r'[a-zA-Z][a-zA-Z0-9_\-]*'
+
+
+class PackSpec(LargeString):
+    input_type = ui.Textarea
+    @classmethod
+    def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
+        types.check_pack_spec(str(val))
+        return str(val)

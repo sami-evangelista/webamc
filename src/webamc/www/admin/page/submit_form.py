@@ -11,7 +11,7 @@ def page(ctx: context.Context) -> he.Element:
     js = f"base_submit_file('csv_file', '{uri}', 'div-submit-result')"
     a_submit = base.static_img(
         "checkmark",
-        "word_send",
+        "base_send",
         js=js,
         class_="submit"
     )

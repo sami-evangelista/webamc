@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
@@ -38,6 +39,8 @@ class RefExam(ct.ForeignKey):
     pass
 class RefRegistration(ct.ForeignKey):
     pass
+class RefProject(ct.ForeignKey):
+    pass
 
 
 # definition of some enumeration column types
@@ -47,8 +50,8 @@ class ItemType(ct.IntEnum):
     }
 class McqMode(ct.IntEnum):
     values = {
-        types.MCQ_MODE_EXAM: lang.txt("word_exam"),
-        types.MCQ_MODE_REVIEW: lang.txt("word_review")
+        types.MCQ_MODE_EXAM: lang.txt("base_exam"),
+        types.MCQ_MODE_REVIEW: lang.txt("base_review")
     }
 class QstType(ct.IntEnum):
     values = {
@@ -61,12 +64,16 @@ class TicketType(ct.IntEnum):
     }
 class UsrRight(ct.IntEnum):
     values = {
-        types.USR_RIGHT_VIEW: lang.txt("word_view"),
-        types.USR_RIGHT_SUBMIT: lang.txt("word_submission")
+        types.USR_RIGHT_VIEW: lang.txt("base_view"),
+        types.USR_RIGHT_SUBMIT: lang.txt("base_submission")
     }
 class SubmissionType(ct.IntEnum):
     values = {
         t: str(t) for t in types.literal_type_values(types.submission_type_t)
+    }
+class MessageType(ct.IntEnum):
+    values = {
+        t: str(t) for t in types.literal_type_values(types.message_type_t)
     }
 
 
@@ -126,7 +133,7 @@ class Usr(Base):
         }
     )
     def fmt(self) -> str:
-        result = f"{self.usr_name.upper()} {self.usr_name.title()}"
+        result = f"{self.usr_name.upper()} {self.usr_fst_name.title()}"
         result += f" [{self.usr_code}]"
         return result
 
@@ -169,6 +176,9 @@ class Attr(Base):
 
 class UsrAttr(Base):
     __tablename__ = "usr_attr"
+    info = {
+        "doc": "This table associates users and attributes."
+    }
     uat_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
@@ -219,7 +229,6 @@ class UsrAttr(Base):
             ondelete="CASCADE"
         ),
     )
-    __doc__ = "This table associates users and attributes."
 
 
 class Ticket(Base):
@@ -232,7 +241,7 @@ class Ticket(Base):
         TicketType,
         nullable=False
     )
-    tkt_usr: Mapped[int | None] = mapped_column(
+    tkt_usr: Mapped[tp.Optional[int]] = mapped_column(
         RefUsr
     )
     tkt_eaddr: Mapped[str] = mapped_column(
@@ -415,6 +424,10 @@ class Tbl(Base):
 
 class Admin(Base):
     __tablename__ = "admin"
+    info = {
+        "doc": """This table defines grants administration privileges
+           to users on tables."""
+    }
     adm_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True,
@@ -458,8 +471,6 @@ class Admin(Base):
             ondelete="CASCADE"
         ),
     )
-    __doc__ = """This table defines grants administration privileges
-       to users on tables."""
 
 
 class Item(Base):
@@ -472,7 +483,7 @@ class Item(Base):
         ItemType,
         nullable=False
     )
-    itm_code: Mapped[str | None] = mapped_column(
+    itm_code: Mapped[tp.Optional[str]] = mapped_column(
         ct.ItemCode,
         info={
             "ui_visible": True,
@@ -480,7 +491,7 @@ class Item(Base):
             "check": "check_code"
         }
     )
-    itm_title: Mapped[str | None] = mapped_column(
+    itm_title: Mapped[tp.Optional[str]] = mapped_column(
         ct.String,
         info={
             "ui_visible": True,
@@ -520,7 +531,7 @@ class Item(Base):
         RefUsr,
         nullable=False
     )
-    itm_pack_spec: Mapped[str | None] = mapped_column(
+    itm_pack_spec: Mapped[tp.Optional[str]] = mapped_column(
         ct.PackSpec
     )
     itm_qst_type: Mapped[types.question_type_t] = mapped_column(
@@ -672,11 +683,11 @@ class ItemInstance(Base):
         ct.Integer,
         nullable=False
     )
-    iti_img: Mapped[bytes | None] = mapped_column(
+    iti_img: Mapped[tp.Optional[bytes]] = mapped_column(
         sa.LargeBinary
     )
     iti_uuid: Mapped[str] = mapped_column(
-        ct.String,
+        ct.Uuid,
         nullable=False
     )
     __table_args__ = (
@@ -716,7 +727,7 @@ class Tag(Base):
             "doc": "unique tag name"
         }
     )
-    tag_desc: Mapped[str | None] = mapped_column(
+    tag_desc: Mapped[tp.Optional[str]] = mapped_column(
         ct.String,
         info={
             "ui_visible": True,
@@ -724,7 +735,7 @@ class Tag(Base):
             "doc": "tag description (possibly empty)"
         }
     )
-    tag_color: Mapped[str | None] = mapped_column(
+    tag_color: Mapped[tp.Optional[str]] = mapped_column(
         ct.Color,
         info={
             "ui_visible": True,
@@ -823,17 +834,17 @@ class Submission(Base):
     sub_date_update: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime
     )
-    sub_exm_registration: Mapped[int | None] = mapped_column(
+    sub_exm_registration: Mapped[tp.Optional[int]] = mapped_column(
         RefRegistration
     )
-    sub_exm_visible: Mapped[bool] = mapped_column(
+    sub_visible: Mapped[bool] = mapped_column(
         ct.Boolean,
         default=False
     )
-    sub_rev_usr: Mapped[int | None] = mapped_column(
+    sub_rev_usr: Mapped[tp.Optional[int]] = mapped_column(
         RefUsr
     )
-    sub_rev_mcq: Mapped[int | None] = mapped_column(
+    sub_rev_mcq: Mapped[tp.Optional[int]] = mapped_column(
         RefItem
     )
     __table_args__ = (
@@ -918,7 +929,7 @@ class Grp(Base):
             "doc": "unique group name"
         }
     )
-    grp_parent: Mapped[int | None] = mapped_column(
+    grp_parent: Mapped[tp.Optional[int]] = mapped_column(
         RefGrp,
         info={
             "ui_visible": True,
@@ -994,6 +1005,9 @@ class Exam(Base):
 
 class UsrGrp(Base):
     __tablename__ = "usr_grp"
+    info = {
+        "doc": "This table defines group memberships."
+    }
     ugp_id = sa.Column(
         ct.Integer,
         primary_key=True,
@@ -1051,7 +1065,6 @@ class UsrGrp(Base):
             ondelete="CASCADE"
         ),
     )
-    __doc__ = "This table defines group memberships."
 
 
 class McqGrp(Base):
@@ -1086,17 +1099,155 @@ class McqGrp(Base):
     )
 
 
+class Project(Base):
+    __tablename__ = "project"
+    info = {
+        "code": "prj_code"
+    }
+    prj_id: Mapped[int] = mapped_column(
+        ct.Integer,
+        primary_key=True
+    )
+    prj_code: Mapped[str] = mapped_column(
+        ct.ProjectCode,
+        nullable=False
+    )
+    prj_usr: Mapped[int] = mapped_column(
+        RefUsr,
+        nullable=False
+    )
+    prj_title: Mapped[tp.Optional[str]] = mapped_column(
+        ct.String,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    prj_uuid: Mapped[str] = mapped_column(
+        ct.Uuid,
+        nullable=False,
+        unique=True
+    )
+    prj_copies: Mapped[int] = mapped_column(
+        ct.Integer,
+        nullable=False,
+        default=10,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    prj_threshold: Mapped[float] = mapped_column(
+        ct.Ratio,
+        nullable=False,
+        default=0.5,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    prj_amc_code: Mapped[str] = mapped_column(
+        ct.String,
+        nullable=False,
+        default="code",
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    prj_auto_assoc_attr: Mapped[tp.Optional[int]] = mapped_column(
+        RefAttr,
+        info={
+            "ui_visible": True,
+            "ui_updatable": True
+        }
+    )
+    prj_src_type: Mapped[str] = mapped_column(
+        ct.String,
+        nullable=False,
+        default="tex"
+    )
+    prj_done: Mapped[str] = mapped_column(
+        ct.String,
+        nullable=False
+    )
+    prj_history: Mapped[str] = mapped_column(
+        ct.String,
+        nullable=False
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "prj_usr",
+            "prj_code"
+        ),
+        ForeignKeyConstraint(
+            ["prj_usr"],
+            ["usr.usr_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["prj_auto_assoc_attr"],
+            ["attr.atr_id"],
+            ondelete="CASCADE"
+        ),
+    )
+    def title(self) -> str:
+        return self.fmt()
+    def fmt(self) -> str:
+        if self.prj_title is not None:
+            return self.prj_title.title()
+        return str(self.prj_code)
+    def dir_path(self) -> Path:
+        return (
+            Path(self.prj_uuid[0:2])
+            / self.prj_uuid[2:4]
+            / self.prj_uuid[4:]
+        )
+
+
+class PrjGrp(Base):
+    __tablename__ = "prj_grp"
+    pgp_id: Mapped[int] = mapped_column(
+        ct.Integer,
+        primary_key=True
+    )
+    pgp_project: Mapped[int] = mapped_column(
+        RefProject,
+        nullable=False
+    )
+    pgp_grp: Mapped[int] = mapped_column(
+        RefGrp,
+        nullable=False
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "pgp_project",
+            "pgp_grp"
+        ),
+        ForeignKeyConstraint(
+            ["pgp_project"],
+            ["project.prj_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["pgp_grp"],
+            ["grp.grp_id"],
+            ondelete="CASCADE"
+        ),
+    )
+
+
 class Message(Base):
     __tablename__ = "message"
     msg_id: Mapped[int] = mapped_column(
         ct.Integer,
         primary_key=True
     )
-    msg_title: Mapped[str] = mapped_column(
-        ct.String,
+    msg_type: Mapped[types.message_type_t] = mapped_column(
+        MessageType,
         nullable=False
     )
-    msg_code: Mapped[str] = mapped_column(
+    msg_title: Mapped[str] = mapped_column(
         ct.String,
         nullable=False
     )
@@ -1113,19 +1264,23 @@ class Message(Base):
         RefUsr,
         nullable=False
     )
-    msg_file: Mapped[bytes] = mapped_column(
-        sa.LargeBinary,
-        nullable=False
+    msg_file_project: Mapped[tp.Optional[int]] = mapped_column(
+        RefProject
     )
-    msg_filename: Mapped[str] = mapped_column(
-        ct.String,
-        nullable=False
+    msg_file_content: Mapped[tp.Optional[bytes]] = mapped_column(
+        sa.LargeBinary
+    )
+    msg_file_name: Mapped[tp.Optional[str]] = mapped_column(
+        ct.String
+    )
+    msg_sub: Mapped[tp.Optional[int]] = mapped_column(
+        RefSubmission
     )
     __table_args__ = (
         UniqueConstraint(
             "msg_from",
             "msg_to",
-            "msg_code"
+            "msg_file_project"
         ),
         ForeignKeyConstraint(
             ["msg_from"],
@@ -1137,12 +1292,39 @@ class Message(Base):
             ["usr.usr_id"],
             ondelete="CASCADE"
         ),
+        ForeignKeyConstraint(
+            ["msg_sub"],
+            ["submission.sub_id"],
+            ondelete="CASCADE"
+        ),
+        ForeignKeyConstraint(
+            ["msg_file_project"],
+            ["project.prj_id"],
+            ondelete="CASCADE"
+        ),
+        # message has type file => file content, code and name are not null
+        implies(
+            f"msg_type = {types.MESSAGE_TYPE_FILE}",
+            "msg_file_content is not null "
+            "and msg_file_project is not null "
+            "and msg_file_name is not null"
+        ),
+        # message has type submission => submission is not null
+        implies(
+            f"msg_type = {types.MESSAGE_TYPE_SUBMISSION}",
+            "msg_sub is not null"
+        ),
     )
 
 
+#####
 # define attributes of foreign keys
+#####
+
 RefUsr.col = Usr.usr_id
 RefUsr.fmt = lambda usr: usr.fmt()
+RefProject.col = Project.prj_id
+RefProject.fmt = lambda prj: str(prj.prj_code)
 RefAttr.col = Attr.atr_id
 RefAttr.fmt = lambda attr: str(attr.atr_code)
 RefTbl.col = Tbl.tbl_id
@@ -1163,233 +1345,260 @@ RefItem.col = Item.itm_id
 RefItem.fmt = lambda item: item.fmt()
 
 
-def create_listeners() -> tp.Any:
+#####
+# all listeners defined below
+#####
 
-    def check_item_not_in_exam_submission(
-            conn: Connection,
-            itm_id: int
-    ) -> None:
-        # make sure that the item is not part of an exam submission
-        query = select(
-            Exam
-        ).where(
-            (ItemInstance.iti_item == itm_id)
-            & (ItemInstance.iti_id == Answer.ans_instance)
-            & (Answer.ans_submission == Submission.sub_id)
-            & (Submission.sub_type == types.SUBMISSION_TYPE_EXAM)
-            & (Submission.sub_exm_registration == Registration.reg_id)
-            & (Registration.reg_exam == Exam.exm_id)
-        )
-        exam = conn.execute(query).first()
-        if exam is not None:
-            title = exam.exm_title
-            raise errors.DBDeletionOfItemReferencedInExamSubmission(title)
+def check_item_not_in_exam_submission(
+        conn: Connection,
+        itm_id: int
+) -> None:
 
-    def on_delete_item_relation(
-            mapper: Mapper[tp.Any],
-            conn: Connection,
-            target: ItemRelation
-    ) -> None:
-        check_item_not_in_exam_submission(conn, target.itr_parent)
+    # make sure that the item is not part of an exam submission
+    query = select(
+        Exam
+    ).where(
+        (ItemInstance.iti_item == itm_id)
+        & (ItemInstance.iti_id == Answer.ans_instance)
+        & (Answer.ans_submission == Submission.sub_id)
+        & (Submission.sub_type == types.SUBMISSION_TYPE_EXAM)
+        & (Submission.sub_exm_registration == Registration.reg_id)
+        & (Registration.reg_exam == Exam.exm_id)
+    )
+    exam = conn.execute(query).first()
+    if exam is not None:
+        title = exam.exm_title
+        raise errors.DBDeletionOfItemReferencedInExamSubmission(title)
 
-    def on_delete_item(
+
+def before_delete_item_relation(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: ItemRelation
+) -> None:
+    check_item_not_in_exam_submission(conn, target.itr_parent)
+
+
+def before_delete_item(
             mapper: Mapper[tp.Any],
             conn: Connection,
             target: Item
     ) -> None:
-        check_item_not_in_exam_submission(conn, target.itm_id)
 
-        # when we delete a question we delete all choices in it
-        if target.itm_type == types.ITEM_TYPE_QUESTION:
-            query_delete = delete(
-                Item
-            ).where(
-                (ItemRelation.itr_parent == target.itm_id)
-                & (ItemRelation.itr_child == Item.itm_id)
-            )
-            conn.execute(query_delete)
-
-    def on_insert_exam(
-            mapper: Mapper[tp.Any],
-            conn: Connection,
-            target: Exam
-    ) -> None:
-        # if the title is None we set it to the QCM's title
-        if target.exm_title in ("", None) and target.exm_mcq is not None:
-            query = select(Item).where(Item.itm_id == target.exm_mcq)
-            mcq = conn.execute(query).first()
-            if mcq is not None:
-                target.exm_title = mcq.itm_title
-
-    def on_insert_item_instance(
-            mapper: Mapper[tp.Any],
-            conn: Connection,
-            target: ItemInstance
-    ) -> None:
-        if target.iti_uuid is None:
-            target.iti_uuid = uuid.uuid4().hex
-
-    def on_insert_item_relation(
-            mapper: Mapper[tp.Any],
-            conn: Connection,
-            target: ItemRelation
-    ) -> None:
-        # when we insert in ItemRelation we make sure that we still
-        # have a tree, this requires to perform a graph search
-        todo = [target.itr_child, target.itr_parent]
-        done: set[int] = set(todo)
-        while todo != list():
-            item = todo[0]
-            todo = todo[1:]
-            query = select(
-                ItemRelation.itr_parent
-            ).where(
-                ItemRelation.itr_child == item
-            )
-            for parent in conn.scalars(query):
-                if parent in done:
-                    query_parent = select(Item).where(Item.itm_id == parent)
-                    item_parent = conn.execute(query_parent).first()
-                    assert item_parent is not None
-                    assert item_parent.itm_code is not None
-                    raise errors.DBItemRelationInvalid(item_parent.itm_code)
-                todo.append(parent)
-                done.add(parent)
-
-    def on_delete_exam(
-            mapper: Mapper[tp.Any],
-            conn: Connection,
-            target: Exam
-    ) -> None:
-        query = select(
-            Submission
+    # when we delete a question we delete all choices in it
+    check_item_not_in_exam_submission(conn, target.itm_id)
+    if target.itm_type == types.ITEM_TYPE_QUESTION:
+        query_delete = delete(
+            Item
         ).where(
-            (Registration.reg_exam == target.exm_id)
-            & (Submission.sub_exm_registration == Registration.reg_id)
+            (ItemRelation.itr_parent == target.itm_id)
+            & (ItemRelation.itr_child == Item.itm_id)
         )
-        if conn.execute(query).first() is not None:
-            raise errors.DBDeletionOfExamWithSubmissions(target.exm_title)
+        conn.execute(query_delete)
 
-    # checks performed during or insert or update
-    def basic_checks(
-            tbl: sa.sql.schema.Table,
+        
+def before_insert_exam(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: Exam
+) -> None:
+
+    # if the title of a new exam is None we set it to the QCM's title
+    if target.exm_title in ("", None) and target.exm_mcq is not None:
+        query = select(Item).where(Item.itm_id == target.exm_mcq)
+        mcq = conn.execute(query).first()
+        if mcq is not None:
+            target.exm_title = mcq.itm_title
+
+
+def after_insert_project(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: Project
+) -> None:
+    from webamc import project
+    if not types.is_success(project.create_files(target)):
+        raise errors.DBIOError()
+
+
+def after_delete_project(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: Project
+) -> None:
+    from webamc import project
+    if not types.is_success(project.delete_files(target)):
+        raise errors.DBIOError()
+
+
+def before_insert_item_relation(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: ItemRelation
+) -> None:
+    # when we insert in ItemRelation we make sure that we still have a
+    # tree, this requires to perform a graph search
+    todo = [target.itr_child, target.itr_parent]
+    done: set[int] = set(todo)
+    while todo != list():
+        item = todo[0]
+        todo = todo[1:]
+        query = select(
+            ItemRelation.itr_parent
+        ).where(
+            ItemRelation.itr_child == item
+        )
+        for parent in conn.scalars(query):
+            if parent in done:
+                query_parent = select(Item).where(Item.itm_id == parent)
+                item_parent = conn.execute(query_parent).first()
+                assert item_parent is not None
+                assert item_parent.itm_code is not None
+                raise errors.DBItemRelationInvalid(item_parent.itm_code)
+            todo.append(parent)
+            done.add(parent)
+
+
+def before_delete_exam(
+        mapper: Mapper[tp.Any],
+        conn: Connection,
+        target: Exam
+) -> None:
+    query = select(
+        Submission
+    ).where(
+        (Registration.reg_exam == target.exm_id)
+        & (Submission.sub_exm_registration == Registration.reg_id)
+    )
+    if conn.execute(query).first() is not None:
+        raise errors.DBDeletionOfExamWithSubmissions(target.exm_title)
+
+
+# checks performed during or insert or update
+def basic_checks(
+        tbl: sa.sql.schema.Table,
+        conn: Connection,
+        target: tp.Any,
+        row_id: None | int
+) -> None:
+
+    # replace "" values by None and None by a default value
+    for col in tbl.columns:
+        cname = col.name
+        if hasattr(target, cname) and getattr(target, cname) == "":
+            setattr(target, cname, None)
+        if isinstance(col.type, ct.ColType) and getattr(target, cname) is None:
+            setattr(target, cname, col.type.default())
+
+    tname = tbl.name
+    pkey = next(c for c in tbl.columns if c.primary_key)
+    for col in tbl.columns:
+        if "check" in col.info:
+            getattr(target, col.info["check"])()
+
+        cname = col.name
+        val = getattr(target, cname, None)
+        null_val = val is None
+
+        # check non null values
+        if isinstance(col.type, ct.ColType) and not null_val:
+            try:
+                val = col.type.val_chk(val, conn=conn)
+                val = col.type.val_transform(val)
+                setattr(target, cname, val)
+            except ValueError as ex:
+                raise errors.DBInvalidValue(tname, cname, val) from ex
+
+        # check uniqueness (single column)
+        if col.unique:
+            cond = col == val
+            if row_id is not None:
+                cond = cond & (pkey != row_id)
+            row = conn.execute(tbl.select().where(cond)).first()
+            if row is not None:
+                raise errors.DBDuplicateValue(tname, cname, val)
+
+    # check uniqueness constraints of the table
+    for cons in tbl.constraints:
+        if (
+                isinstance(cons, UniqueConstraint)
+                and all(
+                    getattr(target, col.name, None) is not None
+                    for col in cons.columns
+                )
+        ):
+            cond = sa.and_(
+                *(col == getattr(target, col.name) for col in cons.columns)
+            )
+            if row_id is not None:
+                cond = cond & (pkey != row_id)
+            row = conn.execute(tbl.select().where(cond)).first()
+            if row is not None:
+                raise errors.DBDuplicateValue(
+                    tbl.name,
+                    [col.name for col in cons.columns],
+                    [getattr(target, col.name) for col in cons.columns]
+                )
+
+
+listener_t = tp.Callable[[Mapper[tp.Any], Connection, tp.Any], None]
+def before_insert(t: tp.Type[Base]) -> listener_t:
+    def result(
+            mapper: Mapper[tp.Any],
             conn: Connection,
-            target: tp.Any,
-            row_id: None | int
+            target: tp.Any
     ) -> None:
-
-        # replace "" values by None
-        for col in tbl.columns:
-            cname = col.name
-            if hasattr(target, cname) and getattr(target, cname) == "":
-                setattr(target, cname, None)
-
+        tbl: sa.sql.schema.Table = t.__table__  # type: ignore
         tname = tbl.name
-        pkey = next(c for c in tbl.columns if c.primary_key)
-        for col in tbl.columns:
-            if "check" in col.info:
-                getattr(target, col.info["check"])()
+        basic_checks(tbl, conn, target, None)
 
+        # check null values are allowed
+        for col in tbl.columns:
             cname = col.name
             val = getattr(target, cname, None)
-            null_val = val is None
-
-            # check non null values
-            if isinstance(col.type, ct.ColType) and not null_val:
-                try:
-                    val = col.type.val_chk(val, conn=conn)
-                    val = col.type.val_transform(val)
-                    setattr(target, cname, val)
-                except ValueError as ex:
-                    raise errors.DBInvalidValue(tname, cname, val) from ex
-
-            # check uniqueness (single column)
-            if col.unique:
-                cond = col == val
-                if row_id is not None:
-                    cond = cond & (pkey != row_id)
-                row = conn.execute(tbl.select().where(cond)).first()
-                if row is not None:
-                    raise errors.DBDuplicateValue(tname, cname, val)
-
-        # check uniqueness constraints of the table
-        for cons in tbl.constraints:
+            null_val = val is None or val == ""
             if (
-                    isinstance(cons, UniqueConstraint)
-                    and all(
-                        getattr(target, col.name, None) is not None
-                        for col in cons.columns
-                    )
+                    null_val
+                    and not col.nullable
+                    and not col.primary_key
+                    and col.default is None
+                    and col.server_default is None
             ):
-                cond = sa.and_(
-                    *(col == getattr(target, col.name) for col in cons.columns)
-                )
-                if row_id is not None:
-                    cond = cond & (pkey != row_id)
-                row = conn.execute(tbl.select().where(cond)).first()
-                if row is not None:
-                    raise errors.DBDuplicateValue(
-                        tbl.name,
-                        [col.name for col in cons.columns],
-                        [getattr(target, col.name) for col in cons.columns]
-                    )
+                raise errors.DBInvalidNullValue(tname, cname)
+    return result
 
-    listener_t = tp.Callable[[Mapper[tp.Any], Connection, tp.Any], None]
-    def insert_listener(t: tp.Type[Base]) -> listener_t:
-        def result(
-                mapper: Mapper[tp.Any],
-                conn: Connection,
-                target: tp.Any
-        ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__  # type: ignore
-            tname = tbl.name
-            basic_checks(tbl, conn, target, None)
 
-            # check null values are allowed
-            for col in tbl.columns:
-                cname = col.name
-                val = getattr(target, cname, None)
-                null_val = val is None or val == ""
-                if (
-                        null_val
-                        and not col.nullable
-                        and not col.primary_key
-                        and col.default is None
-                        and col.server_default is None
-                ):
-                    raise errors.DBInvalidNullValue(tname, cname)
-        return result
+def before_update(t: tp.Type[Base]) -> listener_t:
+    def result(
+            mapper: Mapper[tp.Any],
+            conn: Connection,
+            target: tp.Any
+    ) -> None:
+        tbl: sa.sql.schema.Table = t.__table__  # type: ignore
+        tname = tbl.name
+        pkey = next(c for c in tbl.columns if c.primary_key)
+        basic_checks(tbl, conn, target, getattr(target, pkey.name))
 
-    def update_listener(t: tp.Type[Base]) -> listener_t:
-        def result(
-                mapper: Mapper[tp.Any],
-                conn: Connection,
-                target: tp.Any
-        ) -> None:
-            tbl: sa.sql.schema.Table = t.__table__  # type: ignore
-            tname = tbl.name
-            pkey = next(c for c in tbl.columns if c.primary_key)
-            basic_checks(tbl, conn, target, getattr(target, pkey.name))
+        # check null values are allowed
+        for col in tbl.columns:
+            cname = col.name
+            if (
+                    hasattr(target, cname)
+                    and getattr(target, cname) is None
+                    and not col.nullable
+            ):
+                raise errors.DBInvalidNullValue(tname, cname)
+    return result
 
-            # check null values are allowed
-            for col in tbl.columns:
-                cname = col.name
-                if (
-                        hasattr(target, cname)
-                        and getattr(target, cname) is None
-                        and not col.nullable
-                ):
-                    raise errors.DBInvalidNullValue(tname, cname)
-        return result
-    t: tp.Any
-    sa.event.listen(ItemInstance, "before_insert", on_insert_item_instance)
-    sa.event.listen(Item, "before_delete", on_delete_item)
-    sa.event.listen(ItemRelation, "before_delete", on_delete_item_relation)
-    sa.event.listen(Exam, "before_insert", on_insert_exam)
-    sa.event.listen(Exam, "before_delete", on_delete_exam)
-    sa.event.listen(ItemRelation, "before_insert", on_insert_item_relation)
-    for t in Base.__subclasses__():
-        sa.event.listen(t, "before_insert", insert_listener(t))
-        sa.event.listen(t, "before_update", update_listener(t))
 
-create_listeners()
+t: tp.Any
+sa.event.listen(Exam, "before_insert", before_insert_exam)
+sa.event.listen(Exam, "before_delete", before_delete_exam)
+sa.event.listen(Item, "before_delete", before_delete_item)
+sa.event.listen(ItemRelation, "before_delete", before_delete_item_relation)
+sa.event.listen(ItemRelation, "before_insert", before_insert_item_relation)
+sa.event.listen(Project, "after_insert", after_insert_project)
+sa.event.listen(Project, "after_delete", after_delete_project)
+for t in Base.__subclasses__():
+    sa.event.listen(t, "before_insert", before_insert(t))
+    sa.event.listen(t, "before_update", before_update(t))

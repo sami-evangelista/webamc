@@ -1,30 +1,26 @@
-from webamc.www.all import *
 from webamc import project
+from webamc.www.all import *
+from webamc.www.project import util
 
 
-def page(ctx: context.Context, pcode: str) -> fa.Response:
-    proj = project.Project(
-        session.usr_code(ctx),
-        session.usr_name(ctx),
-        pcode=pcode,
-        dbs=ctx.dbs
-    )
-    associations = proj.list_associations()
-    students = proj.list_students()
+def page(ctx: context.Context, prj_id: int) -> fa.Response:
+    prj = util.get_project(ctx, prj_id)
+    associations = project.list_associations(prj)
+    usrs = project.list_usrs(ctx.dbs, prj)
     trs: list[he.Tr] = list()
     js = list()
-    first = True
-    for pg, copy in sorted(associations.keys()):
+    for idx, (pg, copy) in enumerate(sorted(associations.keys())):
         manual, auto, name_file = associations[pg, copy]
-        tds: list[he.Td] = list()
-        tds.append(he.Td(he.Str(f"{pg}/{copy}")))
+
+        # first row with image file
+        tds = [he.Td(he.Str(f"{pg}/{copy}"))]
         if name_file is None:
-            tds.append(he.Td(he.Txt("seq_no_name")))
+            tds.append(he.Td(he.Txt("project_no_name_file")))
         else:
             img_uri = base.mkuri(
                 "/project/page/get-file",
-                project_code=proj.pcode,
-                file_name=name_file
+                prj_id=prj.prj_id,
+                file_name=str(name_file)
             )
             img = he.Img(
                 src=img_uri,
@@ -33,22 +29,17 @@ def page(ctx: context.Context, pcode: str) -> fa.Response:
             tds.append(he.Td(img))
         tr = he.Tr(
             *tds,
-            class_="spacebefore" if not first else ""
+            class_="spacebefore" if not idx > 0 else ""
         )
         trs.append(tr)
-        first = False
 
-        tds = list()
+        # second row with user select 
         options = [
             he.Option(
-                he.Str(
-                    s[1].usr_name.upper() + " " +
-                    s[1].usr_fst_name.title() + " - " +
-                    s[1].usr_eaddr
-                ),
-                value=s[1].usr_code if s[0] is None else s[0].uat_value
+                he.Str(u[1].fmt()),
+                value=u[1].usr_code if u[0] is None else u[0].uat_value
             )
-            for s in students
+            for u in usrs
         ]
         select_user = he.Select(
             *options,
@@ -56,31 +47,26 @@ def page(ctx: context.Context, pcode: str) -> fa.Response:
             onchange=f"project_associate_manual({pg}, {copy})"
         ).sort()
         select_user.insert(0, he.Option(he.Str("-"), value=""))
-        tds.append(he.Td(he.Empty()))
-        tds.append(he.Td(select_user))
+        tds = [
+            he.Td(he.Empty()),
+            he.Td(select_user)
+        ]
         trs.append(he.Tr(*tds))
-
         assoc = manual if manual is not None else auto
         if assoc is not None:
-            js += [
-                f"$('#assoc-{pg}-{copy}').val('{assoc}');"
-            ]
+            js.append(f"$('#assoc-{pg}-{copy}').val('{assoc}');")
+
     table = he.Table(*trs)
     a_close = base.static_img(
         "dismiss",
-        "word_close",
+        "base_close",
         js="project_manual_association_close()",
         style="position: absolute; top: 5px; right: 5px;"
     )
     elements = he.ElementList(
-        he.H2(he.Txt("seq_manual_association")),
+        he.H2(he.Txt("project_manual_association")),
         a_close,
         table,
         he.Script(js)
     )
-    response = {
-        "success": True,
-        "msgs": list(),
-        "result": str(elements)
-    }
-    return fa.responses.JSONResponse(response)
+    return fa.responses.HTMLResponse(str(elements))

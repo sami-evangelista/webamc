@@ -44,7 +44,7 @@ def page(ctx: context.Context, exm_id: int) -> he.Element:
     table = he.mktable(((e, ) for e in elements), class_="table-form")
     a_send = base.static_img(
         "checkmark",
-        "word_validate",
+        "base_validate",
         js="exam_submit()",
         class_="submit"
     )

@@ -1,9 +1,68 @@
 id;text
 action_download_archive;Download the archive
 action_refresh;refresh
+base_actions;XXX
+base_action;XXX
+base_add;XXX
+base_administrate;XXX
+base_answer;XXX
+base_archive;XXX
+base_cancel;XXX
+base_close;XXX
+base_confirmation_request;XXX
+base_confirmation;XXX
+base_content;XXX
+base_create;XXX
+base_dashboard;XXX
+base_date;XXX
+base_delete;XXX
+base_detach;XXX
+base_details;XXX
+base_disconnection;XXX
+base_exam;XXX
+base_exercise;XXX
+base_file_name;XXX
+base_file;XXX
+base_filter;XXX
+base_groups;XXX
+base_help;XXX
+base_max;XXX
+base_mcq;XXX
+base_minutes;XXX
+base_mod_date;XXX
+base_move_down;XXX
+base_move_up;XXX
+base_no;XXX
+base_page;XXX
+base_parameters;XXX
+base_progress;XXX
+base_question;XXX
+base_restart;XXX
+base_review;XXX
+base_rights;XXX
+base_scores;XXX
+base_score;XXX
+base_sender;XXX
+base_send;XXX
+base_size;XXX
+base_start;XXX
+base_statement;XXX
+base_status;XXX
+base_submission;XXX
+base_table;XXX
+base_tags;XXX
+base_type;XXX
+base_update;XXX
+base_usr;XXX
+base_validate;XXX
+base_view;XXX
+base_yes;XXX
 col_desc_adm_id;#
 col_desc_adm_tbl;table
 col_desc_adm_usr;user
+col_desc_ans_id;XXX
+col_desc_ans_instance;XXX
+col_desc_ans_submission;XXX
 col_desc_atr_code;code
 col_desc_atr_desc;description
 col_desc_atr_id;#
@@ -12,14 +71,27 @@ col_desc_cas_id;#
 col_desc_cas_login;cas identifier
 col_desc_cas_usr;user
 col_desc_exm_duration;duration (min.)
+col_desc_exm_id;XXX
 col_desc_exm_mcq;MCQ
 col_desc_exm_start;start
 col_desc_exm_title;title
 col_desc_grp_id;#
 col_desc_grp_name;name
 col_desc_grp_parent;parent
+col_desc_itg_id;XXX
+col_desc_itg_item;XXX
+col_desc_itg_tag;XXX
+col_desc_iti_id;XXX
+col_desc_iti_img;XXX
+col_desc_iti_item;XXX
+col_desc_iti_num;XXX
+col_desc_iti_uuid;XXX
+col_desc_itm_cho_correct;XXX
+col_desc_itm_cho_last;XXX
 col_desc_itm_code;identifier
 col_desc_itm_date;creation date
+col_desc_itm_id;XXX
+col_desc_itm_is_mcq;XXX
 col_desc_itm_mcq_mode;mode
 col_desc_itm_pack_spec;pack
 col_desc_itm_qst_standalone;standalone
@@ -29,17 +101,65 @@ col_desc_itm_title;title
 col_desc_itm_type;type
 col_desc_itm_usr;user
 col_desc_itm_visible;visible
+col_desc_itr_child;XXX
+col_desc_itr_id;XXX
+col_desc_itr_order;XXX
+col_desc_itr_parent;XXX
 col_desc_loc_enabled;enabled
 col_desc_loc_id;#
 col_desc_loc_login;login
 col_desc_loc_password;password
 col_desc_loc_usr;user
+col_desc_mgp_grp;XXX
+col_desc_mgp_id;XXX
+col_desc_mgp_mcq;XXX
+col_desc_msg_date;XXX
+col_desc_msg_file_content;XXX
+col_desc_msg_file_name;XXX
+col_desc_msg_file_project;XXX
+col_desc_msg_from;XXX
+col_desc_msg_id;XXX
+col_desc_msg_sub;XXX
+col_desc_msg_title;XXX
+col_desc_msg_to;XXX
+col_desc_msg_type;XXX
+col_desc_prj_amc_code;XXX
+col_desc_prj_auto_assoc_attr;XXX
+col_desc_prj_code;code
+col_desc_prj_copies;XXX
+col_desc_prj_done;XXX
+col_desc_prj_history;XXX
+col_desc_prj_id;XXX
+col_desc_prj_src_type;XXX
+col_desc_prj_threshold;XXX
+col_desc_prj_title;XXX
+col_desc_prj_usr;XXX
+col_desc_prj_uuid;XXX
+col_desc_reg_date;XXX
+col_desc_reg_exam;XXX
+col_desc_reg_id;XXX
+col_desc_reg_usr;XXX
+col_desc_sub_content;XXX
+col_desc_sub_date_update;XXX
+col_desc_sub_date;XXX
+col_desc_sub_exm_registration;XXX
+col_desc_sub_id;XXX
+col_desc_sub_rev_mcq;XXX
+col_desc_sub_rev_usr;XXX
+col_desc_sub_type;XXX
+col_desc_sub_visible;XXX
 col_desc_tag_color;color
 col_desc_tag_desc;description
 col_desc_tag_id;#
 col_desc_tag_name;name
 col_desc_tbl_id;#
 col_desc_tbl_name;name
+col_desc_tkt_deadline;XXX
+col_desc_tkt_eaddr;XXX
+col_desc_tkt_id;XXX
+col_desc_tkt_type;XXX
+col_desc_tkt_usr;XXX
+col_desc_tkt_value;XXX
 col_desc_uat_attr;attribute
 col_desc_uat_id;#
 col_desc_uat_usr;user
@@ -63,6 +183,7 @@ err_db_invalid_values;Invalid values.
 err;Error.
 err_exam_access_denied;You are not allowed to access this exam.
 err_exam_deletion_forbidden;Warning: this exam cannot be deleted as answers have already been sent.
+err_exam_not_finished;The exam is not finished yet !
 err_exam_not_found;Exam could not be found.
 err_file_required;A file is required to perform this action.
 err_http_403;403 Error - Unauthorized access !!!
@@ -80,7 +201,6 @@ err_missing_file;A file is missing to perform this operation.
 err_project_already_exists;A project with the same code already exists.
 err_project_amc_not_installed;AMC does not seem to be installed on the system.
 err_project_check_log_file;An error occured. Please check the log file.
-err_project_invalid_code;The project code is invalid.
 err_project_invalid_source;Source file has unrecognized format.
 err_project_invalid_tex_archive;The latex archive is invalid.
 err_project_missing_or_invalid_parameter;Parameter missing or invalid.
@@ -90,6 +210,11 @@ err_wrong_credentials;Wrong credentials.
 exam_delete;delete this exam
 exam_delete_selected_registrations;delete selected registrations
 exam_export_scores;export exam scores
+exam_info_usr_not_started;XXX
+exam_param_registrations_done;%s registration(s) done
+exam_publish_scores;drop off answer sheets in student inboxes
+exam_qst_confirmation_exam_delete;The exam will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
+exam_qst_confirmation_registrations_delete;XXX
 exam_register_group;register this group
 exam_register_user;register this user
 exam_select_a_group_to_register;register a group
@@ -98,6 +223,7 @@ exam_status_finished;finished
 exam_status_in_progress;in progress
 exam_status_upcoming;upcoming
 exam_users_registered;user registered for this exam
+exam_usr_status_absent;absent
 exam_usr_status_finished;finished
 exam_usr_status_inactive;inactive (> 5 min.)
 exam_usr_status_not_started;not started
@@ -113,9 +239,14 @@ info_no_mcq_available;No MCQ available.
 info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 item_db_delete_recursively;delete this item and all its content
+mcq_info_exam_finished;XXX
+mcq_info_progress_saved;XXX
 mcq_param_next_question;next question (%s)
 mcq_param_prev_question;previous question (%s)
 mcq_param_switch_mode;switch mode (%s)
+mcq_param_total_score;XXX
+mcq_qst_confirmation_restart;XXX
+mcq_qst_confirmation_send;XXX
 msg_file_list_exam;List of files associated with the exam.
 msg_no_data_exam;No data available for the exam.
 op_after;after
@@ -156,7 +287,13 @@ param_err_invalid_value;%s: invalid value
 param_err_item_referenced_in_exam_submission;This element cannot be deleted because it appeared in an exam (%s). You must first delete this exam in order to delete the element.
 param_seq_instance_num;instance %s
 param_seq_items_found;%s item(s) found
-exam_param_registrations_done;%s registration(s) done
+project_analyse_answer_sheets;XXX
+project_associate_automatic;XXX
+project_associate_manual;XXX
+project_association_attr;XXX
+project_clean_associations;XXX
+project_compile_latex;XXX
+project_delete;XXX
 project_file_log_webamc;log file
 project_file_ods_scores;score file
 project_file_pdf_answer_sheets;scanned sheets
@@ -165,8 +302,18 @@ project_file_pdf_subject;subject sheets (one file containing all sheets)
 project_file_source;source
 project_file_zip_annotated_sheets;annotated scanned sheets
 project_file_zip_sheets;subject sheets (one file per student)
+project_generate_scores_and_annotated_sheets;XXX
+project_manual_association;XXX
+project_new;new project
+project_no_name_file;XXX
+project_select;select a project
+project_send_annotated_sheets;XXX
+project_send_notification_mail;XXX
+project_upload_answer_sheets;XXX
+project_upload_latex_archive;XXX
+project_upload_student_list;upload student list
+project_upload_student_list;XXX
 qst_confirmation_db_row_deletion;Do you confirm the deletion of this row ?
-qst_confirmation_exam_deletion;The exam will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_item_deletion;The item will be deleted from your database but its content will not be. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_item_detach;The item will not be deleted from your database but will be detached from its parent. Do you confirm the operation ?
 qst_confirmation_item_recursive_deletion;The item as well as all its content will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
@@ -198,7 +345,6 @@ seq_information_messages;information message(s)
 seq_latex_id;student ID in latex file
 seq_manual_association;manual association
 seq_my_groups;my groups
-seq_new_project;new project
 seq_new_row;new row
 seq_no_name;no image file
 seq_no_name;pas de fichier d'image
@@ -214,12 +360,10 @@ seq_qst_type_single;one choice
 seq_question_pack;question pack
 seq_records_found;record(s) found
 seq_select_an_exam;select an exam
-seq_select_a_project;select a project
 seq_send_annotated_sheets;drop off annotated sheets in student inboxes
 seq_send_notification_mail;send a notification mail to students
 seq_upload_answer_sheets;upload answer sheets
 seq_upload_latex_archive;upload latex archive
-seq_upload_student_list;upload student list
 seq_warning_messages;warning message(s)
 seq_zip_file;ZIP file
 stats_answer_prefix;answer
@@ -312,5 +456,3 @@ word_usr;user
 word_validate;validate
 word_view;view
 word_yes;yes
-exam_usr_status_absent;absent
-exam_publish_scores;drop off answer sheets in student inboxes

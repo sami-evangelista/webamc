@@ -6,17 +6,17 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     item_child = queries.get_item(ctx.dbs, args["itr_child"])
     item_parent = queries.get_item(ctx.dbs, args["itr_parent"])
     query = ctx.dbs.query(
-        tables.ItemRelation.itr_order
+        tables.ItemRelation
     ).where(
         tables.ItemRelation.itr_parent == item_parent.itm_id
     ).order_by(
         tables.ItemRelation.itr_order.desc()
     )
-    order = ctx.dbs.scalars(query).first()
-    if order is None:
+    itr = query.first()
+    if itr is None:
         order = 1
     else:
-        order = order + 1
+        order = itr.itr_order + 1
     itr = tables.ItemRelation(
         itr_parent=item_parent.itm_id,
         itr_child=item_child.itm_id,

@@ -186,6 +186,10 @@ def mktable(
         **attrs: tp.Any
 ) -> Table:
     trs = [Tr(*(Td(cell) for cell in row))for row in content]
+    max_cols = max(len(tr.children) for tr in trs)
+    for tr in trs:
+        while len(tr.children) < max_cols:
+            tr.append(Td(Empty()))
     return Table(*trs, **attrs)
 
 nbsp = Str("&nbsp;", escape=False)

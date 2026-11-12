@@ -1,17 +1,13 @@
 from webamc.www.all import *
+from webamc.www.project import util
 from webamc.util import fmt
 from webamc import project
 
 
 def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
-    proj = project.Project(
-        session.usr_code(ctx),
-        session.usr_name(ctx),
-        args["project_code"]
-    )
-    status = proj.status()
+    prj = util.get_project(ctx, args["prj_id"])
     files = dict()
-    for f, fdata in status["files"].items():
+    for f, fdata in project.list_files(prj).items():
         files[f] = {
             "name": project.file_name(f),
             "exists": fdata["exists"]
@@ -21,15 +17,13 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         if fdata["exists"]:
             files[f]["uri"] = base.mkuri(
                 "/project/page/get-file",
-                project_code=proj.pcode,
+                prj_id=prj.prj_id,
                 file_name=project.file_name(f)
             )
     response = {
-        "data": status["data"],
-        "done": status["done"],
-        "doable": status["doable"],
-        "history": status["history"],
         "files": files,
-        "warning": status["warning"]
+        "doable": project.doable(ctx.dbs, prj),
+        "done": json.loads(prj.prj_done),
+        "warning": project.warning(prj)
     }
     return base.wrap_code("succ", response)

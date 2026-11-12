@@ -43,7 +43,7 @@ menu_items: list[menu_item_t] = [
         "cond": lambda ctx: True,
         "dev": False,
         "img": "signout",
-        "txt": "word_disconnection",
+        "txt": "base_disconnection",
         "route": "/auth/oper/logout"
     },
     {
@@ -51,7 +51,7 @@ menu_items: list[menu_item_t] = [
         "dev": True,
         "img": "inbox",
         "txt": "page_title_inbox",
-        "route": "/inbox/page/list"
+        "route": "/inbox/page/main"
     },
     {
         "cond": session.has_submission_right,
@@ -196,7 +196,7 @@ def page(
     # help div and help button
     img_close_help = static_img(
         "dismiss",
-        "word_close",
+        "base_close",
         js="base_popup_help_close()",
         id_="img-tooltip-help-close-button"
     )
@@ -215,7 +215,7 @@ def page(
     else:
         img_help = static_img(
             "help",
-            "word_help",
+            "base_help",
             id_="img-main-help",
             js=f"base_help_open('{help_id}')"
         )
@@ -315,19 +315,23 @@ def static_img_src(
 
 def static_img(
         img: types.static_img_t,
-        title: types.txt_t,
+        title: tp.Optional[types.txt_t],
         href: str = "",
         js: str = "",
+        title_str: tp.Optional[str] = None,
         size: None | int = None,
         title_args: None | tuple[str] = None,
         **kwargs: str
 ) -> he.Element:
     result: he.Element
     src = static_img_src(img, size)
-    if title_args is None:
-        title_str = lang.txt(title)
-    else:
-        title_str = lang.txt(title, *title_args)
+    if title_str is None:
+        if title is None:
+            title_str = "img"
+        elif title_args is None:
+            title_str = lang.txt(title)
+        else:
+            title_str = lang.txt(title, *title_args)
     result = he.Img(src=src, title=title_str, alt=title_str, **kwargs)
     if href != "":
         result["class"] += " btn"

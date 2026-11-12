@@ -39,6 +39,11 @@ def has_right_to_execute(
             return False
         owner = queries.get_item_owner(ctx.dbs, itm_id)
         return owner is not None and owner.usr_id == session.usr_id(ctx)
+    def check_project_id(prj_id: types.db_base_val_t) -> bool:
+        if prj_id is None or not isinstance(prj_id, int):
+            return False
+        owner = queries.get_project_owner(ctx.dbs, prj_id)
+        return owner is not None and owner.usr_id == session.usr_id(ctx)
     def recover_values() -> None:
         # for some tables we need to recover a column value if not
         # present
@@ -111,6 +116,18 @@ def has_right_to_execute(
         if typ in {"delete", "select", "update"}:
             return check_item_id(get_col_value(col_item, "where"))
         return check_item_id(get_col_value(col_item, "values"))
+    except KeyError:
+        pass
+
+    # for a project we check its owner
+    try:
+        col_item = {
+            "project": "prj_id",
+            "prj_grp": "pgp_project"
+        }[tbl]
+        if typ in {"delete", "select", "update"}:
+            return check_project_id(get_col_value(col_item, "where"))
+        return check_project_id(get_col_value(col_item, "values"))
     except KeyError:
         pass
 

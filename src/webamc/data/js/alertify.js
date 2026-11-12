@@ -7,7 +7,7 @@ $(document).ready(function() {
     alertify.dialog('webamc_confirm', function factory (){
 	return {
 	    main: function (message, onok){
-		this.setting('title', Lang['seq_confirmation_request']);
+		this.setting('title', Lang['base_confirmation_request']);
 		this.setting('transition', 'fade');
 		this.onok = onok;
 		this.message = message;

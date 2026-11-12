@@ -7,9 +7,9 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
 
     # type
     itm_types = [
-        (he.Txt("word_mcq"), "mcq"),
-        (he.Txt("word_exercise"), "exe"),
-        (he.Txt("word_question"), "qst")
+        (he.Txt("base_mcq"), "mcq"),
+        (he.Txt("base_exercise"), "exe"),
+        (he.Txt("base_question"), "qst")
     ]
     select_type = he.Select(
         *[he.Option(lbl, value=typ) for lbl, typ in itm_types],
@@ -23,7 +23,7 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
 
     # filter button
     a_filter = base.static_img(
-        "checkmark", "word_filter", js="item_db_filter()", class_="submit"
+        "checkmark", "base_filter", js="item_db_filter()", class_="submit"
     )
 
     # table containing all filters
@@ -38,9 +38,9 @@ def page(ctx: context.Context, itm_id: None | int) -> he.Element:
         for col in db_util.get_tbl_visible_cols("item")
     ]
     table = he.Table(
-        he.Tr(he.Td(he.Txt("word_type")), he.Td(select_type)),
+        he.Tr(he.Td(he.Txt("base_type")), he.Td(select_type)),
         *trs,
-        he.Tr(he.Td(he.Txt("word_tags")), he.Td(div_tags)),
+        he.Tr(he.Td(he.Txt("base_tags")), he.Td(div_tags)),
         class_="table-form",
         id_="table-item-filters"
     )

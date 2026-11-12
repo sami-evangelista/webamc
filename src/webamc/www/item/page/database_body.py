@@ -27,7 +27,7 @@ def page(
     table_tags_id = f"table-item-tags-{item.itm_id}"
 
     # <tr> containing attributes
-    trs: list[he.Element] = list()
+    trs: list[tuple[he.Element, he.Element]] = list()
 
     # select item columns to show
     cols: list[InstrumentedAttribute[tp.Any]] = [
@@ -44,12 +44,10 @@ def page(
         cols.append(tables.Item.itm_qst_type)
         cols.append(tables.Item.itm_qst_standalone)
     for label, inpt in www_db_util.get_attributes(ctx, item, *cols):
-        trs.append(label)
-        trs.append(inpt)
+        trs.append((label, inpt))
 
     # <tr> containing <table> with groups (if it is an mcq)
     if not item.itm_is_mcq:
-        table_grps_id = None
         grps = None
         init_grps = None
     else:
@@ -61,10 +59,11 @@ def page(
         init_grps = [
             grp.grp_id for grp in queries.get_mcq_grps(ctx.dbs, item.itm_id)
         ]
-        trs += [
-            base.field_label(he.Txt("word_groups")),
-            he.Div(id_=table_grps_id)
-        ]
+        div = he.Div(id_=table_grps_id)
+        label = base.field_label(he.Txt("base_groups"))
+        trs.append(
+            (label, div)
+        )
 
     # <tr> containing <table> with tags
     tags = {
@@ -75,10 +74,9 @@ def page(
         }
         for tag in queries.get_item_tags(ctx.dbs, item.itm_id)
     }
-    trs += [
-        base.field_label(he.Txt("word_tags")),
-        he.Div(id_=table_tags_id)
-    ]
+    trs.append(
+        (base.field_label(he.Txt("base_tags")), he.Div(id_=table_tags_id))
+    )
 
     img_instance = he.Img(
         src=base.img_src(ctx, item_instance.iti_id, item_instance.iti_uuid),
@@ -86,10 +84,9 @@ def page(
     )
     if len(item_instances) == 1:
         if item_instances[0].iti_img is not None:
-            trs += [
-                base.field_label(he.Txt("word_statement")),
-                img_instance
-            ]
+            trs.append(
+                (base.field_label(he.Txt("base_statement")), img_instance)
+            )
     else:
         options = [
             he.Option(
@@ -107,7 +104,9 @@ def page(
             onchange=onchange,
             class_="select-instance"
         )
-        trs += [select_instance, img_instance]
+        trs.append(
+            (select_instance, img_instance)
+        )
 
     # <tr> with select containing elements that can be added to the
     # exercise
@@ -118,12 +117,12 @@ def page(
             assert item.itm_code is not None
             if item.itm_type == types.ITEM_TYPE_QUESTION:
                 return (
-                    lang.txt("word_question").title()
+                    lang.txt("base_question").title()
                     + " [" + item.itm_code + "]"
                 )
             if item.itm_type == types.ITEM_TYPE_EXERCISE:
                 return (
-                    lang.txt("word_exercise").title()
+                    lang.txt("base_exercise").title()
                     + " [" + item.itm_code + "]"
                 )
             assert False
@@ -161,14 +160,16 @@ def page(
     # <tr> for item content
     content = _content(ctx, item, iti_num, children)
     if content is not None or select_add is not None:
-        trs.append(base.field_label(he.Txt("word_content")))
-        if select_add is not None:
-            trs.append(select_add)
-        if content is not None:
-            trs.append(content)
+        if select_add is None:
+            select_add = he.Empty()
+        trs.append(
+            (base.field_label(he.Txt("base_content")), select_add)
+        )
 
     # <table> containing all previous <tr>
-    table_attributes = he.mktable(((tr, ) for tr in trs), class_="table-form")
+    table_attributes = he.mktable(trs, class_="table-form")
+    if content is not None:
+        table_attributes.append(he.Tr(he.Td(content, colspan="2")))
 
     # script initialising the item
     d = json.dumps
@@ -231,7 +232,7 @@ def _content_pack(
     )
     a_update = base.static_img(
         "edit",
-        "word_update",
+        "base_update",
         js=f"item_db_pack_update({item.itm_id});"
     )
     content = he.ElementList(div_pack, a_update, script)

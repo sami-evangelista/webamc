@@ -15,8 +15,8 @@ ROW_PREFIX_COLS: list[types.txt_t] = [
     "col_desc_usr_name",
     "col_desc_usr_fst_name",
     "col_desc_usr_code",
-    "word_score",
-    "word_max"
+    "base_score",
+    "base_max"
 ]
 USR_DATA_COLS = 3
 COL_IDX_QUESTION_START = len(ROW_PREFIX_COLS)
@@ -34,7 +34,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
     wb = openpyxl.Workbook()
     ws = wb.active
     assert isinstance(ws, Worksheet)  # security check
-    ws.title = lang.txt("word_scores")
+    ws.title = lang.txt("base_scores")
 
     # styles
     header_font = Font(
@@ -183,7 +183,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
     ):
         ws.cell(row=row_idx, column=col_idx).border = thin_border
 
-    filename = lang.txt("word_scores") + "-" + exam.exm_title.replace(" ", "_")
+    filename = lang.txt("base_scores") + "-" + exam.exm_title.replace(" ", "_")
     headers_response = {
         "Content-Disposition":
         f"attachment; filename=\"{filename}.xlsx\""

@@ -82,13 +82,13 @@ def div_item(
 
     # <div> containing item code
     if item.itm_is_mcq:
-        label = he.Txt("word_mcq")
+        label = he.Txt("base_mcq")
         div_code_class = "item-code item-code-mcq"
     elif item.itm_type == types.ITEM_TYPE_QUESTION:
-        label = he.Txt("word_question")
+        label = he.Txt("base_question")
         div_code_class = "item-code item-code-question"
     else:
-        label = he.Txt("word_exercise")
+        label = he.Txt("base_exercise")
         div_code_class = "item-code item-code-exercise"
     buttons: list[he.Element] = list()
     if item_parent is None:
@@ -103,7 +103,7 @@ def div_item(
             )
             img_up = base.static_img(
                 "arrow-up",
-                "word_move_up",
+                "base_move_up",
                 js=js
             )
             buttons.append(img_up)
@@ -114,20 +114,20 @@ def div_item(
             )
             img_down = base.static_img(
                 "arrow-down",
-                "word_move_down",
+                "base_move_down",
                 js=js
             )
             buttons.append(img_down)
         img_unlink = base.static_img(
             "unlink",
-            "word_detach",
+            "base_detach",
             js=f"item_db_detach({item.itm_id}, {json.dumps(itm_id_parent)});"
         )
         buttons.append(img_unlink)
     if session.has_admin_right(ctx, item):
         img_delete = base.static_img(
             "dismiss",
-            "word_delete",
+            "base_delete",
             js=f"item_db_delete({item.itm_id}, {json.dumps(itm_id_parent)});"
         )
         buttons.append(img_delete)

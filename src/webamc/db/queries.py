@@ -133,7 +133,7 @@ def get_grps_usrs(
         tables.Usr.usr_name,
         tables.Usr.usr_fst_name
     )
-    yield from query.all()
+    yield from query
 
 
 def is_in_grps(
@@ -248,7 +248,7 @@ def gen_pack_questions(
         return result
     assert item.itm_type == types.ITEM_TYPE_PACK
     assert item.itm_pack_spec is not None
-    spec = json.loads(item.itm_pack_spec)
+    spec = types.check_pack_spec(item.itm_pack_spec)
     return traverse(spec).all()
 
 
@@ -513,12 +513,14 @@ def get_student_detailed_scores(
 def list_recipients(
         dbs: Session,
         usr_id: int,
-        msg_code: str
+        msg_file_project: int
 ) -> list[tables.Usr]:
     query = dbs.query(
         tables.Usr
     ).where(
         (tables.Message.msg_from == usr_id)
+        & (tables.Message.msg_type == types.MESSAGE_TYPE_FILE)
+        & (tables.Message.msg_file_project == msg_file_project)
         & (tables.Message.msg_to == tables.Usr.usr_id)
     )
     return query.all()
@@ -730,16 +732,14 @@ def get_exam_result(dbs: Session, exm_id: int) -> exam_result_t:
         }
 
 
-def get_exam(dbs: Session, exm_id: int) -> tables.Exam:
-    result = dbs.query(tables.Exam).where(tables.Exam.exm_id == exm_id).first()
-    assert result is not None
-    return result
-
-
 def get_submission(
         dbs: Session,
         sub_id: int
-) -> tuple[tables.Submission, tables.Registration | None, tables.Exam | None]:
+) -> tp.Optional[
+    tuple[tables.Submission,
+          tp.Optional[tables.Registration],
+          tp.Optional[tables.Exam]]
+]:
     result = dbs.query(
         tables.Submission,
         tables.Registration,
@@ -755,5 +755,58 @@ def get_submission(
         tables.Exam,
         tables.Exam.exm_id == tables.Registration.reg_exam
     ).first()
-    assert result is not None
     return result
+
+
+def get_exam_submissions(
+        dbs: Session,
+        exm_id: int
+) -> tp.Generator[tuple[tables.Submission, tables.Registration]]:
+    query = dbs.query(
+        tables.Submission,
+        tables.Registration
+    ).select_from(
+        tables.Submission
+    ).where(
+        tables.Submission.sub_type == types.SUBMISSION_TYPE_EXAM
+    ).join(
+        tables.Registration,
+        tables.Registration.reg_id == tables.Submission.sub_exm_registration
+    ).where(
+        tables.Registration.reg_exam == exm_id
+    )
+    for row in query:
+        yield row._tuple()
+
+
+def list_projects(
+        dbs: Session,
+        usr_id: int
+) -> tp.Generator[tables.Project]:
+    query = dbs.query(
+        tables.Project
+    ).where(
+        tables.Project.prj_usr == usr_id
+    )
+    yield from query
+
+
+def list_project_groups(
+        dbs: Session,
+        prj_id: int
+) -> tp.Generator[tables.Grp]:
+    yield from dbs.query(
+        tables.Grp
+    ).where(
+        (tables.PrjGrp.pgp_project == prj_id)
+        & (tables.PrjGrp.pgp_grp == tables.Grp.grp_id)
+    )
+
+
+def get_project_owner(dbs: Session, prj_id: int) -> None | tables.Usr:
+    return dbs.query(
+        tables.Usr
+    ).where(
+        (tables.Project.prj_id == prj_id)
+        & (tables.Project.prj_usr == tables.Usr.usr_id)
+    ).first()

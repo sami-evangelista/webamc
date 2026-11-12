@@ -1,12 +1,13 @@
 from webamc.www.all import *
 from webamc.www.db import util as www_db_util
+from webamc.www.exam import util as www_exam_util
 from webamc.db import queries, tables
 
 
 def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
     exm_id = args["exm_id"]
-    exam = queries.get_exam(ctx.dbs, exm_id)
+    _, exam = www_exam_util.get_exam(ctx, exm_id)
     elements: list[he.Element] = list()
     now = datetime.datetime.now()
     five_min = datetime.timedelta(minutes=5)
@@ -22,23 +23,10 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     # table with user monitoring data
     #####
 
-    # table header
-    input_all = he.Input(
-        type_="checkbox",
-        id_="checkbox_all",
-        onclick="exam_select_all_registrations()"
-    )
-    td_head = [
-        he.Td(input_all),
-        he.Td(he.Txt("word_usr")),
-        he.Td(he.Txt("word_progress")),
-        he.Td(he.Txt("word_status"))
-    ]
-    thead = he.Thead(he.Tr(*td_head))
-
     # table rows generation
     trs = list()
     no_registered = 0
+    img_view: tp.Optional[he.Element] = None
     for row in queries.get_exam_result(ctx.dbs, exm_id):
         sub: tp.Optional[tables.Submission] = None
         no_registered += 1
@@ -94,6 +82,12 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             value=str(no_answered)
         )
 
+        tds += [
+            he.Str(usr_name),
+            progress,
+            span_status
+        ]
+
         # view image
         if sub is None:
             sub_id = None
@@ -102,21 +96,30 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         img_view = base.static_img(
             "view",
             "exam_view_submission",
-            js=f"exam_view_submission({json.dumps(sub_id)})",
-            target="_blank"
+            js=f"exam_view_submission({json.dumps(sub_id)})"
         )
+        tds.append(img_view)
 
-        tds += [
-            he.Str(usr_name),
-            progress,
-            span_status,
-            img_view
-        ]
         trs.append(tds)
 
     if len(trs) == 0:
         table_monitoring: he.Element = he.Empty()
     else:
+        # table header
+        input_all = he.Input(
+            type_="checkbox",
+            id_="checkbox_all",
+            onclick="exam_select_all_registrations()"
+        )
+        td_head = [
+            he.Td(input_all),
+            he.Td(he.Txt("base_usr")),
+            he.Td(he.Txt("base_progress")),
+            he.Td(he.Txt("base_status"))
+        ]
+        if img_view is not None:
+            td_head.append(he.Td(he.Empty()))
+        thead = he.Thead(he.Tr(*td_head))
         table_monitoring = he.mktable(trs, class_="table-solid")
         table_monitoring.insert(0, thead)
 
@@ -204,13 +207,13 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             ),
             base.static_img(
                 "edit",
-                "word_answer",
+                "base_answer",
                 js=js_mcq_view,
                 style="vertical-align: middle;"
             ),
             base.static_img(
                 "settings",
-                "word_administrate",
+                "base_administrate",
                 js=js_mcq_administrate,
                 style="vertical-align: middle;"
             )
@@ -228,7 +231,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     ] + [
         tr_mcq,
         [
-            he.Txt("word_status"),
+            he.Txt("base_status"),
             span_exam_status
         ],
         [
@@ -271,7 +274,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         js=f"exam_publish({exm_id})"
     )
     buttons.append(btn)
-    trs.append([he.Txt("word_actions"), he.ElementList(*buttons)])
+    trs.append([he.Txt("base_actions"), he.ElementList(*buttons)])
 
     # assemble the table
     table_exam_status = he.mktable(trs, class_="table-form")

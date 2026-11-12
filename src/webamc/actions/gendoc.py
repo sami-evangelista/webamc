@@ -78,7 +78,7 @@ def action() -> None:
         w("{\\newcommand{\\cmark}{\\ding{51}}%\n")
         w("\\newcommand{\\xmark}{\\ding{55}}%\n")
         w("\\begin{itemize}" + sep + "\n")
-        for param, typ in sorted(types.conf_t.__annotations__.items()):
+        for param, typ in sorted(types.config_t.__annotations__.items()):
             cli, web, desc = config.CONFIG_DESC_MD[param]
             w("\\item{\\tt{" + _texify(param) + "}}")
             where = {

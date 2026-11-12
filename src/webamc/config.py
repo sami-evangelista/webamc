@@ -1,8 +1,6 @@
 import json
 import sys
-import typing as tp
 from pathlib import Path
-from pydantic import TypeAdapter, ValidationError
 
 from webamc.util import termout
 from webamc.types import all as types
@@ -22,28 +20,23 @@ def load(cfg_file: str | None = None) -> None:
         path = Path(DEFAULT_CONFIG_FILE)
     else:
         path = Path(cfg_file)
-    if not path.is_file():
-        if path == DEFAULT_CONFIG_FILE:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                json.dumps(CONFIG_DEFAULT, indent=2) + "\n",
-                encoding="utf-8"
-            )
-            load()
-        else:
-            termout.error(f"config file {path} does not exist")
-    else:
+    if path.is_file():
         try:
-            CONFIG = tp.cast(
-                types.conf_t,
-                json.loads(path.read_text(encoding="utf-8"))
-            )
-            TypeAdapter(types.conf_t).validate_python(CONFIG)
-        except (ValidationError, json.decoder.JSONDecodeError):
+            CONFIG = types.check_config(path.read_text(encoding="utf-8"))
+        except ValueError:
             termout.warning(f"malformed configuration file {path}")
+    elif path != DEFAULT_CONFIG_FILE:
+        termout.error(f"config file {path} does not exist")
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(CONFIG_DEFAULT, indent=2) + "\n",
+            encoding="utf-8"
+        )
+        load()
 
 
-CONFIG_DEFAULT: types.conf_t = {
+CONFIG_DEFAULT: types.config_t = {
     "base_url": "https://www.example.com",
     "auth_account_creation_enabled": True,
     "auth_cas_enabled": True,

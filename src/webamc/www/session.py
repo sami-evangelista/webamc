@@ -91,7 +91,7 @@ def active_registration(
         ctx: context.Context
 ) -> None | tuple[tables.Registration, tables.Exam]:
     check_logged_in(ctx)
-    # TODO: move to queries
+    # XXX: move to queries
     l = ctx.req.session.get("reg_id")
     reg_id = l[0] if l is not None else None
     if reg_id is None:

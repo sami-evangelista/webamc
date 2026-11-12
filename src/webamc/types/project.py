@@ -1,6 +1,8 @@
+import json
 import datetime
 import typing as tp
 import typing_extensions as tp_ext
+from pydantic import TypeAdapter, ValidationError
 
 
 action_t = tp.Literal[
@@ -17,6 +19,25 @@ action_t = tp.Literal[
     "upload_source",
     "send_annotated_sheets",
     "send_notification_mail"
+]
+
+file_t = tp.Literal[
+    "csv_list",
+    "json_status",
+    "log_webamc",
+    "ods_scores",
+    "pdf_answer_sheets",
+    "pdf_correction",
+    "pdf_subject",
+    "sqlite_association",
+    "sqlite_capture",
+    "source",
+    "tex_main",
+    "txt_main",
+    "xy_calage",
+    "zip_annotated_sheets",
+    "zip_sheets",
+    "zip_tex"
 ]
 
 source_type_t = tp.Literal[
@@ -41,49 +62,33 @@ cmd_t = tp.Literal[
     "read-pdfform"
 ]
 
-class data_t(tp_ext.TypedDict):
-    assoc_attr: tp.NotRequired[int]
-    code: tp.NotRequired[str]
-    title: tp.NotRequired[str]
-    amc_code: tp.NotRequired[str]
-    threshold: tp.NotRequired[float]
-    copies: tp.NotRequired[int]
-    groups: tp.NotRequired[list[int]]
-
 class action_params_t(tp_ext.TypedDict):
     copy: tp.NotRequired[None | int]
     student: tp.NotRequired[None | int]
     id: tp.NotRequired[None | str]
-
-file_t = tp.Literal[
-    "csv_list",
-    "json_status",
-    "log_webamc",
-    "ods_scores",
-    "pdf_answer_sheets",
-    "pdf_correction",
-    "pdf_subject",
-    "sqlite_association",
-    "sqlite_capture",
-    "source",
-    "tex_main",
-    "txt_main",
-    "xy_calage",
-    "zip_annotated_sheets",
-    "zip_sheets",
-    "zip_tex"
-]
 
 class file_status_t(tp.TypedDict):
     exists: bool
     size: None | int
     date: None | datetime.datetime
 
-class status_t(tp.TypedDict):
-    source_type: source_type_t
-    done: dict[action_t, bool]
-    doable: dict[action_t, tuple[bool, list[tuple[str, str]]]]
-    history: list[tuple[action_t, datetime.datetime, bool]]
-    data: data_t
-    files: dict[file_t, file_status_t]
-    warning: dict[action_t, bool]
+project_history_t = list[tuple[action_t, datetime.datetime, bool]]
+project_actions_done_t = dict[action_t, bool]
+
+
+def check_project_actions_done(done: str) -> project_actions_done_t:
+    try:
+        data = json.loads(done)
+        TypeAdapter(project_actions_done_t).validate_python(data)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        raise ValueError from ex
+    return tp.cast(project_actions_done_t, data)
+
+
+def check_project_history(data: str) -> project_history_t:
+    try:
+        data = json.loads(data)
+        TypeAdapter(project_history_t).validate_python(data)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        raise ValueError from ex
+    return tp.cast(project_history_t, data)

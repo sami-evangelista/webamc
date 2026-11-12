@@ -28,14 +28,14 @@ var mcq_content;
 
 const mcq_set_status = function (html_id, status = null) {
     const elem = $('#' + html_id)
-          .removeClass('status-wrong')
-          .removeClass('status-partially-correct')
-          .removeClass('status-correct')
-          .removeClass('status-unfilled')
-          .removeClass('status-filled')
+          .removeClass('mcq-status-wrong')
+          .removeClass('mcq-status-partially-correct')
+          .removeClass('mcq-status-correct')
+          .removeClass('mcq-status-unfilled')
+          .removeClass('mcq-status-filled')
     ;
     if(status != null) {
-        elem.addClass('status-' + status);
+        elem.addClass('mcq-status-' + status);
     }
 }
 
@@ -85,14 +85,14 @@ const mcq_save_review = function () {
         const data = mcq_collect_answers();
         xhr_post_oper(url, data, success);
     };
-    base_ask_confirmation(Lang['qst_confirmation_mcq_form'], go);
+    base_ask_confirmation(Lang['mcq_qst_confirmation_send'], go);
 }
 
 
-const mcq_reset_mode = function () {
+const mcq_reset_mode = function (mode) {
     mcq_qst_current = mcq_qst_list[0];
     mcq_exe_current = mcq_qst_exe[mcq_qst_current];
-    mcq_set_mode(mcq_mode_one_by_one);
+    mcq_set_mode(mode);
 }
 
 
@@ -101,21 +101,21 @@ const mcq_reset_all = function () {
 	$('.choice-input')
             .prop('disabled', false)
             .prop('checked', false);
-	$('.status-box-choice').each(function (i) {
+	$('.mcq-status-box-choice').each(function (i) {
             mcq_set_status($(this).attr('id'));
 	});
-	$('.status-box-question').each(function (i) {
+	$('.mcq-status-box-question').each(function (i) {
             mcq_set_status($(this).attr('id'), 'unfilled');
 	});
 	$('#btn-validate_mcq').show();
-	mcq_reset_mode();
+	mcq_reset_mode(mcq_mode);
     };
-    base_ask_confirmation(Lang['qst_confirmation_restart_mcq'], go);
+    base_ask_confirmation(Lang['mcq_qst_confirmation_restart'], go);
 }
 
 
 const mcq_reset_question = function (qst_id) {
-    if($('#qst_' + qst_id + '_status').hasClass('status-filled')) {
+    if($('#qst_' + qst_id + '_status').hasClass('mcq-status-filled')) {
         mcq_set_qst_status(qst_id, correct ? 'correct' : 'unfilled');
         for(cho_id of mcq_qst_content[qst_id]) {
             $('#cho_' + cho_id).prop('checked', false);
@@ -162,8 +162,8 @@ const mcq_set_current_qst = function (qst_id) {
     }
     mcq_hide_item('qst_' + mcq_qst_current);
     mcq_show_item('qst_' + qst_next);
-    $('.status-box-question').removeClass('status-current');
-    $('#qst_' + qst_next + '_status_rule').addClass('status-current');
+    $('.mcq-status-box-question').removeClass('mcq-status-current');
+    $('#qst_' + qst_next + '_status_rule').addClass('mcq-status-current');
     mcq_qst_current = qst_next;
     mcq_exe_current = exe_next;
 }
@@ -222,29 +222,29 @@ const mcq_switch_mode = function () {
 
 const mcq_set_mode = function (mode) {
     mcq_mode = mode;
-    $('.status-box-question').removeClass('status-current');
+    $('.mcq-status-box-question').removeClass('mcq-status-current');
     if(mcq_mode == mcq_mode_one_by_one) {
-        $('.question, .exercise').hide();
+        $('.mcq-question, .mcq-exercise').hide();
         mcq_show_item('exe_' + mcq_exe_current);
         mcq_show_item('qst_' + mcq_qst_current);
-        $('.status-box-question').removeClass('status-current');
+        $('.mcq-status-box-question').removeClass('mcq-status-current');
         $('#qst_' + mcq_qst_current + '_status_rule')
-            .addClass('status-current');
+            .addClass('mcq-status-current');
     } else if(mcq_mode == mcq_mode_all) {
-        $('.question-body, .exercise-body').hide();
-        $('.question, .exercise').show();
+        $('.mcq-question-body, .mcq-exercise-body').hide();
+        $('.mcq-question, .mcq-exercise').show();
     } else {
         mcq_set_mode(mcq_mode_one_by_one);
     }
 }
 
 
-const mcq_init = function (content) {
+const mcq_init = function (mode, content) {
     $(document).keypress(function (evt) {
         mcq_key_pressed(evt);
     });
     mcq_content = content
-    mcq_reset_mode();
+    mcq_reset_mode(mode);
 }
 
 
@@ -299,8 +299,8 @@ const mcq_new_cho = function (cho_id, qst_id) {
 
 
 const mcq_init_timer = function (sec_duration, end_time) {
-    const div_timer = $('#exam-timer');
-    const span_timer_text = $('#exam-timer-text');
+    const div_timer = $('#mcq-exam-timer');
+    const span_timer_text = $('#mcq-exam-timer-text');
     const countdown = function() {
         const sec_left = parseInt((end_time - Date.now()) / 1000);
 
@@ -318,7 +318,10 @@ const mcq_init_timer = function (sec_duration, end_time) {
 		    };
                     xhr_post_oper(url, null, success);
                 };
-                base_report_infos([Lang['info_exam_finished']], send_finish);
+                base_report_infos(
+                    [Lang['mcq_info_exam_finished']],
+                    send_finish
+                );
             };
             mcq_save_exam(finish);
             return false;
@@ -354,11 +357,14 @@ const mcq_save_exam = function(callback = null) {
         const data = mcq_collect_answers();
         const url = Constants.path_mcq_oper_save;
         const pop_info = function (_) {
-            base_report_infos([Lang['info_progress_saved']], callback);
+            base_report_infos([Lang['mcq_info_progress_saved']], callback);
         };
         xhr_post_oper(url, data, pop_info);
-    } else if(callback != null) {
-        callback();
+    } else {
+        base_report_infos([Lang['mcq_info_progress_saved']]);
+        if(callback != null) {
+            callback();
+        }
     }
 }
 

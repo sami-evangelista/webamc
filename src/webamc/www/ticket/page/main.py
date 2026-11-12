@@ -40,7 +40,7 @@ def _page_password_change(
     for txt, inpt in get_txt_and_input(ctx, tables.LocalAuth.loc_password):
         trs += [txt, inpt]
     trs += [
-        base.field_label(he.Txt("word_confirmation")),
+        base.field_label(he.Txt("base_confirmation")),
         input_confirm
     ]
     table = he.mktable(
@@ -50,7 +50,7 @@ def _page_password_change(
     )
     img = base.static_img(
         "checkmark",
-        "word_send",
+        "base_send",
         js=f"ticket_password_change('{tkt.tkt_value}')",
         class_="submit"
     )
@@ -105,11 +105,11 @@ def _page_account_creation(
         tables.LocalAuth.loc_password
     ):
         trs += [txt, element]
-    trs += [he.Txt("word_confirmation"), input_confirm]
+    trs += [he.Txt("base_confirmation"), input_confirm]
     table = he.mktable(((cell, ) for cell in trs), class_="table-form")
     a_send = base.static_img(
         "checkmark",
-        "word_send",
+        "base_send",
         js=f"ticket_account_creation('{tkt.tkt_value}')",
         class_="submit"
     )

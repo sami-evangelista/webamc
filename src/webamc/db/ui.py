@@ -85,15 +85,23 @@ class Textarea(Input):
 
 
 class Number(Input):
+    def __init__(
+            self,
+            col: sa.Column[tp.Any],
+            js_type: str,
+            step: int | float=1
+    ) -> None:
+        super().__init__(col, js_type)
+        self.step = step
     def element(
             self,
             value: None | types.db_base_val_t = None,
             **kwargs: tp.Any
     ) -> he.Element:
         result = he.Input(type_="number")
-        if value is not None:
-            assert isinstance(value, int)
-            result["value"] = str(int(value))
+        if value is not None and isinstance(self.step, (int, float)):
+            result["value"] = str(value)
+        result["step"] = str(self.step)
         return self._init_element(result, **kwargs)
     def element_cmp(self) -> he.Element:
         result = super().element_cmp()

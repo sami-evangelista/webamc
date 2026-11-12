@@ -1,12 +1,16 @@
 import json
 
 from webamc.www.all import *
+from webamc.www.project import util
+from webamc.www.db import util as www_db_util
 from webamc.db import queries, tables
 from webamc import project as proj
 
 
-def page(ctx: context.Context) -> fa.Response:
-    trs: list[he.Element] = list()
+def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
+
+    prj = util.get_project(ctx, args["prj_id"])
+    trs: list[tuple[he.Element, he.Element, he.Element]] = list()
 
     def file_elements(f: types.file_t) -> tuple[he.Element, he.Element]:
         span = he.Span(
@@ -24,16 +28,11 @@ def page(ctx: context.Context) -> fa.Response:
     def list_action_files(action: types.action_t) -> None:
         trs_files = [
             he.Tr(*[he.Td(e) for e in file_elements(f)])
-            for f in proj.list_files(action)
+            for f in proj.list_action_files(action)
         ]
         if trs_files != list():
             table = he.Table(*trs_files)
-            tr = he.Tr(
-                he.Td(),
-                he.Td(table),
-                he.Td()
-            )
-            trs.append(tr)
+            trs.append((he.Empty(), table, he.Empty()))
 
     def label_action(
             action: types.action_t,
@@ -53,7 +52,7 @@ def page(ctx: context.Context) -> fa.Response:
             txt: types.txt_t,
             js: None | str = None,
             icon: types.static_img_t = "play",
-            img_txt: types.txt_t = "word_start",
+            img_txt: types.txt_t = "base_start",
             help_section: str | None = None
     ) -> None:
         if js is None:
@@ -64,12 +63,7 @@ def page(ctx: context.Context) -> fa.Response:
             js=js,
             id_=f"img-action-{action}"
         )
-        tr = he.Tr(
-            he.Td(a),
-            he.Td(label_action(action, txt, help_section)),
-            he.Td()
-        )
-        trs.append(tr)
+        trs.append((a, label_action(action, txt, help_section), he.Empty()))
         list_action_files(action)
 
     def new_upload_action(
@@ -85,75 +79,59 @@ def page(ctx: context.Context) -> fa.Response:
         )
         a = base.static_img(
             "upload",
-            "word_send",
+            "base_send",
             js=f"project_upload_action('{action}', '{f}')",
             id_=f"img-action-{action}"
         )
-        tr = he.Tr(
-            he.Td(a),
-            he.Td(label_action(action, txt, help_section)),
-            he.Td(input_file)
-        )
-        trs.append(tr)
+        trs.append((a, label_action(action, txt, help_section), input_file))
         list_action_files(action)
 
     # div with actions
     new_upload_action(
         "upload_source",
         "source",
-        "seq_upload_latex_archive",
+        "project_upload_latex_archive",
         help_section="help-project-action-upload"
     )
     new_action(
         "compile",
-        "seq_compile_latex"
+        "project_compile_latex"
     )
     new_upload_action(
         "upload_answer_sheets",
         "pdf_answer_sheets",
-        "seq_upload_answer_sheets"
+        "project_upload_answer_sheets"
     )
     new_action(
         "analyse",
-        "seq_analyse_answer_sheets"
+        "project_analyse_answer_sheets"
     )
-    # new_action(
-    #    "clean-associations",
-    #    "seq_clean_associations",
-    #    js="project_clean_associations()",
-    #    img_txt="word_delete",
-    #    icon="broom"
-    # )
     new_action(
         "associate_automatic",
-        "seq_associate_automatic"
+        "project_associate_automatic"
     )
     new_action(
         "associate_manual_prepare",
-        "seq_associate_manual",
+        "project_associate_manual",
         js="project_manual_association_open()"
     )
     new_action(
         "export_scores",
-        "seq_generate_scores_and_annotated_sheets"
+        "project_generate_scores_and_annotated_sheets"
     )
     new_action(
         "send_annotated_sheets",
-        "seq_send_annotated_sheets"
+        "project_send_annotated_sheets"
     )
     new_action(
         "send_notification_mail",
-        "seq_send_notification_mail"
+        "project_send_notification_mail"
     )
-    tr = he.Tr(
-        he.Td(he.Hr(), colspan=3),
-    )
-    trs.append(tr)
     new_action(
         "delete",
-        "seq_delete_project",
+        "project_delete",
         icon="trash",
-        img_txt="word_delete"
+        img_txt="base_delete"
     )
     img, span = file_elements("log_webamc")
     tr = he.Tr(
@@ -161,84 +139,45 @@ def page(ctx: context.Context) -> fa.Response:
         he.Td(span),
         he.Td()
     )
-    trs.append(tr)
-    table_actions = he.Table(
-        *trs,
+    trs.append((img, span, he.Empty()))
+    table_actions = he.mktable(
+        trs,
         class_="table-form",
         id_="table-action"
     )
     div_actions = he.Div(
-        he.H2(he.Txt("word_actions")),
+        he.H2(he.Txt("base_actions")),
         table_actions
     )
 
     # div with data
-    input_title = he.Input(
-        name="title",
-        id_="title",
-        size="30"
-    )
-    input_copies = he.Input(
-        name="copies",
-        id_="copies",
-        type_="number",
-        size="4"
-    ).set_data(
-        "type", "number"
-    )
-    input_threshold = he.Input(
-        name="threshold",
-        id_="threshold",
-        size="4"
-    )
-    input_amc_code = he.Input(
-        name="amc_code",
-        id_="amc_code",
-        size="10"
-    )
-    options_attr = [
-        he.Option(he.Str(a.atr_desc), value=a.atr_id)
-        for a in ctx.dbs.query(tables.Attr)
+    cols = [
+        tables.Project.prj_title,
+        tables.Project.prj_copies,
+        tables.Project.prj_threshold,
+        tables.Project.prj_amc_code,
+        tables.Project.prj_auto_assoc_attr
     ]
-    select_attr = he.Select(
-        *options_attr,
-        name="assoc_attr",
-        id_="assoc_attr"
-    ).sort()
-    select_attr.insert(0, he.Option(he.Str("-"), value=""))
-    div_grps = he.Div(id_="div-grps")
-    data_spec: list[tuple[types.txt_t, he.Element]] = [
-        ("word_title", input_title),
-        ("word_copies", input_copies),
-        ("word_threshold", input_threshold),
-        ("seq_latex_id", input_amc_code),
-        ("seq_association_attr", select_attr),
-        ("seq_association_source", div_grps)
+    trs_data = [
+        (label, inpt)
+        for label, inpt in www_db_util.get_attributes(ctx, prj, *cols)
     ]
-    trs = [
-        he.Tr(he.Td(he.Txt(txt)), he.Td(elem))
-        for txt, elem in data_spec
-    ]
-    table_data = he.Table(
-        *trs,
-        class_="table-form",
-        id_="table-action-data"
+    trs_data.append(
+        (he.Txt("base_groups"), he.Div(id_="div-grps"))
     )
-    a_submit_data = base.static_img(
-        "checkmark",
-        "word_send",
-        js="project_submit_data()",
-        style="position: absolute; top: 5px; right: 5px;"
+
+    table_data = he.mktable(
+        trs_data,
+        class_="table-form"
     )
     span_parameters = base.mkhelp(
-        he.Span(he.Txt("word_parameters")),
+        he.Span(he.Txt("base_parameters")),
         "project",
         section="help-project-parameters"
     )
     div_data = he.Div(
         he.H2(span_parameters),
         table_data,
-        a_submit_data,
         style="position: relative;"
     )
 
@@ -265,7 +204,6 @@ def page(ctx: context.Context) -> fa.Response:
         div_left,
         div_separator,
         div_right,
-        he.Script("project_manual_association_close()"),
         style="display: flex;"
     )
 
@@ -273,10 +211,17 @@ def page(ctx: context.Context) -> fa.Response:
         grp.grp_id: grp.grp_name
         for grp in queries.get_submit_grps(ctx.dbs, session.usr_id(ctx))
     }
-    script_init = he.Script([
-        f"project_usr_groups = {json.dumps(grps)};",
-        "project_init()"
-    ])
+    prj_grps = [
+        g.grp_id
+        for g in queries.list_project_groups(ctx.dbs, prj.prj_id)
+    ]
+    script_init = he.Script(
+        "project_manual_association_close();"
+        f"\nnew GrpTable('div-grps', {json.dumps(grps)},"
+        f" {json.dumps(prj_grps)}, true, project_add_group,"
+        " true, project_del_group);"
+        "\nproject_init();"
+    )
 
     elements = he.ElementList(div_main, script_init)
 

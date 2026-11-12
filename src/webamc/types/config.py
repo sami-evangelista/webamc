@@ -1,5 +1,7 @@
+import json
 import typing as tp
 import typing_extensions as tp_ext
+from pydantic import TypeAdapter, ValidationError
 
 
 lang_t = tp.Literal[
@@ -7,7 +9,7 @@ lang_t = tp.Literal[
     "fr"
 ]
 
-class conf_t(tp_ext.TypedDict):
+class config_t(tp_ext.TypedDict):
     base_url: str
     auth_account_creation_enabled: bool
     auth_cas_enabled: bool
@@ -60,3 +62,12 @@ class conf_t(tp_ext.TypedDict):
     tex_macros_choice_correct: list[str]
     tex_macros_lastchoices: list[str]
     ticket_length: int
+
+
+def check_config(conf: str) -> config_t:
+    try:
+        parsed = json.loads(conf)
+        TypeAdapter(config_t).validate_python(parsed)
+    except (ValidationError, json.decoder.JSONDecodeError) as ex:
+        raise ValueError from ex
+    return tp.cast(config_t, parsed)

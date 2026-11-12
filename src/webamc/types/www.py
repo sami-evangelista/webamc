@@ -64,7 +64,7 @@ path_t = tp.Literal[
     "/exam/oper/register",
     "/help",
     "/img",
-    "/inbox/page/list",
+    "/inbox/page/main",
     "/inbox/page/msg",
     "/item/page/database-body",
     "/item/page/database-list",
@@ -82,14 +82,12 @@ path_t = tp.Literal[
     "/profile/oper/send",
     "/project/page/files",
     "/project/page/get-file",
-    "/project/page/get-mail-pdf",
     "/project/page/main",
     "/project/page/manual-association",
     "/project/page/project",
     "/project/oper/action",
     "/project/oper/upload",
     "/project/oper/get-status",
-    "/project/oper/set-data",
     "/static",
     "/ticket/page/main",
     "/ticket/oper/account-creation",
@@ -113,6 +111,7 @@ oper_code_t = tp.Literal[
     "err_admin_table_undeterminable",
     "err_data_required",
     "err_db_invalid_values",
+    "err_exam_not_finished",
     "err_file_required",
     "err_invalid_eaddr",
     "err_invalid_password_confirm",
@@ -201,7 +200,8 @@ class args_oper_t(tp.TypedDict):
     move: tp.NotRequired[int]
     next_url: tp.NotRequired[str]
     page_num: tp.NotRequired[int]
-    project_code: tp.NotRequired[str]
+    prj_code: tp.NotRequired[str]
+    prj_id: tp.NotRequired[int]
     project_data: tp.NotRequired[dict[str, tp.Any]]
     query: tp.NotRequired[db.db_query_t | list[db.db_query_t]]
     questions: tp.NotRequired[dict[int, dict[int, bool]]]
@@ -219,6 +219,10 @@ class json_response_t(tp_ext.TypedDict):
     success: bool
     msgs: list[str]
     result: None | tp.Any
+
+
+def is_success(c: oper_code_t) -> bool:
+    return c.startswith("succ")
 
 
 def oper_code_to_txt(c: oper_code_t) -> txt.txt_t:
