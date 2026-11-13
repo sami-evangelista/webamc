@@ -17,4 +17,4 @@ def data(
             tmp_file.name, "archive", usr_id=session.usr_id(ctx)
         )
     os.remove(tmp_file.name)
-    return base.wrap_code("succ", load_result)
+    return base.wrap_code("succ", data=load_result)

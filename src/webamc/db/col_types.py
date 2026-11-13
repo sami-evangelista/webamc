@@ -291,9 +291,26 @@ class ProjectCode(ConstrainedString):
     regexp = r'[a-zA-Z][a-zA-Z0-9_\-]*'
 
 
-class PackSpec(LargeString):
-    input_type = ui.Textarea
+class JsonString(String):
+    chk_fun: tp.Optional[tp.Callable[[str], tp.Any]] = None
     @classmethod
     def val_chk(cls, val: tp.Any, **kwargs: tp.Any) -> types.db_base_val_t:
-        types.check_pack_spec(str(val))
+        if cls.chk_fun is not None:
+            cls.chk_fun(str(val))
         return str(val)
+
+
+class PackSpec(JsonString):
+    chk_fun = types.check_pack_spec  # type: ignore
+
+
+class McqContent(JsonString):
+    chk_fun = types.check_mcq_content  # type: ignore
+
+
+class ProjectActionsDone(JsonString):
+    chk_fun = types.check_project_actions_done  # type: ignore
+
+
+class ProjectHistory(JsonString):
+    chk_fun = types.check_project_history  # type: ignore

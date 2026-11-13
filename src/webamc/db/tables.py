@@ -1,5 +1,3 @@
-import uuid
-from pathlib import Path
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.engine.base import Connection
@@ -257,6 +255,9 @@ class Ticket(Base):
         nullable=False
     )
     __table_args__ = (
+        CheckConstraint(
+            TicketType.get_constraint("tkt_type")
+        ),
         ForeignKeyConstraint(
             ["tkt_usr"],
             ["usr.usr_id"],
@@ -569,6 +570,9 @@ class Item(Base):
     )
     __table_args__ = (
         CheckConstraint(
+            McqMode.get_constraint("itm_mcq_mode")
+        ),
+        CheckConstraint(
             ItemType.get_constraint("itm_type")
         ),
         CheckConstraint(
@@ -829,17 +833,17 @@ class Submission(Base):
         nullable=False
     )
     sub_content: Mapped[str] = mapped_column(
-        ct.String
+        ct.McqContent
     )
     sub_date_update: Mapped[datetime.datetime] = mapped_column(
         ct.DateTime
     )
-    sub_exm_registration: Mapped[tp.Optional[int]] = mapped_column(
-        RefRegistration
-    )
     sub_visible: Mapped[bool] = mapped_column(
         ct.Boolean,
         default=False
+    )
+    sub_exm_registration: Mapped[tp.Optional[int]] = mapped_column(
+        RefRegistration
     )
     sub_rev_usr: Mapped[tp.Optional[int]] = mapped_column(
         RefUsr
@@ -848,6 +852,9 @@ class Submission(Base):
         RefItem
     )
     __table_args__ = (
+        CheckConstraint(
+            SubmissionType.get_constraint("sub_type")
+        ),
         ForeignKeyConstraint(
             ["sub_exm_registration"],
             ["registration.reg_id"],
@@ -1168,11 +1175,11 @@ class Project(Base):
         default="tex"
     )
     prj_done: Mapped[str] = mapped_column(
-        ct.String,
+        ct.ProjectActionsDone,
         nullable=False
     )
     prj_history: Mapped[str] = mapped_column(
-        ct.String,
+        ct.ProjectHistory,
         nullable=False
     )
     __table_args__ = (
@@ -1195,7 +1202,7 @@ class Project(Base):
         return self.fmt()
     def fmt(self) -> str:
         if self.prj_title is not None:
-            return self.prj_title.title()
+            return self.prj_title.capitalize()
         return str(self.prj_code)
     def dir_path(self) -> Path:
         return (
@@ -1277,6 +1284,9 @@ class Message(Base):
         RefSubmission
     )
     __table_args__ = (
+        CheckConstraint(
+            MessageType.get_constraint("msg_type")
+        ),
         UniqueConstraint(
             "msg_from",
             "msg_to",
@@ -1354,7 +1364,8 @@ def check_item_not_in_exam_submission(
         itm_id: int
 ) -> None:
 
-    # make sure that the item is not part of an exam submission
+    # before deleting an item, we make sure that the item is not part
+    # of an exam submission
     query = select(
         Exam
     ).where(
@@ -1384,9 +1395,9 @@ def before_delete_item(
             conn: Connection,
             target: Item
     ) -> None:
+    check_item_not_in_exam_submission(conn, target.itm_id)
 
     # when we delete a question we delete all choices in it
-    check_item_not_in_exam_submission(conn, target.itm_id)
     if target.itm_type == types.ITEM_TYPE_QUESTION:
         query_delete = delete(
             Item
@@ -1396,7 +1407,7 @@ def before_delete_item(
         )
         conn.execute(query_delete)
 
-        
+
 def before_insert_exam(
         mapper: Mapper[tp.Any],
         conn: Connection,
@@ -1416,6 +1427,8 @@ def after_insert_project(
         conn: Connection,
         target: Project
 ) -> None:
+
+    # after inserting a project we create its directory structure
     from webamc import project
     if not types.is_success(project.create_files(target)):
         raise errors.DBIOError()
@@ -1426,6 +1439,8 @@ def after_delete_project(
         conn: Connection,
         target: Project
 ) -> None:
+
+    # after deleting a project we create its directory structure
     from webamc import project
     if not types.is_success(project.delete_files(target)):
         raise errors.DBIOError()
@@ -1436,6 +1451,7 @@ def before_insert_item_relation(
         conn: Connection,
         target: ItemRelation
 ) -> None:
+
     # when we insert in ItemRelation we make sure that we still have a
     # tree, this requires to perform a graph search
     todo = [target.itr_child, target.itr_parent]
@@ -1464,6 +1480,9 @@ def before_delete_exam(
         conn: Connection,
         target: Exam
 ) -> None:
+
+    # before deleting an exam we make sure that no submission has been
+    # made for this exam
     query = select(
         Submission
     ).where(
@@ -1474,7 +1493,7 @@ def before_delete_exam(
         raise errors.DBDeletionOfExamWithSubmissions(target.exm_title)
 
 
-# checks performed during or insert or update
+# basic checks performed during or insert or update
 def basic_checks(
         tbl: sa.sql.schema.Table,
         conn: Connection,
@@ -1591,7 +1610,6 @@ def before_update(t: tp.Type[Base]) -> listener_t:
     return result
 
 
-t: tp.Any
 sa.event.listen(Exam, "before_insert", before_insert_exam)
 sa.event.listen(Exam, "before_delete", before_delete_exam)
 sa.event.listen(Item, "before_delete", before_delete_item)

@@ -17,7 +17,7 @@ class submission_result_t(tp_ext.TypedDict):
 class exam_usr_result_t(tp_ext.TypedDict):
     usr: tables.Usr
     reg: tables.Registration
-    sub_result: None | submission_result_t
+    sub_result: tp.Optional[submission_result_t]
 exam_result_t = tp.Iterator[exam_usr_result_t]
 
 
@@ -80,7 +80,7 @@ def get_viewable_mcqs(
 def get_active_registration(
         dbs: Session,
         usr_id: int
-) -> None | tuple[tables.Exam, tables.Registration]:
+) -> tp.Optional[tuple[tables.Exam, tables.Registration]]:
     now = datetime.datetime.now()
 
     # getting every exam of this student
@@ -91,7 +91,7 @@ def get_active_registration(
         (tables.Exam.exm_start <= now)
         & (tables.Registration.reg_exam == tables.Exam.exm_id)
         & (tables.Registration.reg_usr == usr_id)
-    ).all()
+    )
 
     # getting the ongoing examd
     for row in exam_registrations:
@@ -107,12 +107,12 @@ def get_grp_tree(dbs: Session, grp_id: int) -> set[int]:
     result = {grp_id}
     todo = {grp_id}
     while todo != set():
-        stmt = dbs.query(
+        query = dbs.query(
             tables.Grp.grp_id
         ).where(
             tables.Grp.grp_parent.in_(todo)
         )
-        todo = {grp[0] for grp in stmt.all() if grp not in result}
+        todo = {grp[0] for grp in query if grp not in result}
         result = result.union(todo)
     return result
 
@@ -136,22 +136,6 @@ def get_grps_usrs(
     yield from query
 
 
-def is_in_grps(
-        dbs: Session,
-        usr_id: int,
-        grp_ids: set[int],
-        right: types.usr_right_t
-) -> bool:
-    query = dbs.query(
-        tables.UsrGrp
-    ).where(
-        (tables.UsrGrp.ugp_usr == usr_id)
-        & (tables.UsrGrp.ugp_grp.in_(grp_ids))
-        & (tables.UsrGrp.ugp_right == right)
-    )
-    return query.first() is not None
-
-
 def get_usr_exams(
         dbs: Session,
         usr_id: int
@@ -168,24 +152,10 @@ def get_usr_exams(
     return [row._tuple() for row in query]
 
 
-def get_exam_registrations(
-        dbs: Session,
-        exm_id: int
-) -> list[tuple[tables.Usr, tables.Registration]]:
-    query = dbs.query(
-        tables.Usr,
-        tables.Registration
-    ).where(
-        (tables.Registration.reg_exam == exm_id)
-        & (tables.Registration.reg_usr == tables.Usr.usr_id)
-    )
-    return [row._tuple() for row in query.all()]
-
-
 def get_ticket(
         dbs: Session,
         ticket: str
-) -> None | tuple[tables.Ticket, tables.Usr]:
+) -> tp.Optional[tuple[tables.Ticket, tables.Usr]]:
     query = dbs.query(
         tables.Ticket,
         tables.Usr
@@ -273,7 +243,7 @@ def get_submission_choices(
 def get_children(
         dbs: Session,
         itm_id: int,
-        child_type: None | types.item_type_t = None
+        child_type: tp.Optional[types.item_type_t] = None
 ) -> list[tables.Item]:
     result = dbs.query(
         tables.Item
@@ -305,7 +275,7 @@ def get_mcq_grps(dbs: Session, itm_id: int) -> list[tables.Grp]:
     ).all()
 
 
-def get_item_owner(dbs: Session, itm_id: int) -> None | tables.Usr:
+def get_item_owner(dbs: Session, itm_id: int) -> tp.Optional[tables.Usr]:
     return dbs.query(
         tables.Usr
     ).where(
@@ -327,7 +297,7 @@ def _get_grps_loop(
             (tables.UsrGrp.ugp_usr == usr_id)
             & (tables.UsrGrp.ugp_right == right)
             & (tables.UsrGrp.ugp_grp == tables.Grp.grp_id)
-        ).all()
+        )
     )
     todo: list[int] = list(grp.grp_id for grp in result)
     while todo != list():
@@ -336,7 +306,7 @@ def _get_grps_loop(
         ).where(
             tables.Grp.grp_id.in_(get_next(todo))
         )
-        new = {row for row in query.all() if row not in result}
+        new = {row for row in query if row not in result}
         result = result.union(new)
         todo = list(grp.grp_id for grp in new)
     return list(sorted(result, key=lambda grp: grp.grp_name))
@@ -379,7 +349,7 @@ def get_item_tags(dbs: Session, itm_id: int) -> list[tables.Tag]:
     ).all()
 
 
-def get_tbl(dbs: Session, tbl_id: int) -> None | tables.Tbl:
+def get_tbl(dbs: Session, tbl_id: int) -> tp.Optional[tables.Tbl]:
     return dbs.query(tables.Tbl).where(tables.Tbl.tbl_id == tbl_id).first()
 
 
@@ -394,7 +364,7 @@ def get_admin_tables(dbs: Session, usr_id: int) -> list[tables.Tbl]:
     ).all()
 
 
-def get_img(dbs: Session, iti_id: int, iti_uuid: str) -> bytes | None:
+def get_img(dbs: Session, iti_id: int, iti_uuid: str) -> tp.Optional[bytes]:
     instance = dbs.query(
         tables.ItemInstance
     ).where(
@@ -445,7 +415,7 @@ def get_grp_sub_grps(dbs: Session, grp_id: int) -> list[tables.Grp]:
     ).all()
 
 
-def get_usr_by_cas_auth(dbs: Session, login: str) -> None | tables.Usr:
+def get_usr_by_cas_auth(dbs: Session, login: str) -> tp.Optional[tables.Usr]:
     return dbs.query(
         tables.Usr
     ).where(
@@ -455,59 +425,8 @@ def get_usr_by_cas_auth(dbs: Session, login: str) -> None | tables.Usr:
     ).first()
 
 
-def get_usr(dbs: Session, usr_id: int) -> None | tables.Usr:
+def get_usr(dbs: Session, usr_id: int) -> tp.Optional[tables.Usr]:
     return dbs.query(tables.Usr).where(tables.Usr.usr_id == usr_id).first()
-
-
-def get_student_detailed_scores(
-        dbs: Session,
-        exam_id: int,
-        sub_id: int
-) -> dict[int, float]:
-    return dict()
-    """
-    result = dict()
-    direct_items = dbs.query(tables.Item.itm_id).filter(
-        tables.Item.itm_parent == exam_id
-    ).all()
-    parent_ids = [exam_id] + [item.itm_id for item in direct_items]
-    questions = dbs.query(tables.Question).join(
-        tables.Item, tables.Question.qst_id == tables.Item.itm_id
-    ).filter(
-        tables.Item.itm_parent.in_(parent_ids)
-    ).all()
-    student_choices = get_submission_choices(dbs, sub_id)
-    student_checked_ids = [c.cho_id for c in student_choices]
-    for qst in questions:
-        choices = dbs.query(tables.Choice).join(
-            tables.Item, tables.Choice.cho_id == tables.Item.itm_id
-        ).filter(
-            tables.Item.itm_parent == qst.qst_id
-        ).all()
-        correct_choice_ids = [c.cho_id for c in choices if c.cho_correct]
-        if not correct_choice_ids:
-            continue
-        question_choice_ids = [c.cho_id for c in choices]
-        student_answered_for_this_qst = [
-            cid for cid in student_checked_ids if cid in question_choice_ids
-        ]
-        question_score = 0.0
-        if student_answered_for_this_qst:
-            if len(correct_choice_ids) == 1:
-                if student_answered_for_this_qst[0] in correct_choice_ids:
-                    question_score = 1.0
-            else:
-                points_per_correct = 1.0 / len(correct_choice_ids)
-                q_score_temp = 0.0
-                for checked_id in student_answered_for_this_qst:
-                    if checked_id in correct_choice_ids:
-                        q_score_temp += points_per_correct
-                    else:
-                        q_score_temp -= points_per_correct
-                question_score = max(0.0, q_score_temp)
-        result[qst.qst_id] = round(question_score, 2)
-    return result
-    """
 
 
 def list_recipients(
@@ -539,7 +458,7 @@ def list_messages(
     ).order_by(
         tables.Message.msg_date.desc()
     )
-    return [row._tuple() for row in query.all()]
+    return [row._tuple() for row in query]
 
 
 def has_messages(dbs: Session, usr_id: int) -> bool:
@@ -553,7 +472,7 @@ def has_messages(dbs: Session, usr_id: int) -> bool:
 def get_registration_submission(
         dbs: Session,
         reg: tables.Registration
-) -> tables.Submission | None:
+) -> tp.Optional[tables.Submission]:
     result = dbs.query(
         tables.Submission
     ).where(
@@ -567,7 +486,7 @@ def get_item_instance(
         dbs: Session,
         itm_id: int,
         iti_num: int
-) -> None | tables.ItemInstance:
+) -> tp.Optional[tables.ItemInstance]:
     return dbs.query(
         tables.ItemInstance
     ).where(
@@ -803,7 +722,7 @@ def list_project_groups(
     )
 
 
-def get_project_owner(dbs: Session, prj_id: int) -> None | tables.Usr:
+def get_project_owner(dbs: Session, prj_id: int) -> tp.Optional[tables.Usr]:
     return dbs.query(
         tables.Usr
     ).where(

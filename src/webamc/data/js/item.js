@@ -7,10 +7,11 @@ var item_db_table_filter_tag;
 
 const item_add = function () {
     const success = function (response) {
-        const url = Constants.path_item_page_main
-              + "?sub_page=item_database"
-              + "&itm_id=" + response.result['itm_id']
-        ;
+        const args = {
+            'sub_page': 'item_database',
+            'itm_id': response.data['itm_id']
+        };
+        const url = base_encode_url(Constants.path_item_page_main, args);
         base_relocate(url);
     };
     const data = base_input_values('#table-add-item');
@@ -27,17 +28,21 @@ const item_load_grp = function (db_grp_id) {
             div_body.html(result).toggle().fadeIn();
             item_groups_loaded.add(db_grp_id);
         };
-        const path = Constants.path_item_page_group + '?grp_id=' + db_grp_id;
+        const args = {
+            'grp_id': db_grp_id
+        }
+        const path = base_encode_url(Constants.path_item_page_group, args);
         xhr_get(path, success);
     }
 }
 
 
 const item_db_on_children_update = function (db_itm_id) {
-    const path = Constants.path_item_page_database_body
-          + '?itm_id=' + db_itm_id
-          + '&iti_num=1'
-    ;
+    const args = {
+        'itm_id': db_itm_id,
+        'iti_num': 1
+    };
+    const url = base_encode_url(Constants.path_item_page_database_body, args);
     const success = function (response) {
         $('#div-item-body-' + db_itm_id).html(response);
     };
@@ -138,9 +143,13 @@ const item_db_code_click = function (db_itm_id, is_root, db_iti_num) {
                 }
                 item_db_items_loaded.add(db_itm_id);
             };
-            const path = Constants.path_item_page_database_body
-                  + '?itm_id=' + db_itm_id 
-                  + '&iti_num=' + target_instance;
+            const args = {
+                'itm_id': db_itm_id,
+                'iti_num': target_instance
+            };
+            const path = base_encode_url(
+                Constants.path_item_page_database_body, args
+            );
             xhr_get(path, success);
         }
     }

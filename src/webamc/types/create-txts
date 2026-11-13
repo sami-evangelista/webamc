@@ -1,29 +1,43 @@
 #!/bin/bash
 
-sort -u -o txt txt
+for txt in txts/*.txt
+do
+    sort -u -o $txt $txt
+done
 
 (
     echo '# automatically generated file
-# change file txt and rerun script create-txts
+# change files in directory txts and rerun script create-txts
 
 import typing as tp
 
 
 txt_t = tp.Literal['
-    while read t
+    cat txts/*.txt | sort -u | while read t
     do
         echo '    "'$t'",'
-    done < txt
+    done
     echo ']'
 ) > txt.py
+
+alltxts=$(mktemp)
+cat txts/*.txt | sort -u > $alltxts
 
 for lang in ../data/lang/*/*csv
 do
     tmplang=$(mktemp)
     tail +2 $lang | cut -d';' -f1 | sort -u &> $tmplang
-    diff txt $tmplang | grep '^<' | cut -d' ' -f2 | while read t
+    diff $alltxts $tmplang | grep '^<' | cut -d' ' -f2 | while read t
     do
         echo "$t;XXX"
     done >> $lang
     rm $tmplang
+done
+rm $alltxts
+
+for lang in ../data/lang/*/*csv
+do
+    tmp=$(mktemp)
+    (echo "id;text" ; tail +2 $lang | sort -u) &> $tmp
+    mv $tmp $lang
 done

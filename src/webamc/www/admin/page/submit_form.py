@@ -1,7 +1,7 @@
 from webamc.www.all import *
 
 
-def page(ctx: context.Context) -> he.Element:
+def page(ctx: context.Context, tbl_id: tp.Optional[int]) -> he.Element:
     input_csv = he.Input(
         type_="file",
         id_="csv_file",

@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import sqlite3
 import zipfile
-from pathlib import Path
 from sqlalchemy.orm.session import Session as ORMSession
 
 from webamc.all import *
@@ -15,7 +14,11 @@ from webamc.www import base
 
 association_t = dict[
     tuple[int, int],  # (student, copy)
-    tuple[None | str, None | str, None | Path]  # (auto, manual, name-file)
+    tuple[  # (auto, manual, name-file)
+        tp.Optional[str],
+        tp.Optional[str],
+        tp.Optional[Path]
+    ]
 ]
 doable_t = dict[types.action_t, tuple[bool, list[tuple[str, str]]]]
 ACTION_FILES: dict[types.action_t, list[types.file_t]] = {
@@ -76,11 +79,11 @@ ACTION_DEP: dict[
     "upload_source": [
         ("action", "new")
     ],
-    "send_annotated_sheets": [
+    "publish_annotated_sheets": [
         ("action", "export_scores")
     ],
     "send_notification_mail": [
-        ("action", "send_annotated_sheets")
+        ("action", "publish_annotated_sheets")
     ]
 }
 ACTION_COMMANDS: dict[types.action_t, list[types.cmd_t]] = {
@@ -215,7 +218,7 @@ CANCELLED: dict[types.action_t, list[types.action_t]] = {
         "associate_manual",
         "clean_associations",
         "upload_answer_sheets",
-        "send_annotated_sheets",
+        "publish_annotated_sheets",
         "export_scores"
     ],
     "upload_answer_sheets": [
@@ -224,7 +227,7 @@ CANCELLED: dict[types.action_t, list[types.action_t]] = {
         "associate_manual_prepare",
         "associate_manual",
         "clean_associations",
-        "send_annotated_sheets",
+        "publish_annotated_sheets",
         "export_scores"
     ]
 }
@@ -439,8 +442,8 @@ def exec_cmd(
         prj: tables.Project,
         cmd: types.cmd_t,
         exec_dir: Path,
-        params: types.action_params_t,
-        additional_args: list[str]
+        *args: str,
+        **kwargs: tp.Any
 ) -> types.oper_code_t:
     exec_path = shutil.which("auto-multiple-choice")
     if exec_path is None:
@@ -457,7 +460,7 @@ def exec_cmd(
     copies = max(prj.prj_copies, len(list_usrs(dbs, prj)))
 
     # replace parameter in command arguments
-    args = [
+    cmd_args = [
         arg.format(
             dir_cr=joinpath(prj, "cr"),
             dir_data=joinpath(prj, "data"),
@@ -476,26 +479,26 @@ def exec_cmd(
             file_xy_calage=file_path(prj, "xy_calage"),
             var_amc_code=prj.prj_amc_code,
             var_copies=str(copies),
-            var_copy=str(params.get("copy")),
+            var_copy=str(kwargs.get("copy")),
             var_filter=flt,
             var_project_title=prj.title(),
-            var_student=str(params.get("student")),
+            var_student=str(kwargs.get("student")),
             var_threshold=str(threshold)
         )
         for arg in AMC_COMMANDS[cmd]
-    ] + additional_args
-    args.insert(0, exec_path)
+    ] + list(args)
+    cmd_args.insert(0, exec_path)
     cur_dir = os.getcwd()
     os.chdir(exec_dir)
     with open(file_path(prj, "log_webamc"), "a", encoding="utf-8") as fd:
         fd.write(79 * "#" + "\n")
         fd.write(f"# date:\n#   {str(datetime.datetime.now())}\n")
         fd.write(f"# execution dir:\n#   {os.getcwd()}\n")
-        fd.write(f"# command:\n#   {' '.join(args)}\n")
+        fd.write(f"# command:\n#   {' '.join(cmd_args)}\n")
         fd.write(79 * "#" + "\n\n")
     with open(file_path(prj, "log_webamc"), "a", encoding="utf-8") as fd:
         proc_result = subprocess.run(
-            args,
+            cmd_args,
             input="",
             stdout=fd,
             stderr=fd,
@@ -513,9 +516,9 @@ def action(
         usr_id: int,
         prj: tables.Project,
         act: types.action_t,
-        params: types.action_params_t,
-        fname: str | None = None,
-        fcontent: bytes | None = None
+        fname: tp.Optional[str] = None,
+        fcontent: tp.Optional[bytes] = None,
+        **kwargs: tp.Any
 ) -> types.oper_code_t:
 
     def dump_json(data: tp.Any) -> str:
@@ -566,7 +569,8 @@ def action(
         pdf_dir = joinpath(prj, "cr", "corrections", "pdf")
         zip_pdfs(prj, "zip_annotated_sheets", pdf_dir)
 
-    def send_annotated_sheets() -> types.oper_code_t:
+    def publish_annotated_sheets() -> types.oper_code_t:
+
         # delete old messages
         dbs.query(
             tables.Message
@@ -574,6 +578,7 @@ def action(
             (tables.Message.msg_from == usr_id)
             & (tables.Message.msg_file_project == prj.prj_id)
         ).delete()
+        dbs.commit()
 
         # add new messages
         for f in joinpath(prj, "outbox").iterdir():
@@ -608,7 +613,7 @@ def action(
             return "err"
         rec = queries.list_recipients(dbs, usr_id, prj.prj_id)
         bcc = [usr.usr_eaddr for usr in rec]
-        mail = mailing.find_mail("project-notification-mail")
+        mail = mailing.find_mail("notification-email")
         cc = [usr.usr_eaddr]
         if mail is None:
             return "err_mail_file_not_found"
@@ -659,7 +664,7 @@ def action(
                 if x.suffix == ".jpg" and x.is_file()
             )
         elif sub == "association":
-            id_ = params.get("id")
+            id_ = kwargs.get("id_")
             if id_ != "" and id_ is not None:
                 args = [
                     "--id", str(id_)
@@ -668,7 +673,7 @@ def action(
             run_dir = joinpath(prj, "tex")
         elif sub == "prepare_bk":
             run_dir = joinpath(prj, "tex")
-        code = exec_cmd(dbs, prj, sub, run_dir, params, args)
+        code = exec_cmd(dbs, prj, sub, run_dir, *args, **kwargs)
         if not types.is_success(code):
             result = code
             break
@@ -684,8 +689,8 @@ def action(
     elif act == "upload_source":
         assert fname is not None and fcontent is not None
         result = upload_source(prj, fname, fcontent)
-    elif act == "send_annotated_sheets":
-        result = send_annotated_sheets()
+    elif act == "publish_annotated_sheets":
+        result = publish_annotated_sheets()
     elif act == "send_notification_mail":
         result = send_notification_mail()
 
@@ -729,8 +734,8 @@ def list_associations(prj: tables.Project) -> association_t:
                 co = int(copy)
             except ValueError:
                 continue
-            file_path = joinpath(prj, "cr", f"name-{st}-{co}.jpg")
-            exists = file_path.is_file()
+            fpath = joinpath(prj, "cr", f"name-{st}-{co}.jpg")
+            exists = fpath.is_file()
             name_file = Path("cr") / f"name-{st}-{co}.jpg"
             result[st, co] = (manual, auto, name_file if exists else None)
         conn.close()

@@ -165,7 +165,7 @@ const base_submit_file = function (id_file, url, div_submit_result) {
                 base_report_errors(result.msgs);
             } else {
                 let html = '', inf = 0, warn = 0, err = 0;
-                const msgs = result.result;
+                const msgs = result.data;
                 for(const msg of msgs) {
                     let color = '';
                     if(msg.status == 0) {

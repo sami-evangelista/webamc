@@ -118,6 +118,11 @@ async def page_img(
         return fa.Response(content=img, media_type="image/png")
 
 
+@app.get("/icon")
+async def page_icon(req: fa.Request) -> fa.Response:
+    return base.icon_image()
+
+
 @app.get("/")
 async def page_index(req: fa.Request) -> fa.Response:
     with context.Context(req) as ctx:

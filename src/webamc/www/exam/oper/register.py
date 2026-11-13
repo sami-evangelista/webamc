@@ -29,12 +29,12 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         )
         to_register = to_register.union(usr_ids)
     if usr_id is not None:
-        if not queries.is_in_grps(
-                ctx.dbs,
-                usr_id,
-                set(session.usr_submit_groups(ctx).keys()),
-                types.USR_RIGHT_VIEW
-        ):
+        grps_usrs = queries.get_grps_usrs(
+            ctx.dbs,
+            set(session.usr_submit_groups(ctx).keys()),
+            types.USR_RIGHT_VIEW
+        )
+        if not any(u.usr_id == usr_id for u in grps_usrs):
             raise fa.HTTPException(status_code=403)
         to_register.add(usr_id)
     query_prev = ctx.dbs.query(
@@ -55,6 +55,6 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     response = {
         "success": True,
         "msgs": [txt],
-        "result": None
+        "data": None
     }
     return fa.responses.JSONResponse(response)

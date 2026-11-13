@@ -66,7 +66,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     result: types.json_response_t = {
         "success": True,
         "msgs": list(),
-        "result": {
+        "data": {
             "values": rvalues[0] if single_query else rvalues,
             "readable_values": rrvalues[0] if single_query else rrvalues
         }

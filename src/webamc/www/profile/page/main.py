@@ -33,13 +33,15 @@ def page(ctx: context.Context) -> fa.Response:
     ):
         trs.append((txt, attr))
     input_eaddr = www_db_util.get_col_input_type(ctx, "usr_eaddr").element()
-    input_eaddr["placeholder"] = lang.txt("seq_enter_new_eaddr")
     a_send = base.static_img(
         "mail",
         "base_send",
-        js="profile_send_eaddr_change()"
+        js="profile_send_eaddr_change()",
+        style="vertical-align: middle;"
     )
-    trs.append((he.Empty(), he.mktable([[input_eaddr, a_send]])))
+    trs.append(
+        (he.Txt("profile_new_eaddr"), he.ElementList(input_eaddr, a_send))
+    )
 
     # table containing user groups
     groups: dict[int, tuple[tables.Grp, list[types.usr_right_t]]] = dict()
@@ -48,8 +50,6 @@ def page(ctx: context.Context) -> fa.Response:
             usr_grp.ugp_right
         )
     trs_rights = list()
-    if session.has_submission_right(ctx):
-        trs_rights.append([he.Empty(), he.Txt("base_rights")])
     for grp, rights in groups.values():
         trs_rights += [
             [
@@ -59,6 +59,6 @@ def page(ctx: context.Context) -> fa.Response:
         ]
     table_rights = he.mktable(trs_rights)
 
-    trs.append((base.field_label(he.Txt("seq_my_groups")), table_rights))
+    trs.append((base.field_label(he.Txt("profile_my_groups")), table_rights))
     table = he.mktable(trs, class_="table-form")
     return base.page(ctx, "profile", table)

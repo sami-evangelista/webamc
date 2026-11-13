@@ -24,8 +24,8 @@ def page_table(req: fa.Request, args: types.args_oper_t) -> fa.Response:
 @router.get("/admin/page/main")
 def page_main(
         req: fa.Request,
-        sub_page: None | types.sub_page_t = None,
-        tbl_id: int | None = None
+        sub_page: tp.Optional[types.sub_page_t] = None,
+        tbl_id: tp.Optional[int] = None
 ) -> fa.Response:
     from .page import submit_form, database
     layout: base.page_layout_t = {

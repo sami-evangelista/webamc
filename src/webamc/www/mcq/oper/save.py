@@ -79,4 +79,4 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
     ctx.dbs.commit()
 
-    return base.wrap_code("succ", result={"sub_id": sub_id})
+    return base.wrap_code("succ", data={"sub_id": sub_id})

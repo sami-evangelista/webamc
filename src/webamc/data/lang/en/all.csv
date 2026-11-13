@@ -1,178 +1,246 @@
 id;text
-action_download_archive;Download the archive
-action_refresh;refresh
+admin_param_records_found;XXX
+auth_account_creation;account creation
+auth_cas_authentication;authentication by a server
+auth_local_authentication;local authentication
+auth_password_change;password change
+base_action;action
+base_actions;actions
 base_actions;XXX
 base_action;XXX
+base_add;add
 base_add;XXX
+base_administrate;administrate
 base_administrate;XXX
+base_answer;answer
 base_answer;XXX
+base_archive;archive
 base_archive;XXX
+base_cancel;cancel
 base_cancel;XXX
+base_close;close
 base_close;XXX
+base_confirmation;confirmation
 base_confirmation_request;XXX
 base_confirmation;XXX
+base_content;content
 base_content;XXX
+base_create;create
 base_create;XXX
+base_dashboard;dashboard
 base_dashboard;XXX
+base_date;date
 base_date;XXX
+base_delete;delete
 base_delete;XXX
+base_detach;detach
 base_detach;XXX
+base_details;details
 base_details;XXX
+base_disconnection;signout
 base_disconnection;XXX
+base_exam;exam
 base_exam;XXX
+base_exercise;exercise
 base_exercise;XXX
+base_file;File
+base_file_name;File name
 base_file_name;XXX
 base_file;XXX
+base_filter;filter
 base_filter;XXX
+base_groups;groups
 base_groups;XXX
+base_help;help
 base_help;XXX
+base_max;max
 base_max;XXX
+base_mcq;MCQ
 base_mcq;XXX
+base_minutes;minutes
 base_minutes;XXX
+base_mod_date;modification date
 base_mod_date;XXX
+base_move_down;move down
 base_move_down;XXX
+base_move_up;move up
 base_move_up;XXX
+base_no;no
 base_no;XXX
+base_page;page
 base_page;XXX
+base_parameters;parameters
 base_parameters;XXX
+base_progress;progress
 base_progress;XXX
+base_question;question
 base_question;XXX
+base_restart;restart
 base_restart;XXX
+base_review;review
 base_review;XXX
+base_rights;rights
 base_rights;XXX
+base_score;score
+base_scores;scores
 base_scores;XXX
 base_score;XXX
+base_sender;sender
 base_sender;XXX
+base_send;send
 base_send;XXX
+base_size;taille
 base_size;XXX
+base_start;start
 base_start;XXX
+base_statement;statement
 base_statement;XXX
+base_status;status
 base_status;XXX
+base_submission;submission
 base_submission;XXX
+base_table;table
 base_table;XXX
+base_tags;tags
 base_tags;XXX
+base_type;type
 base_type;XXX
+base_update;update
 base_update;XXX
+base_usr;user
 base_usr;XXX
+base_validate;validate
 base_validate;XXX
+base_view;view
 base_view;XXX
 base_yes;XXX
-col_desc_adm_id;#
-col_desc_adm_tbl;table
-col_desc_adm_usr;user
-col_desc_ans_id;XXX
-col_desc_ans_instance;XXX
-col_desc_ans_submission;XXX
-col_desc_atr_code;code
-col_desc_atr_desc;description
-col_desc_atr_id;#
-col_desc_cas_enabled;enabled
-col_desc_cas_id;#
-col_desc_cas_login;cas identifier
-col_desc_cas_usr;user
-col_desc_exm_duration;duration (min.)
-col_desc_exm_id;XXX
-col_desc_exm_mcq;MCQ
-col_desc_exm_start;start
-col_desc_exm_title;title
-col_desc_grp_id;#
-col_desc_grp_name;name
-col_desc_grp_parent;parent
-col_desc_itg_id;XXX
-col_desc_itg_item;XXX
-col_desc_itg_tag;XXX
-col_desc_iti_id;XXX
-col_desc_iti_img;XXX
-col_desc_iti_item;XXX
-col_desc_iti_num;XXX
-col_desc_iti_uuid;XXX
-col_desc_itm_cho_correct;XXX
-col_desc_itm_cho_last;XXX
-col_desc_itm_code;identifier
-col_desc_itm_date;creation date
-col_desc_itm_id;XXX
-col_desc_itm_is_mcq;XXX
-col_desc_itm_mcq_mode;mode
-col_desc_itm_pack_spec;pack
-col_desc_itm_qst_standalone;standalone
-col_desc_itm_qst_type;question type
-col_desc_itm_rnd;random
-col_desc_itm_title;title
-col_desc_itm_type;type
-col_desc_itm_usr;user
-col_desc_itm_visible;visible
-col_desc_itr_child;XXX
-col_desc_itr_id;XXX
-col_desc_itr_order;XXX
-col_desc_itr_parent;XXX
-col_desc_loc_enabled;enabled
-col_desc_loc_id;#
-col_desc_loc_login;login
-col_desc_loc_password;password
-col_desc_loc_usr;user
-col_desc_mgp_grp;XXX
-col_desc_mgp_id;XXX
-col_desc_mgp_mcq;XXX
-col_desc_msg_date;XXX
-col_desc_msg_file_content;XXX
-col_desc_msg_file_name;XXX
-col_desc_msg_file_project;XXX
-col_desc_msg_from;XXX
-col_desc_msg_id;XXX
-col_desc_msg_sub;XXX
-col_desc_msg_title;XXX
-col_desc_msg_to;XXX
-col_desc_msg_type;XXX
-col_desc_prj_amc_code;XXX
-col_desc_prj_auto_assoc_attr;XXX
-col_desc_prj_code;code
-col_desc_prj_copies;XXX
-col_desc_prj_done;XXX
-col_desc_prj_history;XXX
-col_desc_prj_id;XXX
-col_desc_prj_src_type;XXX
-col_desc_prj_threshold;XXX
-col_desc_prj_title;XXX
-col_desc_prj_usr;XXX
-col_desc_prj_uuid;XXX
-col_desc_reg_date;XXX
-col_desc_reg_exam;XXX
-col_desc_reg_id;XXX
-col_desc_reg_usr;XXX
-col_desc_sub_content;XXX
-col_desc_sub_date_update;XXX
-col_desc_sub_date;XXX
-col_desc_sub_exm_registration;XXX
-col_desc_sub_id;XXX
-col_desc_sub_rev_mcq;XXX
-col_desc_sub_rev_usr;XXX
-col_desc_sub_type;XXX
-col_desc_sub_visible;XXX
-col_desc_tag_color;color
-col_desc_tag_desc;description
-col_desc_tag_id;#
-col_desc_tag_name;name
-col_desc_tbl_id;#
-col_desc_tbl_name;name
-col_desc_tkt_deadline;XXX
-col_desc_tkt_eaddr;XXX
-col_desc_tkt_id;XXX
-col_desc_tkt_type;XXX
-col_desc_tkt_usr;XXX
-col_desc_tkt_value;XXX
-col_desc_uat_attr;attribute
-col_desc_uat_id;#
-col_desc_uat_usr;user
-col_desc_uat_value;value
-col_desc_ugp_grp;group
-col_desc_ugp_id;#
-col_desc_ugp_right;right
-col_desc_ugp_usr;user
-col_desc_usr_code;identifier
-col_desc_usr_eaddr;email address
-col_desc_usr_fst_name;first name
-col_desc_usr_id;#
-col_desc_usr_name;name
+base_yes;yes
+db_col_adm_id;#
+db_col_adm_tbl;table
+db_col_adm_usr;user
+db_col_ans_id;XXX
+db_col_ans_instance;XXX
+db_col_ans_submission;XXX
+db_col_atr_code;code
+db_col_atr_desc;description
+db_col_atr_id;#
+db_col_cas_enabled;enabled
+db_col_cas_id;#
+db_col_cas_login;cas identifier
+db_col_cas_usr;user
+db_col_exm_duration;duration (min.)
+db_col_exm_id;XXX
+db_col_exm_mcq;MCQ
+db_col_exm_start;start
+db_col_exm_title;title
+db_col_grp_id;#
+db_col_grp_name;name
+db_col_grp_parent;parent
+db_col_itg_id;XXX
+db_col_itg_item;XXX
+db_col_itg_tag;XXX
+db_col_iti_id;XXX
+db_col_iti_img;XXX
+db_col_iti_item;XXX
+db_col_iti_num;XXX
+db_col_iti_uuid;XXX
+db_col_itm_cho_correct;XXX
+db_col_itm_cho_last;XXX
+db_col_itm_code;identifier
+db_col_itm_date;creation date
+db_col_itm_id;XXX
+db_col_itm_is_mcq;XXX
+db_col_itm_mcq_mode;mode
+db_col_itm_pack_spec;pack
+db_col_itm_qst_standalone;standalone
+db_col_itm_qst_type;question type
+db_col_itm_rnd;random
+db_col_itm_title;title
+db_col_itm_type;type
+db_col_itm_usr;user
+db_col_itm_visible;visible
+db_col_itr_child;XXX
+db_col_itr_id;XXX
+db_col_itr_order;XXX
+db_col_itr_parent;XXX
+db_col_loc_enabled;enabled
+db_col_loc_id;#
+db_col_loc_login;login
+db_col_loc_password;password
+db_col_loc_usr;user
+db_col_mgp_grp;XXX
+db_col_mgp_id;XXX
+db_col_mgp_mcq;XXX
+db_col_msg_date;XXX
+db_col_msg_file_content;XXX
+db_col_msg_file_name;XXX
+db_col_msg_file_project;XXX
+db_col_msg_from;XXX
+db_col_msg_id;XXX
+db_col_msg_sub;XXX
+db_col_msg_title;XXX
+db_col_msg_to;XXX
+db_col_msg_type;XXX
+db_col_prj_amc_code;XXX
+db_col_prj_auto_assoc_attr;XXX
+db_col_prj_code;code
+db_col_prj_copies;XXX
+db_col_prj_done;XXX
+db_col_prj_history;XXX
+db_col_prj_id;XXX
+db_col_prj_src_type;XXX
+db_col_prj_threshold;XXX
+db_col_prj_title;XXX
+db_col_prj_usr;XXX
+db_col_prj_uuid;XXX
+db_col_reg_date;XXX
+db_col_reg_exam;XXX
+db_col_reg_id;XXX
+db_col_reg_usr;XXX
+db_col_sub_content;XXX
+db_col_sub_date_update;XXX
+db_col_sub_date;XXX
+db_col_sub_exm_registration;XXX
+db_col_sub_id;XXX
+db_col_sub_rev_mcq;XXX
+db_col_sub_rev_usr;XXX
+db_col_sub_type;XXX
+db_col_sub_visible;XXX
+db_col_tag_color;color
+db_col_tag_desc;description
+db_col_tag_id;#
+db_col_tag_name;name
+db_col_tbl_id;#
+db_col_tbl_name;name
+db_col_tkt_deadline;XXX
+db_col_tkt_eaddr;XXX
+db_col_tkt_id;XXX
+db_col_tkt_type;XXX
+db_col_tkt_usr;XXX
+db_col_tkt_value;XXX
+db_col_uat_attr;attribute
+db_col_uat_id;#
+db_col_uat_usr;user
+db_col_uat_value;value
+db_col_ugp_grp;group
+db_col_ugp_id;#
+db_col_ugp_right;right
+db_col_ugp_usr;user
+db_col_usr_code;identifier
+db_col_usr_eaddr;email address
+db_col_usr_fst_name;first name
+db_col_usr_id;#
+db_col_usr_name;name
+db_tbl_admin;admin
+db_tbl_attr;attr
+db_tbl_cas_auth;cas_auth
+db_tbl_grp;grp
+db_tbl_local_auth;local_auth
+db_tbl_tag;tag
+db_tbl_tbl;tbl
+db_tbl_usr_attr;usr_attr
+db_tbl_usr_grp;usr_grp
+db_tbl_usr;usr
 err_action_required;An action must be performed prior to this one.
 err_admin_empty_csv_file;The CSV file is empty.
 err_admin_no_right_to_update_table;You are not allowed to update this table.
@@ -196,6 +264,7 @@ err_invalid_ticket;This ticket is not valid anymore.
 err_io;IO error.
 err_item_admin_empty_archive;The archive is empty.
 err_mail_file_not_found;Mail file not found.
+err_mail_no_recipient;XXX
 err_mail_server;Impossible to connect to the mail server.
 err_missing_file;A file is missing to perform this operation.
 err_project_already_exists;A project with the same code already exists.
@@ -210,7 +279,9 @@ err_wrong_credentials;Wrong credentials.
 exam_delete;delete this exam
 exam_delete_selected_registrations;delete selected registrations
 exam_export_scores;export exam scores
+exam_info_no_exam_available;XXX
 exam_info_usr_not_started;XXX
+exam_param_mail_sent;XXX
 exam_param_registrations_done;%s registration(s) done
 exam_publish_scores;drop off answer sheets in student inboxes
 exam_qst_confirmation_exam_delete;The exam will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
@@ -218,7 +289,9 @@ exam_qst_confirmation_registrations_delete;XXX
 exam_register_group;register this group
 exam_register_user;register this user
 exam_select_a_group_to_register;register a group
+exam_select_an_exam;XXX
 exam_select_a_user_to_register;register a user
+exam_send_notifications;XXX
 exam_status_finished;finished
 exam_status_in_progress;in progress
 exam_status_upcoming;upcoming
@@ -229,16 +302,20 @@ exam_usr_status_inactive;inactive (> 5 min.)
 exam_usr_status_not_started;not started
 exam_usr_status_online;online
 exam_view_submission;see the submission
-header_authentication_account_creation;Account creation
-header_authentication_cas;Authentication by a server
-header_authentication_local;Local authentication
-header_authentication_password_change;Password update
+inbox_info_empty;XXX
 info_exam_finished;Exam finished !
 info_no_exam_available;No exam available.
 info_no_mcq_available;No MCQ available.
 info_please_wait;Work in progress. Please wait.
 info_progress_saved;Progress saved.
 item_db_delete_recursively;delete this item and all its content
+item_pack_delete_all_box;XXX
+item_pack_delete_box;XXX
+item_pack_reverse_selection;XXX
+item_pack_take_all;XXX
+item_pack_take_by_tag;XXX
+item_pack_take_head;XXX
+item_pack_take_shuf;XXX
 mcq_info_exam_finished;XXX
 mcq_info_progress_saved;XXX
 mcq_param_next_question;next question (%s)
@@ -247,8 +324,6 @@ mcq_param_switch_mode;switch mode (%s)
 mcq_param_total_score;XXX
 mcq_qst_confirmation_restart;XXX
 mcq_qst_confirmation_send;XXX
-msg_file_list_exam;List of files associated with the exam.
-msg_no_data_exam;No data available for the exam.
 op_after;after
 op_before;before
 op_diff;different from
@@ -287,6 +362,8 @@ param_err_invalid_value;%s: invalid value
 param_err_item_referenced_in_exam_submission;This element cannot be deleted because it appeared in an exam (%s). You must first delete this exam in order to delete the element.
 param_seq_instance_num;instance %s
 param_seq_items_found;%s item(s) found
+profile_my_groups;XXX
+profile_new_eaddr;XXX
 project_analyse_answer_sheets;XXX
 project_associate_automatic;XXX
 project_associate_manual;XXX
@@ -306,6 +383,11 @@ project_generate_scores_and_annotated_sheets;XXX
 project_manual_association;XXX
 project_new;new project
 project_no_name_file;XXX
+project_publish_annotated_sheets;XXX
+project_qst_confirmation_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
+project_qst_confirmation_clean_associations;Do you confirm the deletion of the association sheet/student ?
+project_qst_confirmation_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
+project_qst_confirmation_delete;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
 project_select;select a project
 project_send_annotated_sheets;XXX
 project_send_notification_mail;XXX
@@ -318,10 +400,6 @@ qst_confirmation_item_deletion;The item will be deleted from your database but i
 qst_confirmation_item_detach;The item will not be deleted from your database but will be detached from its parent. Do you confirm the operation ?
 qst_confirmation_item_recursive_deletion;The item as well as all its content will be deleted from your database. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_mcq_form;Do you confirm the submission of your answers ?
-qst_confirmation_project_associate_automatic;Do you confirm the automatic association ? This will delete all associations previous done.
-qst_confirmation_project_clean_associations;Do you confirm the deletion of the association sheet/student ?
-qst_confirmation_project_compile;Do you confirm the generation of sheets ? This will delete all documents available. Cancel if you have already printed the sheets.
-qst_confirmation_project_delete;The project and all files related to it will be deleted. This operation is not reversible. Do you confirm the deletion ?
 qst_confirmation_registrations_delete;Selected registrations will be deleted. Do you confirm the deletion ?
 qst_confirmation_restart_mcq;Would you like to restart the MCQ ?
 seq_add_an_item;add an item
@@ -382,77 +460,10 @@ stats_title;statistics dashboard
 succ_account_created;Account successfuly created.
 succ_eaddr_changed;Email address successfuly changed.
 succ_login;Login successful.
+succ_param_mail_sent;XXX
 succ_password_changed;Password successfuly updated.
 succ_project_created;Project created successfuly.
 succ;Success.
 succ_ticket_account_creation_sent;A message with a creation link has been sent.
 succ_ticket_eaddr_change_sent;A message with a modification link has been sent.
 succ_ticket_password_change_sent;A message with a modification link has been sent.
-tbl_desc_admin;admin
-tbl_desc_attr;attr
-tbl_desc_cas_auth;cas_auth
-tbl_desc_grp;grp
-tbl_desc_local_auth;local_auth
-tbl_desc_tag;tag
-tbl_desc_tbl;tbl
-tbl_desc_usr_attr;usr_attr
-tbl_desc_usr_grp;usr_grp
-tbl_desc_usr;usr
-word_action;action
-word_actions;actions
-word_add;add
-word_administrate;administrate
-word_answer;answer
-word_archive;archive
-word_cancel;cancel
-word_close;close
-word_confirmation;confirmation
-word_content;content
-word_copies;sheets
-word_create;create
-word_dashboard;dashboard
-word_date;date
-word_delete;delete
-word_detach;detach
-word_details;details
-word_disconnection;signout
-word_exam;exam
-word_exercise;exercise
-word_file;File
-word_file_name;File name
-word_filter;filter
-word_groups;groups
-word_help;help
-word_max;max
-word_mcq;MCQ
-word_minutes;minutes
-word_mod_date;modification date
-word_move_down;move down
-word_move_up;move up
-word_no;no
-word_page;page
-word_parameters;parameters
-word_progress;progress
-word_question;question
-word_restart;restart
-word_review;review
-word_rights;rights
-word_score;score
-word_scores;scores
-word_sender;sender
-word_send;send
-word_size;taille
-word_start;start
-word_statement;statement
-word_status;status
-word_submission;submission
-word_table;table
-word_tags;tags
-word_threshold;threshold
-word_title;title
-word_type;type
-word_update;update
-word_usr;user
-word_validate;validate
-word_view;view
-word_yes;yes

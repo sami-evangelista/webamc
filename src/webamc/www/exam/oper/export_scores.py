@@ -1,4 +1,3 @@
-from pathlib import Path
 import itertools
 import io
 import openpyxl
@@ -12,9 +11,9 @@ from webamc.db import queries
 
 
 ROW_PREFIX_COLS: list[types.txt_t] = [
-    "col_desc_usr_name",
-    "col_desc_usr_fst_name",
-    "col_desc_usr_code",
+    "db_col_usr_name",
+    "db_col_usr_fst_name",
+    "db_col_usr_code",
     "base_score",
     "base_max"
 ]

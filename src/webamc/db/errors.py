@@ -1,6 +1,7 @@
 import json
 
 from webamc.all import *
+from . import desc
 
 
 class DBException(Exception):
@@ -27,7 +28,7 @@ class DBInvalidValue(DBException):
     def msg(self) -> str:
         return lang.txt(
             "param_err_invalid_value",
-            lang.txt(tp.cast(types.txt_t, f"col_desc_{self.col}"))
+            lang.txt(desc.col_desc(self.col))
         )
 
 
@@ -51,11 +52,9 @@ class DBDuplicateValue(DBException):
         if isinstance(self.col, str):
             return lang.txt(
                 "param_err_invalid_duplicate_value",
-                lang.txt(tp.cast(types.txt_t, f"col_desc_{self.col}"))
+                lang.txt(desc.col_desc(self.col))
             )
-        c = tuple(
-            lang.txt(tp.cast(types.txt_t, f"col_desc_{c}")) for c in self.col
-        )
+        c = tuple(lang.txt(desc.col_desc(c)) for c in self.col)
         return lang.txt("param_err_invalid_duplicate_value", str(c))
 
 
@@ -69,7 +68,7 @@ class DBInvalidNullValue(DBException):
     def msg(self) -> str:
         return lang.txt(
             "param_err_invalid_null_value",
-            lang.txt(tp.cast(types.txt_t, f"col_desc_{self.col}"))
+            lang.txt(desc.col_desc(self.col))
         )
 
 

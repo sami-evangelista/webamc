@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from webamc.all import *
 from . import compile as comp, output
 

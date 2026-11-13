@@ -17,6 +17,8 @@ __all__ = [
     "math",
     "mtype",
     "os",
+    "Path",
+    "random",
     "re",
     "sa",
     "session",

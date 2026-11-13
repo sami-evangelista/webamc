@@ -1,5 +1,4 @@
 from importlib import resources
-from pathlib import Path
 import urllib
 import fastapi as fa
 
@@ -33,21 +32,21 @@ js_urls = [
     "https://cdn.jsdelivr.net/npm/chart.js"
 ]
 class menu_item_t(tp_ext.TypedDict):
-    cond: tp.Callable[[context.Context], bool]
+    cond: tp.Optional[tp.Callable[[context.Context], bool]]
     dev: bool
     img: types.static_img_t
     txt: types.txt_t
     route: types.path_t
 menu_items: list[menu_item_t] = [
     {
-        "cond": lambda ctx: True,
+        "cond": None,
         "dev": False,
         "img": "signout",
         "txt": "base_disconnection",
         "route": "/auth/oper/logout"
     },
     {
-        "cond": session.ne_inbox,
+        "cond": None,
         "dev": True,
         "img": "inbox",
         "txt": "page_title_inbox",
@@ -56,7 +55,7 @@ menu_items: list[menu_item_t] = [
     {
         "cond": session.has_submission_right,
         "dev": True,
-        "img": "projects",
+        "img": "project",
         "txt": "page_title_project",
         "route": "/project/page/main"
      },
@@ -89,14 +88,14 @@ menu_items: list[menu_item_t] = [
         "route": "/admin/page/main"
     },
     {
-        "cond": lambda ctx: True,
+        "cond": None,
         "dev": True,
         "img": "person",
         "txt": "page_title_profile",
         "route": "/profile/page/main"
     },
     {
-        "cond": lambda ctx: True,
+        "cond": None,
         "dev": False,
         "img": "home",
         "txt": "page_title_index",
@@ -136,7 +135,12 @@ def base_head() -> he.Element:
         ]
         if Path(js).suffix == ".js"
     ]
-    result = he.ElementList(meta, *links, *scripts)
+    icon = he.Link(
+        rel="icon",
+        type_="image/x-icon",
+        href=mkuri("/icon")
+    )
+    result = he.ElementList(meta, icon, *links, *scripts)
     return result
 
 
@@ -166,7 +170,8 @@ def page(
         imgs = [
             static_img(m["img"], m["txt"], mkuri(m["route"]))
             for m in menu_items
-            if m["cond"](ctx) and not (m["dev"] and not config.CONFIG["dev"])
+            if (m["cond"] is None or m["cond"](ctx))
+            and not (m["dev"] and not config.CONFIG["dev"])
         ]
         div_name = he.Div(
             he.Str(str(session.usr_name(ctx))),
@@ -454,11 +459,17 @@ def gen_css_dyn() -> str:
 }}"""
 
 
-def wrap_code(code: types.oper_code_t, result: tp.Any = None) -> fa.Response:
+def wrap_code(
+        code: types.oper_code_t,
+        msgs: tp.Optional[list[str]] = None,
+        data: tp.Optional[tp.Any] = None
+) -> fa.Response:
+    if msgs is None:
+        msgs = [lang.txt(types.oper_code_to_txt(code))]
     response: types.json_response_t = {
-        "success": not code.startswith("err"),
-        "msgs": [lang.txt(types.oper_code_to_txt(code))],
-        "result": result
+        "success": types.is_success(code),
+        "msgs": msgs,
+        "data": data
     }
     return fa.responses.JSONResponse(response)
 
@@ -467,7 +478,7 @@ def wrap_errors(*msg: str) -> fa.Response:
     response: types.json_response_t = {
         "success": False,
         "msgs": [*msg],
-        "result": None
+        "data": None
     }
     return fa.responses.JSONResponse(response)
 
@@ -494,6 +505,17 @@ def static_file(file_name: str) -> fa.Response:
 
     result.headers["Content-Type"] = mtype.get_mtype(Path(file_name))
     return result
+
+
+def icon_image() -> fa.Response:
+    with resources.as_file(
+            resources.files("webamc") / "data" / "ico" / "favicon.ico"
+    ) as path:
+        if not path.is_file():
+            raise fa.HTTPException(status_code=404)
+        result = fa.responses.FileResponse(path)
+        result.headers["Content-Type"] = mtype.get_mtype(path)
+        return result
 
 
 def help_page(help_id: types.help_t) -> fa.Response:

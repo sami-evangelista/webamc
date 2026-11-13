@@ -20,10 +20,10 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
                 prj_id=prj.prj_id,
                 file_name=project.file_name(f)
             )
-    response = {
+    response_data = {
         "files": files,
         "doable": project.doable(ctx.dbs, prj),
         "done": json.loads(prj.prj_done),
         "warning": project.warning(prj)
     }
-    return base.wrap_code("succ", response)
+    return base.wrap_code("succ", data=response_data)

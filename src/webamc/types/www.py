@@ -33,7 +33,7 @@ static_img_t = tp.Literal[
     "person-add",
     "person-delete",
     "play",
-    "projects",
+    "project",
     "save",
     "settings",
     "signout",
@@ -60,9 +60,11 @@ path_t = tp.Literal[
     "/exam/page/main",
     "/exam/page/dashboard",
     "/exam/oper/export-scores",
+    "/exam/oper/send-notifications",
     "/exam/oper/publish-scores",
     "/exam/oper/register",
     "/help",
+    "/icon",
     "/img",
     "/inbox/page/main",
     "/inbox/page/msg",
@@ -100,7 +102,7 @@ mail_file_t = tp.Literal[
     "account-creation",
     "eaddr-change",
     "password-change",
-    "project-notification-mail"
+    "notification-email"
 ]
 
 oper_code_t = tp.Literal[
@@ -121,6 +123,7 @@ oper_code_t = tp.Literal[
     "err_mail_file_not_found",
     "err_mail_server",
     "err_missing_file",
+    "err_mail_no_recipient",
     "err_project_already_exists",
     "err_project_amc_not_installed",
     "err_project_check_log_file",
@@ -181,12 +184,13 @@ mcq_form_mode_t = tp.Literal[
 ]
 
 class args_oper_t(tp.TypedDict):
-    action_params: tp.NotRequired[project.action_params_t]
     action: tp.NotRequired[project.action_t]
     choices: tp.NotRequired[dict[int, bool]]
+    copy: tp.NotRequired[tp.Optional[int]]
     exm_id: tp.NotRequired[int]
     filters: tp.NotRequired[dict[str, tp.Any]]
-    grp_id: tp.NotRequired[None | int]
+    grp_id: tp.NotRequired[tp.Optional[int]]
+    id_: tp.NotRequired[tp.Optional[str]]
     itm_code: tp.NotRequired[str]
     itm_exe_or_mcq: tp.NotRequired[tp.Literal["exe", "mcq"]]
     itm_id: tp.NotRequired[int]
@@ -205,6 +209,7 @@ class args_oper_t(tp.TypedDict):
     project_data: tp.NotRequired[dict[str, tp.Any]]
     query: tp.NotRequired[db.db_query_t | list[db.db_query_t]]
     questions: tp.NotRequired[dict[int, dict[int, bool]]]
+    student: tp.NotRequired[tp.Optional[int]]
     sub_content: tp.NotRequired[item.mcq_content_t]
     tbl_id: tp.NotRequired[int]
     ticket: tp.NotRequired[str]
@@ -212,13 +217,13 @@ class args_oper_t(tp.TypedDict):
     usr_code: tp.NotRequired[str]
     usr_eaddr: tp.NotRequired[str]
     usr_fst_name: tp.NotRequired[str]
-    usr_id: tp.NotRequired[None | int]
+    usr_id: tp.NotRequired[tp.Optional[int]]
     usr_name: tp.NotRequired[str]
 
 class json_response_t(tp_ext.TypedDict):
     success: bool
     msgs: list[str]
-    result: None | tp.Any
+    data: tp.Optional[tp.Any]
 
 
 def is_success(c: oper_code_t) -> bool:

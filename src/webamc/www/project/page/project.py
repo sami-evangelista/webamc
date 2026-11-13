@@ -37,7 +37,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     def label_action(
             action: types.action_t,
             txt: types.txt_t,
-            help_section: str | None
+            help_section: tp.Optional[str]
     ) -> he.Element:
         result = he.Span(
             he.Txt(txt),
@@ -50,10 +50,10 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     def new_action(
             action: types.action_t,
             txt: types.txt_t,
-            js: None | str = None,
+            js: tp.Optional[str] = None,
             icon: types.static_img_t = "play",
             img_txt: types.txt_t = "base_start",
-            help_section: str | None = None
+            help_section: tp.Optional[str] = None
     ) -> None:
         if js is None:
             js = f"project_action('{action}');"
@@ -70,7 +70,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             action: types.action_t,
             f: types.file_t,
             txt: types.txt_t,
-            help_section: None | str = None
+            help_section: tp.Optional[str] = None
     ) -> None:
         input_file = he.Input(
             type_="file",
@@ -120,8 +120,8 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         "project_generate_scores_and_annotated_sheets"
     )
     new_action(
-        "send_annotated_sheets",
-        "project_send_annotated_sheets"
+        "publish_annotated_sheets",
+        "project_publish_annotated_sheets"
     )
     new_action(
         "send_notification_mail",
@@ -134,11 +134,6 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         img_txt="base_delete"
     )
     img, span = file_elements("log_webamc")
-    tr = he.Tr(
-        he.Td(img),
-        he.Td(span),
-        he.Td()
-    )
     trs.append((img, span, he.Empty()))
     table_actions = he.mktable(
         trs,
@@ -158,10 +153,7 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         tables.Project.prj_amc_code,
         tables.Project.prj_auto_assoc_attr
     ]
-    trs_data = [
-        (label, inpt)
-        for label, inpt in www_db_util.get_attributes(ctx, prj, *cols)
-    ]
+    trs_data = list(www_db_util.get_attributes(ctx, prj, *cols))
     trs_data.append(
         (he.Txt("base_groups"), he.Div(id_="div-grps"))
     )

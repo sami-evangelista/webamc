@@ -11,7 +11,7 @@ def page(ctx: context.Context) -> fa.Response:
     if config.CONFIG["auth_cas_enabled"]:
         href = login_cas.get_cas_client().get_login_url()
         elements += [
-            he.H2(he.Txt("header_authentication_cas")),
+            he.H2(he.Txt("auth_cas_authentication")),
             he.A(he.Str(" " + config.CONFIG["cas_server_name"]), href=href)
         ]
 
@@ -23,7 +23,7 @@ def page(ctx: context.Context) -> fa.Response:
             tables.LocalAuth.loc_login,
             tables.LocalAuth.loc_password
         ):
-            trs += [txt, element]
+            trs += [(txt, element)]
         a_conn = base.static_img(
             "checkmark",
             "base_send",
@@ -31,7 +31,7 @@ def page(ctx: context.Context) -> fa.Response:
             class_="submit"
         )
         table = he.mktable(
-            ((cell, ) for cell in trs),
+            trs,
             id_="table-login-local",
             class_="table-form"
         )
@@ -40,7 +40,7 @@ def page(ctx: context.Context) -> fa.Response:
             a_conn,
             class_="box"
         )
-        h2 = he.H2(he.Txt("header_authentication_local"))
+        h2 = he.H2(he.Txt("auth_local_authentication"))
         elements += [h2, div]
 
         a_send = base.static_img(
@@ -51,9 +51,9 @@ def page(ctx: context.Context) -> fa.Response:
         )
         trs = list()
         for txt, element in get_txt_and_input(ctx, tables.Usr.usr_eaddr):
-            trs += [txt, element]
+            trs.append((txt, element))
         table = he.mktable(
-            ((cell, ) for cell in trs),
+            trs,
             id_="table-password-change",
             class_="table-form"
         )
@@ -62,7 +62,7 @@ def page(ctx: context.Context) -> fa.Response:
             a_send,
             class_="box"
         )
-        h2 = he.H2(he.Txt("header_authentication_password_change"))
+        h2 = he.H2(he.Txt("auth_password_change"))
         elements += [h2, div]
 
     # account creation
@@ -77,9 +77,9 @@ def page(ctx: context.Context) -> fa.Response:
         for txt, element in get_txt_and_input(
             ctx, tables.Usr.usr_eaddr
         ):
-            trs += [txt, element]
+            trs.append((txt, element))
         table = he.mktable(
-            ((cell, ) for cell in trs),
+            trs,
             class_="table-form"
         )
         div = he.Div(
@@ -88,7 +88,7 @@ def page(ctx: context.Context) -> fa.Response:
             class_="box",
             id_="table-creation"
         )
-        h2 = he.H2(he.Txt("header_authentication_account_creation"))
+        h2 = he.H2(he.Txt("auth_account_creation"))
         elements += [h2, div]
 
     return base.page(

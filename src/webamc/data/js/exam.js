@@ -113,10 +113,19 @@ const exam_view_submission = function (sub_id) {
 }
 
 
-const exam_publish = function (exm_id) {
+const exam_publish_scores = function () {
     const data = {
         'exm_id': base_input_value('exm_id')
     };
     const url = Constants.path_exam_oper_publish_scores;
+    xhr_post_oper(url, data);
+}
+
+
+const exam_send_notifications = function () {
+    const data = {
+        'exm_id': base_input_value('exm_id')
+    };
+    const url = Constants.path_exam_oper_send_notifications;
     xhr_post_oper(url, data);
 }

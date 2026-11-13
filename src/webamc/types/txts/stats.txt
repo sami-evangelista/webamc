@@ -1,0 +1,13 @@
+stats_answer_prefix
+stats_answers_detail
+stats_choose_exam
+stats_choose_qst
+stats_evo_title
+stats_mcq_prefix
+stats_qst_prefix
+stats_select_exam
+stats_select_mcq
+stats_select_qst
+stats_select_student
+stats_student_prefix
+stats_title

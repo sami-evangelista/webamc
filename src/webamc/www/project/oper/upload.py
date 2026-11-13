@@ -15,7 +15,6 @@ def data(
         session.usr_id(ctx),
         util.get_project(ctx, prj_id),
         action,
-        dict(),
         fname=ufile.filename,
         fcontent=content
     )

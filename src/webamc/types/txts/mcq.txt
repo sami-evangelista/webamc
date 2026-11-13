@@ -1,0 +1,8 @@
+mcq_info_exam_finished
+mcq_info_progress_saved
+mcq_param_next_question
+mcq_param_prev_question
+mcq_param_switch_mode
+mcq_param_total_score
+mcq_qst_confirmation_restart
+mcq_qst_confirmation_send

@@ -30,14 +30,3 @@ def fmt_name(fst_name: str, name: str, fst_name_first: bool = True) -> str:
     if fst_name_first:
         return fst_name.title() + " " + name.upper()
     return  name.upper() + " " + fst_name.title()
-
-
-def fmt_file_size(size: int) -> str:
-    num = size
-    for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
-        if num < 1000:
-            if unit == "":
-                return str(num)
-            return f"{num:3.1f} {unit}"
-        num = int(num / 1000)
-    return str(size)

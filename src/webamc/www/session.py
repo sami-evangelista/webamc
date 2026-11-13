@@ -171,7 +171,3 @@ def check_can_view_mcq(ctx: context.Context, mcq_id: int) -> None:
     check_logged_in(ctx)
     if not any(item.itm_id == mcq_id for item, _ in get_viewable_mcqs(ctx)):
         raise fa.HTTPException(status_code=403)
-
-
-def ne_inbox(ctx: context.Context) -> bool:
-    return queries.has_messages(ctx.dbs, usr_id(ctx))

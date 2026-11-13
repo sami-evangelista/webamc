@@ -74,7 +74,7 @@ class TagTable {
         const input_id = this.input_id();
         const  _this = this;
         const success = function (result) {
-            for(const value of result.result.values) {
+            for(const value of result.data.values) {
                 const go = function () {
                     _this.tags[value.tag_id] = value;
                     $('#' + input_id).val('');
@@ -144,7 +144,7 @@ class TagTable {
         };
         this.empty_data_list();
         const success = function (result) {
-            for(const val of result.result.values) {
+            for(const val of result.data.values) {
                 if(!(val.tag_id in _this.tags)) {
                     const opt = '<option value="' + val.tag_name + '">';
                     dl.append(opt);

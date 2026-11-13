@@ -6,11 +6,11 @@ from webamc.www.project import util
 
 def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
-    response_result: tp.Any = None
+    response_data: tp.Any = None
 
     if args["action"] == "new":
 
-        # action new is handled diffrently
+        # action new is handled differently
         done: types.project_actions_done_t = {
             a: False
             for a in types.literal_type_values(types.action_t)
@@ -25,7 +25,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         ctx.dbs.add(prj)
         ctx.dbs.flush()
         code: types.oper_code_t = "succ"
-        response_result = {
+        response_data = {
             "prj_id": prj.prj_id
         }
 
@@ -37,8 +37,10 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             session.usr_id(ctx),
             util.get_project(ctx, args["prj_id"]),
             args["action"],
-            args["action_params"]
+            id_=args.get("id_"),
+            copy=args.get("copy"),
+            student=args.get("student")
         )
-        response_result = None
+        response_data = None
 
-    return base.wrap_code(code, result=response_result)
+    return base.wrap_code(code, data=response_data)

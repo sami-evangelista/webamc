@@ -10,7 +10,7 @@ def page(ctx: context.Context, exm_id: int) -> he.Element:
 
     exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
     if exams == list():
-        return he.Txt("info_no_exam_available")
+        return he.Txt("exam_info_no_exam_available")
 
     trs = list()
 
@@ -24,7 +24,7 @@ def page(ctx: context.Context, exm_id: int) -> he.Element:
     ).set_data(
         "type", "integer"
     )
-    trs.append([he.Txt("seq_select_an_exam"), select_exams])
+    trs.append([he.Txt("exam_select_an_exam"), select_exams])
 
     table = he.mktable(trs, class_="table-form")
 

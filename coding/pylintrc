@@ -61,7 +61,6 @@ disable=
   abstract-method,
   bare-except,
   consider-using-with,
-  cyclic-import,
   duplicate-code,
   exec-used,
   file-ignored,

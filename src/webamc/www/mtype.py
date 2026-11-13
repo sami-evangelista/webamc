@@ -3,6 +3,7 @@ from pathlib import Path
 
 ALL = {
     ".css": "text/css",
+    ".ico": "image/x-icon",
     ".js": "text/javascript",
     ".json": "application/json",
     ".log": "plain/text",

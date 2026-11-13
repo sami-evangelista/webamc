@@ -572,8 +572,8 @@ def _form_exercise(
         span_score = he.Span(he.Str(score), class_="mcq-score-box")
         element_title = he.Table(
             he.Tr(
-                he.Td(span_title, style="valign: middle"),
-                he.Td(he.nbsp, span_score, style="valign: middle")
+                he.Td(span_title, style="vertical-align: middle"),
+                he.Td(he.nbsp, span_score, style="vertical-align: middle")
             )
         )
     div_body = he.Div(

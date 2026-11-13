@@ -33,7 +33,7 @@ def page(ctx: context.Context, prj_id: int) -> fa.Response:
         )
         trs.append(tr)
 
-        # second row with user select 
+        # second row with user select
         options = [
             he.Option(
                 he.Str(u[1].fmt()),

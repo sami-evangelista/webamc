@@ -1,15 +1,15 @@
 const pack_filters = {
     'all': {
-        'title': 'seq_pack_take_all'
+        'title': 'item_pack_take_all'
     },
     'by-tag': {
-        'title': 'seq_pack_take_by_tag'
+        'title': 'item_pack_take_by_tag'
     },
     'head': {
-        'title': 'seq_pack_take_head'
+        'title': 'item_pack_take_head'
     },
     'shuf': {
-        'title': 'seq_pack_take_shuf'
+        'title': 'item_pack_take_shuf'
     }
 };
 
@@ -40,14 +40,14 @@ class Filter {
 
         // filter buttons
         const delete_button = document.createElement('img');
-        delete_button.title = Lang['seq_pack_delete_box'];
+        delete_button.title = Lang['item_pack_delete_box'];
         delete_button.src = base_img_src('dismiss');
         delete_button.className = 'btn';
         delete_button.onclick = () => {
             this.remove_only_me();
         };
         const delete_all_button = document.createElement('img');
-        delete_all_button.title = Lang['seq_pack_delete_all_box'];
+        delete_all_button.title = Lang['item_pack_delete_all_box'];
         delete_all_button.src = base_img_src('trash');
         delete_all_button.className = 'btn';
         delete_all_button.onclick = () => {
@@ -145,7 +145,7 @@ class Pack {
             const html = `<div id="${_this.id}-tags"></div>
               <label>
             <input type="checkbox" id="${_this.id}-rev-tags">
-              ${Lang['seq_pack_reverse_selection']}
+              ${Lang['item_pack_reverse_selection']}
             </label>`;
             const onyes = function(evt) {
                 const tags = tag_table.get_tag_names();
@@ -413,56 +413,6 @@ class Pack {
         this.filters_save = [];
         this.div_container = $('#' + div_container_id);
         this.div_container.html(this.html());
-        /*
-        let download_button = document.getElementById('download_button');
-        download_button.disabled = true;
-        let save_button = document.getElementById('save_button');
-        save_button.disabled = true;
-        let json_container = document.getElementById('jsonOutput');
-        json_container.style.display = 'none';
-        document
-            .getElementById('save_button')
-            .addEventListener('click', async function(event){
-                await this.save();
-            });
-
-        document
-            .getElementById('import_button')
-            .addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if(!file) return;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        const jsonData = JSON.parse(event.target.result);
-                        this.import_json(jsonData);
-                    } catch (error) {
-                        console.error(
-                            'Erreur lors du parsing du JSON :', error);
-                    }
-                };
-                reader.readAsText(file);
-            });
-        document
-            .getElementById('add_import_button')
-            .addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if(!file) {
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        const jsonData = JSON.parse(event.target.result);
-                        this.add_imported_json(jsonData);
-                    } catch (error) {
-                        console.error(
-                            'Erreur lors du parsing du JSON :', error);
-                    }
-                };
-                reader.readAsText(file);
-                });
-        */
         this.filters_container().on(
             'ondragover',
             function (evt) {

@@ -1,6 +1,5 @@
 import smtplib
 import ssl
-from pathlib import Path
 from email.parser import Parser
 from importlib import resources
 

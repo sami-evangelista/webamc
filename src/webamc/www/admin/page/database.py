@@ -3,7 +3,7 @@ from webamc.db import util as db_util, desc, queries, tables
 from webamc.www.db import util as www_db_util
 
 
-def page(ctx: context.Context, tbl_id: None | int) -> he.Element:
+def page(ctx: context.Context, tbl_id: tp.Optional[int]) -> he.Element:
     elements: list[he.Element] = list()
 
     # list of tables the user can administrate and set the table to show

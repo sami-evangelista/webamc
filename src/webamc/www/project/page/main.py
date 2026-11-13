@@ -12,7 +12,8 @@ def page(ctx: context.Context, prj_id: tp.Optional[int]) -> fa.Response:
     a_new = base.static_img(
         "add",
         "base_add",
-        js="project_new()"
+        js="project_new()",
+        style="vertical-align: middle;"
     )
     trs: list[tuple[he.Element, he.Element]] = [
         (span_new, he.ElementList(input_code, a_new))

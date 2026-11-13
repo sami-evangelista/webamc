@@ -46,7 +46,7 @@ const project_new = function () {
     };
     const success = function(result) {
         const args = {
-            'prj_id': result.result['prj_id']
+            'prj_id': result.data['prj_id']
         };
         const url = base_encode_url(Constants.path_project_page_main, args);
         base_relocate(url);
@@ -62,7 +62,7 @@ const project_init = function () {
     }
     const url = Constants.path_project_oper_get_status;
     const success = function(response) {
-        project_status = response.result;
+        project_status = response.data;
 
         // files
         const files = project_status.files;
@@ -160,8 +160,7 @@ const project_action = function (action, params = null) {
         const url = Constants.path_project_oper_action;
         const data = {
             'prj_id': base_input_value('prj_id'),
-            'action': action,
-            'action_params': {}
+            'action': action
         };        
         const success = function(response) {
             base_report(response.msgs, response.success);
@@ -175,7 +174,7 @@ const project_action = function (action, params = null) {
         };
         if(params != null) {
             for(const [key, val] of Object.entries(params)) {
-                data['action_params'][key] = val;
+                data[key] = val;
             }
         }
         const query = {
@@ -193,7 +192,7 @@ const project_action = function (action, params = null) {
         base_launch_computation(comp);
     };
     if(project_status.warning[action]) {
-        const txt = 'qst_confirmation_project_' + action;
+        const txt = 'project_qst_confirmation_' + action;
         base_ask_confirmation(Lang[txt], go);
     } else {
         go();
@@ -235,7 +234,7 @@ const project_associate_manual = function (student, copy) {
     const params = {
         'student': student,
         'copy': copy,
-        'id': base_input_value('assoc-' + student + '-' + copy)
+        'id_': base_input_value('assoc-' + student + '-' + copy)
     };
     project_action('associate_manual', params);
 }

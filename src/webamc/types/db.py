@@ -16,10 +16,6 @@ db_base_val_t = (
 
 db_map_t = dict[str, db_base_val_t]
 
-class db_query_result_t(tp_ext.TypedDict):
-    values: tp.NotRequired[list[list[db_map_t]] | list[db_map_t]]
-    readable_values: tp.NotRequired[list[list[db_map_t]] | list[db_map_t]]
-
 class db_where_t(tp_ext.TypedDict):
     col: str
     op: tp.Literal["=", "like"]

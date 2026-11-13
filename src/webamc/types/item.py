@@ -95,27 +95,30 @@ def mcq_enum_items(
             yield from mcq_enum_items(c, content)
 
 
-def check_pack_spec(spec: str) -> pack_spec_t:
+ta_pack_spec = TypeAdapter(pack_spec_t)
+def check_pack_spec(data: str) -> pack_spec_t:
     try:
-        parsed = json.loads(spec)
-        TypeAdapter(pack_spec_t).validate_python(parsed)
+        parsed = json.loads(data)
+        ta_pack_spec.validate_python(parsed)
     except (ValidationError, json.decoder.JSONDecodeError) as ex:
         raise ValueError from ex
     return tp.cast(pack_spec_t, parsed)
 
 
-def check_mcq_content(spec: str) -> mcq_content_t:
+ta_mcq_content = TypeAdapter(mcq_content_t)
+def check_mcq_content(data: str) -> mcq_content_t:
     try:
-        parsed = json.loads(spec)
-        TypeAdapter(mcq_content_t).validate_python(parsed)
+        parsed = json.loads(data)
+        ta_mcq_content.validate_python(parsed)
     except (ValidationError, json.decoder.JSONDecodeError) as ex:
         raise ValueError from ex
     return tp.cast(mcq_content_t, parsed)
 
 
-def check_item_mdata(mdata: str) -> item_mdata_t:
+ta_item_mdata = TypeAdapter(item_mdata_t)
+def check_item_mdata(data: str) -> item_mdata_t:
     try:
-        TypeAdapter(item_mdata_t).validate_python(mdata)
+        ta_item_mdata.validate_python(data)
     except ValidationError as ex:
         raise ValueError from ex
-    return tp.cast(item_mdata_t, mdata)
+    return tp.cast(item_mdata_t, data)

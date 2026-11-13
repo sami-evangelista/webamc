@@ -89,15 +89,14 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         tds = [he.Td(attr) for _, attr in attrs]
         pkey_val = getattr(row, pkey.name)
         js = (
-            f"admin_delete_row('{tbl_name}', "
-            f"'{pkey.name}', {pkey_val})"
+            f"admin_delete_row('{tbl_name}', '{pkey.name}', {pkey_val})"
         )
         img = base.static_img("trash", "base_delete", js=js)
         tds.append(he.Td(img))
         trs.append(he.Tr(*tds))
 
     elements.append(
-        he.P(he.Txt("seq_records_found"), he.Str(f": {nrows}"))
+        he.P(he.Txt("admin_param_records_found", str(nrows)))
     )
 
     p = he.P(he.Table(thead, *trs, class_="table-solid"))

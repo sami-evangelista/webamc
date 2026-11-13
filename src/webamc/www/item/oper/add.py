@@ -34,4 +34,4 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     )
     ctx.dbs.add(inst)
 
-    return base.wrap_code("succ", result={"itm_id": item.itm_id})
+    return base.wrap_code("succ", data={"itm_id": item.itm_id})

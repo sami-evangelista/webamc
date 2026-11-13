@@ -1,7 +1,6 @@
 import json
 import datetime
 import typing as tp
-import typing_extensions as tp_ext
 from pydantic import TypeAdapter, ValidationError
 
 
@@ -17,7 +16,7 @@ action_t = tp.Literal[
     "new",
     "upload_answer_sheets",
     "upload_source",
-    "send_annotated_sheets",
+    "publish_annotated_sheets",
     "send_notification_mail"
 ]
 
@@ -62,33 +61,31 @@ cmd_t = tp.Literal[
     "read-pdfform"
 ]
 
-class action_params_t(tp_ext.TypedDict):
-    copy: tp.NotRequired[None | int]
-    student: tp.NotRequired[None | int]
-    id: tp.NotRequired[None | str]
+project_history_t = list[tuple[action_t, datetime.datetime, bool]]
+
+project_actions_done_t = dict[action_t, bool]
 
 class file_status_t(tp.TypedDict):
     exists: bool
-    size: None | int
-    date: None | datetime.datetime
-
-project_history_t = list[tuple[action_t, datetime.datetime, bool]]
-project_actions_done_t = dict[action_t, bool]
+    size: tp.Optional[int]
+    date: tp.Optional[datetime.datetime]
 
 
-def check_project_actions_done(done: str) -> project_actions_done_t:
+ta_project_actions_done = TypeAdapter(project_actions_done_t)
+def check_project_actions_done(data: str) -> project_actions_done_t:
     try:
-        data = json.loads(done)
-        TypeAdapter(project_actions_done_t).validate_python(data)
+        data = json.loads(data)
+        ta_project_actions_done.validate_python(data)
     except (ValidationError, json.decoder.JSONDecodeError) as ex:
         raise ValueError from ex
     return tp.cast(project_actions_done_t, data)
 
 
+ta_project_history = TypeAdapter(project_history_t)
 def check_project_history(data: str) -> project_history_t:
     try:
         data = json.loads(data)
-        TypeAdapter(project_history_t).validate_python(data)
+        ta_project_history.validate_python(data)
     except (ValidationError, json.decoder.JSONDecodeError) as ex:
         raise ValueError from ex
     return tp.cast(project_history_t, data)

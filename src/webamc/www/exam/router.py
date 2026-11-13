@@ -31,6 +31,16 @@ def oper_publish_scores(
         return publish_scores.data(ctx, args)
 
 
+@router.post("/exam/oper/send-notifications")
+def oper_send_notifications(
+        req: fa.Request,
+        args: types.args_oper_t
+) -> fa.Response:
+    from .oper import send_notifications
+    with context.Context(req) as ctx:
+        return send_notifications.data(ctx, args)
+
+
 @router.post("/exam/page/dashboard")
 def page_dashboard(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     from .page import dashboard

@@ -34,12 +34,12 @@ def page(ctx: context.Context) -> fa.Response:
         ]
         trs.append(tr)
     if len(trs) == 0:
-        body: he.Element = he.Txt("info_no_mcq_available")
+        body: he.Element = he.Txt("inbox_info_empty")
     else:
         cols: list[types.txt_t] = [
-            "col_desc_msg_title",
-            "col_desc_msg_from",
-            "col_desc_msg_date"
+            "db_col_msg_title",
+            "db_col_msg_from",
+            "db_col_msg_date"
         ]
         body = he.mktable(trs, class_="table-solid")
         body.insert(0, he.Thead(he.Tr(*[he.Td(he.Txt(c)) for c in cols])))

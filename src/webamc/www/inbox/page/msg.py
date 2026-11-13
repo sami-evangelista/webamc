@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from webamc.www.all import *
 from webamc.db import tables
 
