@@ -1,5 +1,5 @@
 from webamc.www.all import *
-from webamc.db import queries, desc, tables
+from webamc.db import queries, desc, tables, errors
 from webamc.www.db.util import get_txt_and_input
 
 
@@ -28,9 +28,11 @@ def _page_password_change(
         ctx: context.Context,
         tkt: tables.Ticket
 ) -> fa.Response:
-    assert tkt.tkt_usr is not None
+    if tkt.tkt_usr is None:
+        raise fa.HTTPException(status_code=422)
     usr = queries.get_usr(ctx.dbs, tkt.tkt_usr)
-    assert usr is not None
+    if usr is None:
+        raise fa.HTTPException(status_code=422)
     input_confirm = he.Input(type_="password", id_="loc_password_confirm")
     desc_usr_code = desc.col_desc("usr_code")
     trs = [
@@ -66,27 +68,29 @@ def _page_eaddr_change(
         ctx: context.Context,
         tkt: tables.Ticket
 ) -> fa.Response:
-    assert tkt.tkt_usr is not None
+
+    if not config.CONFIG["profile_eaddr_change_enabled"]:
+        raise fa.HTTPException(status_code=403)
+    if tkt.tkt_usr is None:
+        raise fa.HTTPException(status_code=422)
     usr = queries.get_usr(ctx.dbs, tkt.tkt_usr)
-    assert usr is not None
+    if usr is None:
+        raise fa.HTTPException(status_code=422)
 
-    # update usr
-    usr = ctx.dbs.query(
-        tables.Usr
-    ).where(
-        tables.Usr.usr_id == usr.usr_id
-    ).first()
-    assert usr is not None
-    usr.usr_eaddr = tkt.tkt_eaddr
-
-    # delete ticket
+    # update usr and delete the ticket
+    try:
+        usr.usr_eaddr = tkt.tkt_eaddr
+        ctx.dbs.commit()
+        msg = he.Txt("succ_eaddr_changed")
+    except errors.DBDuplicateValue:
+        ctx.dbs.rollback()
+        msg = he.Txt("profile_err_duplicate_eaddr")
     ctx.dbs.query(
         tables.Ticket
     ).where(
         tables.Ticket.tkt_id == tkt.tkt_id
     ).delete()
 
-    msg = he.Txt("succ_eaddr_changed")
     return base.page(ctx, "ticket", msg, sub_pg="ticket_eaddr_change")
 
 

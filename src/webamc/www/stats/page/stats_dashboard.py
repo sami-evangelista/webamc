@@ -195,7 +195,7 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         *overview_exam_options,
         id_="overview_exam_selector",
         class_="box",
-        onchange="loadMcqOverview(this.value)"
+        onchange="stats_load_mcq_overview(this.value)"
     )
     select_sort = he.Select(
         he.Option(he.Str("Par nom"), value="base_asc"),
@@ -204,8 +204,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         id_="sel_sort_mcq",
         class_="box",
         onchange=(
-            "if(typeof renderMcqOverview === 'function') "
-            "{ renderMcqOverview(); }"
+            "if(typeof stats_render_mcq_overview === 'function') "
+            "{ stats_render_mcq_overview(); }"
         )
     )
 
@@ -213,8 +213,8 @@ def page(ctx: context.Context, exam_id: int | None) -> fa.Response:
         type="checkbox",
         id_="chk_group_exo",
         onchange=(
-            "if(typeof renderMcqOverview === 'function') "
-            "{ renderMcqOverview(); }"
+            "if(typeof stats_render_mcq_overview === 'function') "
+            "{ stats_render_mcq_overview(); }"
         )
     )
     lbl_group = he.Label(

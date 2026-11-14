@@ -32,16 +32,19 @@ def page(ctx: context.Context) -> fa.Response:
         updatable=False
     ):
         trs.append((txt, attr))
-    input_eaddr = www_db_util.get_col_input_type(ctx, "usr_eaddr").element()
-    a_send = base.static_img(
-        "mail",
-        "base_send",
-        js="profile_send_eaddr_change()",
-        style="vertical-align: middle;"
-    )
-    trs.append(
-        (he.Txt("profile_new_eaddr"), he.ElementList(input_eaddr, a_send))
-    )
+    if config.CONFIG["profile_eaddr_change_enabled"]:
+        input_eaddr = www_db_util.get_col_input_type(
+            ctx, tables.Usr.usr_eaddr
+        ).element()
+        a_send = base.static_img(
+            "mail",
+            "base_send",
+            js="profile_send_eaddr_change()",
+            style="vertical-align: middle;"
+        )
+        trs.append(
+            (he.Txt("profile_new_eaddr"), he.ElementList(input_eaddr, a_send))
+        )
 
     # table containing user groups
     groups: dict[int, tuple[tables.Grp, list[types.usr_right_t]]] = dict()

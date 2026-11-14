@@ -1,11 +1,12 @@
-// src/webamc/static/js/stats.js
+let stats_current_chart_instance = null;
+let stats_evolution_chart_instance = null;
+let stats_mcq_chart_instance = null;
+let stats_raw_mcq_data = [];
+let stats_tags_chart_instance = null;
+let stats_raw_tags_data = [];
 
-// storing chart instance
-let currentChartInstance = null;
-let evolutionChartInstance = null;
 
-// handling question change
-function handleQuestionChange(qstId) {
+const handleQuestionChange = function (qstId) {
     if (!qstId) {
         console.error("Annulation : qstId est vide.");
         return;
@@ -39,35 +40,35 @@ function handleQuestionChange(qstId) {
             }
         )
     })
-    .then(async response => {
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        const backgroundColors = [];
-        
-        const redShades = ["#dc3545", "#e4606d", "#ef8a93", "#f6b4b9"];
-        let redIndex = 0;
+        .then(async response => {
+            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            const backgroundColors = [];
+            
+            const redShades = ["#dc3545", "#e4606d", "#ef8a93", "#f6b4b9"];
+            let redIndex = 0;
 
-        data.choices_info.forEach(choice => {
-            if (choice.is_no_response){
-                choice.exactColor = "#6c757d"; }
-            else if (choice.is_correct) {
-                choice.exactColor = "#28a745"; 
-            } else {
-                choice.exactColor = redShades[redIndex % redShades.length];
-                redIndex++;
-            }
-            backgroundColors.push(choice.exactColor);
-        });
+            data.choices_info.forEach(choice => {
+                if (choice.is_no_response){
+                    choice.exactColor = "#6c757d"; }
+                else if (choice.is_correct) {
+                    choice.exactColor = "#28a745"; 
+                } else {
+                    choice.exactColor = redShades[redIndex % redShades.length];
+                    redIndex++;
+                }
+                backgroundColors.push(choice.exactColor);
+            });
 
-        // updating chart
-        updateChart(data.labels, data.data, data.total_students, backgroundColors);
-        
-        // updating images
-        updateDetails(qstId, data.choices_info);
-    })
-    .catch(error => console.error('Error:', error));
+            // updating chart
+            updateChart(data.labels, data.data, data.total_students, backgroundColors);
+            
+            // updating images
+            updateDetails(qstId, data.choices_info);
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 // updating question and choices images
@@ -101,7 +102,7 @@ function updateDetails(qstId, choicesInfo) {
                     <span style="color: #666; font-style: italic; margin-left: 10px;">(Aucune réponse)</span>
                 `;}
             else{
-            li.innerHTML = `
+                li.innerHTML = `
                 <strong style="color: ${textColor};">${translatedAnswer} ${choice.letter} :</strong>
                 <img src="/webamc/img?itm_id=${choice.id}&iti_num=1" style="max-height: 80px; border: 1px solid #ddd; margin-top: 5px; border-radius: 4px;">
             `;}
@@ -121,14 +122,14 @@ function updateChart(labels, dataValues, totalStudents,colors) {
     }
 
     // destroying previous chart if exists
-    if (currentChartInstance) {
-        currentChartInstance.destroy();
+    if (stats_current_chart_instance) {
+        stats_current_chart_instance.destroy();
     }
 
     const yAxisMax = totalStudents > 0 ? totalStudents : 10;
 
     // creating new chart
-    currentChartInstance = new Chart(element, {
+    stats_current_chart_instance = new Chart(element, {
         type: "bar",
         data: {
             labels: labels, 
@@ -169,72 +170,22 @@ function triggerEvolutionChart() {
             mcq_id: parseInt(mcqId)
         })
     })
-    .then(async response => {
-        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        drawEvolutionChart(data.labels, data.data, data.max_score);
-    })
-    .catch(error => console.error('Erreur:', error));
+        .then(async response => {
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            drawEvolutionChart(data.labels, data.data, data.max_score);
+        })
+        .catch(error => console.error('Erreur:', error));
 }
-
-// function drawEvolutionChart(labels, dataValues, maxScore) {
-//     const element = document.getElementById("evolution_chart");
-//     if (!element) return;
-
-//     if (evolutionChartInstance) {
-//         evolutionChartInstance.destroy();
-//     }
-
-//     const yAxisMax = maxScore > 0 ? maxScore : 10;
-
-//     let calculatedStepSize = 1;
-//     if (yAxisMax > 8) {
-//         calculatedStepSize = yAxisMax / 8; 
-//     }
-
-//     evolutionChartInstance = new Chart(element, {
-//         type: "bar", 
-//         data: {
-//             labels: labels, 
-//             datasets: [{
-//                 label: "Note obtenue", 
-//                 data: dataValues, 
-//                 backgroundColor: "#007bff", 
-//                 maxBarThickness: 50,
-//                 minBarLength: 5 
-//             }]
-//         },
-//         options: {
-//             maintainAspectRatio: false,
-//             scales: { 
-//                 y: { 
-//                     beginAtZero: true,
-//                     max: yAxisMax, 
-//                     ticks: {
-//                         stepSize: calculatedStepSize,
-//                         autoSkip: false,
-//                         callback: function(value) {
-//                             return value.toFixed(1); 
-//                         }
-//                     },
-//                     title: { display: true, text: 'Score' }
-//                 },
-//                 x: {
-//                     title: { display: true, text: 'Date de passage' }
-//                 }
-//             }
-//         }
-//     });
-// }
 
 function drawEvolutionChart(labels, dataValues, maxScore) {
     const element = document.getElementById("evolution_chart");
     if (!element) return;
 
-    if (evolutionChartInstance) {
-        evolutionChartInstance.destroy();
+    if (stats_evolution_chart_instance) {
+        stats_evolution_chart_instance.destroy();
     }
 
     const yAxisMax = maxScore > 0 ? maxScore : 10;
@@ -244,7 +195,7 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
         calculatedStepSize = yAxisMax / 8; 
     }
 
-    evolutionChartInstance = new Chart(element, {
+    stats_evolution_chart_instance = new Chart(element, {
         type: "line",
         data: {
             labels: labels, 
@@ -284,43 +235,48 @@ function drawEvolutionChart(labels, dataValues, maxScore) {
 }
 
 
-
-// storing mcq overview chart instance
-let mcqChartInstance = null;
-let rawMcqData = [];
-
-// fetching data and storing it
-function loadMcqOverview(examId) {
-    if (!examId) return;
-
-    fetch('/webamc/stats/oper/mcq-overview-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam_id: parseInt(examId) })
-    })
-    .then(async response => {
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        rawMcqData = data.labels.map((label, index) => {
-            let exo = (data.exo_names && data.exo_names[index]) ? data.exo_names[index] : "Autre";   
-                     
-            return {
-                label: label,
-                score: data.data[index],
-                qstId: data.qst_ids[index],
-                exo: exo
-            };
-        });
-
-        renderMcqOverview();
-    })
-    .catch(error => console.error('Error:', error));
+function stats_load_mcq_overview(examId) {
+    if (!examId) {
+        return;
+    }
+    fetch(
+        '/webamc/stats/oper/mcq-overview-data',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                exam_id: parseInt(examId)
+            })
+        }
+    ).then(
+        async response => {
+            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+            return response.json();
+        }
+    ).then(
+        data => {
+            stats_raw_mcq_data = data.labels.map(
+                (label, index) => {
+                    let exo = (data.exo_names && data.exo_names[index])
+                        ? data.exo_names[index] : "Autre";   
+                    return {
+                        label: label,
+                        score: data.data[index],
+                        qstId: data.qst_ids[index],
+                        exo: exo
+                    };
+                }
+            );
+            stats_render_mcq_overview();
+        }
+    ).catch(error => console.error('Error:', error));
 }
-// filters, sorts and groups data before drawing the chart
-function renderMcqOverview() {
-    if (!rawMcqData || rawMcqData.length === 0) return;
+
+
+function stats_render_mcq_overview() {
+    if (!stats_raw_mcq_data || stats_raw_mcq_data.length === 0) return;
 
     const chkGroup = document.getElementById("chk_group_exo");
     const selSort = document.getElementById("sel_sort_mcq");
@@ -339,12 +295,14 @@ function renderMcqOverview() {
 
     if (groupChecked) {
         const groups = {};
-        rawMcqData.forEach(item => {
+        stats_raw_mcq_data.forEach(item => {
             if (!groups[item.exo]) groups[item.exo] = [];
             groups[item.exo].push(item);
         });
 
-        const sortedExos = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+        const sortedExos = Object.keys(groups).sort(
+            (a, b) => a.localeCompare(b)
+        );
 
         sortedExos.forEach((exo, index) => {
             groups[exo].sort(sortItems);
@@ -361,7 +319,7 @@ function renderMcqOverview() {
             }
         });
     } else {
-        processedData = [...rawMcqData].sort(sortItems);
+        processedData = [...stats_raw_mcq_data].sort(sortItems);
     }
 
     const labels = processedData.map(d => d.label);
@@ -380,18 +338,18 @@ function renderMcqOverview() {
     drawMcqChart(labels, dataValues, qstIds, barColors);
 }
 
-// drawing the mcq overview chart
+
 function drawMcqChart(labels, dataValues, qstIds, colors) {
     const element = document.getElementById("mcq_overview_chart"); 
     if (!element) return;
 
     // destroying previous chart if exists
-    if (mcqChartInstance) {
-        mcqChartInstance.destroy();
+    if (stats_mcq_chart_instance) {
+        stats_mcq_chart_instance.destroy();
     }
 
     // creating new chart
-    mcqChartInstance = new Chart(element, {
+    stats_mcq_chart_instance = new Chart(element, {
         type: "bar",
         data: {
             labels: labels,
@@ -439,47 +397,44 @@ function drawMcqChart(labels, dataValues, qstIds, colors) {
 }
 
 
-let tagsChartInstance = null;
-let rawTagsData = [];
-
 function loadTagsOverview() {
     fetch('/webamc/stats/oper/tags-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}) 
     })
-    .then(async response => {
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        if (!data.labels || !data.data) {
-            console.warn("No tags data received.");
-            return;
-        }
-        
-        rawTagsData = data.labels.map((label, index) => {
-            return {
-                label: label,
-                score: data.data[index],
-                tagId: data.tag_ids ? data.tag_ids[index] : null,
-                count: (data.counts && data.counts[index]) ? data.counts[index] : 0
-            };
-        });
+        .then(async response => {
+            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (!data.labels || !data.data) {
+                console.warn("No tags data received.");
+                return;
+            }
+            
+            stats_raw_tags_data = data.labels.map((label, index) => {
+                return {
+                    label: label,
+                    score: data.data[index],
+                    tagId: data.tag_ids ? data.tag_ids[index] : null,
+                    count: (data.counts && data.counts[index]) ? data.counts[index] : 0
+                };
+            });
 
-        renderTagsOverview();
-    })
-    .catch(error => console.error('Error fetching tags:', error));
+            stats_render_tags_overview();
+        })
+        .catch(error => console.error('Error fetching tags:', error));
 }
 
 
-function renderTagsOverview() {
-    if (!rawTagsData || rawTagsData.length === 0) return;
+function stats_render_tags_overview() {
+    if (!stats_raw_tags_data || stats_raw_tags_data.length === 0) return;
 
     const selSort = document.getElementById("sel_sort_tags");
     const sortMode = selSort ? selSort.value : "score_asc";
 
-    const processedData = [...rawTagsData].sort((a, b) => {
+    const processedData = [...stats_raw_tags_data].sort((a, b) => {
         if (sortMode === "score_desc") return b.score - a.score;
         if (sortMode === "score_asc") return a.score - b.score;
         if (sortMode === "name_asc") return a.label.localeCompare(b.label);
@@ -501,15 +456,16 @@ function renderTagsOverview() {
     drawTagsChart(labels, dataValues, barColors, counts);
 }
 
+
 function drawTagsChart(labels, dataValues, colors, counts = []) {
     const element = document.getElementById("tags_overview_chart");
     if (!element) return;
 
-    if (tagsChartInstance) {
-        tagsChartInstance.destroy();
+    if (stats_tags_chart_instance) {
+        stats_tags_chart_instance.destroy();
     }
 
-    tagsChartInstance = new Chart(element, {
+    stats_tags_chart_instance = new Chart(element, {
         type: "bar",
         data: {
             labels: labels,

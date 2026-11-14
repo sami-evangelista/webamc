@@ -64,6 +64,7 @@ CONFIG_DEFAULT: types.config_t = {
     "log_file": None,
     "mails_dir": None,
     "password_ticket_validity": 3600,
+    "profile_eaddr_change_enabled": True,
     "projects_dir": "/path/to/projects/dir",
     "root_path": "/webamc",
     "secret_key": "abcdefghij0123456789",

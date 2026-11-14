@@ -38,6 +38,7 @@ class config_t(tp_ext.TypedDict):
     mails_dir: None | str
     password_ticket_validity: int
     projects_dir: str
+    profile_eaddr_change_enabled: bool
     root_path: str
     secret_key: str
     service_name: str

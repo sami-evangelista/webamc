@@ -6,7 +6,8 @@ var base_wait_modal = null;
 
 const base_img_src = function (file_name) {
     const file = file_name + '-' + Constants.icon_size + '.png';
-    return Constants.path_static + '?file_name=' + file;
+    const args = {'file_name': file};
+    return base_encode_url(Constants.path_static, args);
 }
 
 
@@ -214,7 +215,10 @@ const base_submit_file = function (id_file, url, div_submit_result) {
 
 
 const base_help_open = function (help, section) {
-    const url = Constants.path_help + '?help_id=' + help;
+    const args = {
+        'help_id': help
+    };
+    const url = base_encode_url(Constants.path_help, args);
     const success = function (response) {
         $('#div-tooltip-help-body').html(response);
         $('#div-tooltip-help').hide().fadeIn(base_anim_delay);

@@ -168,7 +168,9 @@ const project_action = function (action, params = null) {
                 const url = Constants.path_project_page_main;
                 base_relocate(url);
             }
-            else if(action != 'associate_manual') {
+            else if(action == 'associate_manual') {
+                project_manual_association_open();
+            } else {
                 project_init();
             }
         };
@@ -209,7 +211,7 @@ const project_manual_association_open = function () {
     if(prj_id != null) {
         const success = function(response) {
 	    div_manual_association.html(response);
-            div_manual_association.toggle();
+            div_manual_association.show();
         };
         const args = {
             'prj_id': prj_id
@@ -224,9 +226,7 @@ const project_manual_association_open = function () {
 
 
 const project_manual_association_close = function () {
-    const div_manual_association = $('#div-manual-association');
-    div_manual_association.html('');
-    div_manual_association.toggle();
+    $('#div-manual-association').html('').hide();
 }
 
 

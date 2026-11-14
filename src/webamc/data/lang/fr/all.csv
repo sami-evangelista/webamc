@@ -293,6 +293,7 @@ param_err_invalid_value;%s: valeur invalide
 param_err_item_referenced_in_exam_submission;Cet élément ne peut pas être supprimé car il est apparu dans un examen (%s). Vous devez d'abord supprimer cet examen pour pouvoir supprimer l'élément.
 param_seq_instance_num;Instance %s
 param_seq_items_found;%s éléments trouvés
+profile_err_duplicate_eaddr;Cette adresse est déjà associée à un autre compte.
 profile_my_groups;mes groupes
 profile_new_eaddr;nouvelle adresse électronique
 project_analyse_answer_sheets;analyser les copies scannées
@@ -331,7 +332,6 @@ seq_add_an_item;ajouter un élément
 seq_administrate_this_mcq;administrer ce QCM
 seq_content_type;type de contenu
 seq_csv_file;fichier CSV
-seq_enter_new_eaddr;XXX
 seq_error_messages;messages d'erreur
 seq_exercise_list;liste d'exercices ou de questions
 seq_information_messages;messages d'information
@@ -339,7 +339,6 @@ seq_new_row;nouvelle ligne
 seq_qst_type_multi;plusieurs choix
 seq_qst_type_single;un seul choix
 seq_question_pack;pack de questions
-seq_records_found;XXX
 seq_warning_messages;messages d'avertissement
 seq_zip_file;fichier ZIP
 stats_answer_prefix;Réponse

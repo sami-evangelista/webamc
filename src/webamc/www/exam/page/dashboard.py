@@ -271,13 +271,13 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     btn = base.static_img(
         "inbox-push",
         "exam_publish_scores",
-        js=f"exam_publish_scores()"
+        js="exam_publish_scores()"
     )
     buttons.append(btn)
     btn = base.static_img(
         "mail",
         "exam_send_notifications",
-        js=f"exam_send_notifications()"
+        js="exam_send_notifications()"
     )
     buttons.append(btn)
     trs.append([he.Txt("base_actions"), he.ElementList(*buttons)])

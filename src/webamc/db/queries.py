@@ -514,6 +514,20 @@ def get_submissions_result(
         dbs: Session,
         sub_ids: tp.Iterable[int]
 ) -> dict[int, submission_result_t]:
+    def compute_exercise_score(
+            subres: submission_result_t,
+            content: types.mcq_content_t
+    ) -> tuple[int, int]:
+        item = next(
+            i for i in subres["items"] if i.itm_id == content["itm_id"]
+        )
+        if content["children"] is not None:
+            for c in content["children"]:
+                s, ms = compute_exercise_score(subres, c)
+                score[item] += s
+                max_score[item] += ms
+        return score[item], max_score[item]
+
     result: dict[int, submission_result_t] = dict()
 
     # query all items included in the submission
@@ -597,25 +611,18 @@ def get_submissions_result(
                 result_sub["cho_correct"][item] = False
 
     # negative scores are changed to 0
-    for sub_id, subres in result.items():
+    for subres in result.values():
         for item, item_score in subres["score"].items():
             subres["score"][item] = max(0, item_score)
 
     # compute exercise scores
-    for sub_id, subres in result.items():
-        def loop(content: types.mcq_content_t) -> tuple[int, int]:
-            item = next(
-                i for i in subres["items"] if i.itm_id == content["itm_id"]
-            )
-            if content["children"] is not None:
-                for c in content["children"]:
-                    s, ms = loop(c)
-                    score[item] += s
-                    max_score[item] += ms
-            return score[item], max_score[item]
+    for subres in result.values():
         score = subres["score"]
         max_score = subres["max_score"]
-        loop(types.check_mcq_content(result[sub_id]["sub"].sub_content))
+        compute_exercise_score(
+            subres,
+            types.check_mcq_content(subres["sub"].sub_content)
+        )
 
     return result
 

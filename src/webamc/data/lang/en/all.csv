@@ -362,6 +362,7 @@ param_err_invalid_value;%s: invalid value
 param_err_item_referenced_in_exam_submission;This element cannot be deleted because it appeared in an exam (%s). You must first delete this exam in order to delete the element.
 param_seq_instance_num;instance %s
 param_seq_items_found;%s item(s) found
+profile_err_duplicate_eaddr;XXX
 profile_my_groups;XXX
 profile_new_eaddr;XXX
 project_analyse_answer_sheets;XXX

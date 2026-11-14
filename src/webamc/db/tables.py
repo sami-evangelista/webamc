@@ -1617,6 +1617,6 @@ sa.event.listen(ItemRelation, "before_delete", before_delete_item_relation)
 sa.event.listen(ItemRelation, "before_insert", before_insert_item_relation)
 sa.event.listen(Project, "after_insert", after_insert_project)
 sa.event.listen(Project, "after_delete", after_delete_project)
-for t in Base.__subclasses__():
-    sa.event.listen(t, "before_insert", before_insert(t))
-    sa.event.listen(t, "before_update", before_update(t))
+for btbl in Base.__subclasses__():
+    sa.event.listen(btbl, "before_insert", before_insert(btbl))
+    sa.event.listen(btbl, "before_update", before_update(btbl))

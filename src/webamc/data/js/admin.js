@@ -49,9 +49,11 @@ const admin_table_filter = function () {
 
 
 const admin_table_change = function () {
-    const url = Constants.path_admin_page_main
-          + '?sub_page=admin_database'
-          + '&tbl_id=' + $('#tbl').val();
+    const args = {
+        'sub_page': 'admin_database',
+        'tbl_id': base_input_val('tbl')
+    };
+    const url = base_encode_url(Constants.path_admin_page_main, args);
     base_relocate(url);
 }
 

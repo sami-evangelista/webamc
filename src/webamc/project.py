@@ -562,11 +562,24 @@ def action(
             conn.commit()
             conn.close()
 
+    def pre_associate_manual() -> None:
+        assoc_file = joinpath(prj, "data", file_name("sqlite_association"))
+        if assoc_file.is_file():
+            conn = sqlite3.Connection(assoc_file)
+            q = (
+                "delete from association_association "
+                "where manual = ? or auto = ?"
+            )
+            cur = conn.cursor()
+            cur.execute(q, (kwargs.get("id_"), kwargs.get("id_")))
+            conn.commit()
+            conn.close()
+
     def post_compile() -> None:
         zip_pdfs(prj, "zip_sheets", joinpath(prj, "copies"))
 
     def post_export_scores() -> None:
-        pdf_dir = joinpath(prj, "cr", "corrections", "pdf")
+        pdf_dir = joinpath(prj, "outbox")
         zip_pdfs(prj, "zip_annotated_sheets", pdf_dir)
 
     def publish_annotated_sheets() -> types.oper_code_t:
@@ -636,7 +649,8 @@ def action(
 
     pre = {
         "analyse": pre_analyse,
-        "export_scores": pre_export_scores
+        "export_scores": pre_export_scores,
+        "associate_manual": pre_associate_manual
     }
     post = {
         "compile": post_compile,

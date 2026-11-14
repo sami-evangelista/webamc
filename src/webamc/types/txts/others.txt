@@ -24,7 +24,6 @@ seq_add_an_item
 seq_administrate_this_mcq
 seq_content_type
 seq_csv_file
-seq_enter_new_eaddr
 seq_error_messages
 seq_exercise_list
 seq_information_messages
@@ -32,6 +31,5 @@ seq_new_row
 seq_qst_type_multi
 seq_qst_type_single
 seq_question_pack
-seq_records_found
 seq_warning_messages
 seq_zip_file
