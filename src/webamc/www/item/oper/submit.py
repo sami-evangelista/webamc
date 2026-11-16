@@ -1,10 +1,7 @@
 from webamc.www.all import *
 
 
-def data(
-        ctx: context.Context,
-        zip_file: fa.UploadFile
-) -> fa.responses.Response:
+def data(ctx: context.Context, zip_file: fa.UploadFile) -> fa.Response:
     content = zip_file.file.read()
     if len(content) == 0:
         return base.wrap_code("err_item_admin_empty_archive")

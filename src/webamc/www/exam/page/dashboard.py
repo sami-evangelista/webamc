@@ -150,18 +150,8 @@ def page(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
 
     # select with users to register
     grps_ids = set(grp.grp_id for grp in grps)
-    query_usrs = queries.get_grps_usrs(ctx.dbs, grps_ids, types.USR_RIGHT_VIEW)
-    opts = [
-        he.Option(he.Str(usr.fmt()), value=usr.usr_id)
-        for usr in query_usrs
-    ]
-    select_usr = he.Select(
-        *opts,
-        id_="usr_id",
-        style="vertical-align: middle;"
-    ).set_data(
-        "type", "integer"
-    )
+    select_usr = www_exam_util.get_usrs_select(ctx, grps_ids)
+    select_usr["style"] = "vertical-align: middle;"
     img_usr_add = base.static_img(
         "person-add",
         "exam_register_user",

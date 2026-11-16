@@ -7,6 +7,19 @@ from .model.args_evo_t import args_evo_t
 router = fa.APIRouter()
 
 
+@router.get("/stats/page/main")
+def page_main(req: fa.Request) -> fa.Response:
+    from .page import main
+    with context.Context(req) as ctx:
+        return main.page(ctx)
+
+
+@router.post("/stats/oper/get-data")
+def oper_get_data(req: fa.Request, args: types.args_oper_t) -> fa.Response:
+    from .oper import get_data
+    with context.Context(req) as ctx:
+        return get_data.data(ctx, args)
+
 """
 @router.get("/stats/page/dashboard")
 def page_dashboard(

@@ -2,11 +2,8 @@ from webamc.www.all import *
 from webamc.actions import loadcsv
 
 
-def data(
-        ctx: context.Context,
-        csv_file: fa.UploadFile
-) -> fa.responses.Response:
-    result: fa.responses.Response
+def data(ctx: context.Context, csv_file: fa.UploadFile) -> fa.Response:
+    result: fa.Response
     content = csv_file.file.read()
     if len(content) == 0:
         return base.wrap_code("err_admin_empty_csv_file")

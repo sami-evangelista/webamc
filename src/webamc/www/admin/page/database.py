@@ -36,6 +36,8 @@ def page(ctx: context.Context, tbl_id: tp.Optional[int]) -> he.Element:
         id_="page_num",
         name="page_num",
         onchange="admin_table_filter()"
+    ).set_data(
+        "type", "integer"
     )
     a_prev = he.A(he.Str("<<"), href="javascript:admin_table_navigate(-1)")
     a_next = he.A(he.Str(">>"), href="javascript:admin_table_navigate(+1)")

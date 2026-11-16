@@ -14,10 +14,12 @@ class submission_result_t(tp_ext.TypedDict):
     max_score: dict[tables.Item, int]  # max score for each item
     cho_correct: dict[tables.Item, bool]  # correct choices
     score: dict[tables.Item, int]  # score for each item
+
 class exam_usr_result_t(tp_ext.TypedDict):
     usr: tables.Usr
     reg: tables.Registration
     sub_result: tp.Optional[submission_result_t]
+
 exam_result_t = tp.Iterator[exam_usr_result_t]
 
 
@@ -530,7 +532,7 @@ def get_submissions_result(
 
     result: dict[int, submission_result_t] = dict()
 
-    # query all items included in the submission
+    # query all items included in the submissions
     item_alias = aliased(tables.Item)
     query = dbs.query(
         tables.Submission,

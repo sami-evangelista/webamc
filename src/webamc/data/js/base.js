@@ -277,3 +277,12 @@ const base_encode_url = function (base, args = null)  {
     }
     return result;
 }
+
+
+const base_ratio_color = function (ratio) {
+    const gval = Math.max(0, Math.min(2 * ratio, 1)) * 255;
+    const rval = Math.max(0, Math.min(2 - 2 * ratio, 1)) * 255;
+    const g = parseInt(gval).toString(16);
+    const r = parseInt(rval).toString(16);
+    return '#' + r.padStart(2, '0') + g.padStart(2, '0') + '00';
+}

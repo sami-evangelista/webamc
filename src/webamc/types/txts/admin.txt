@@ -1,1 +1,3 @@
+admin_no_exams
+admin_no_submissions
 admin_param_records_found

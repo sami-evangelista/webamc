@@ -1,4 +1,6 @@
 id;text
+admin_no_exams;nombre d'examens à générer
+admin_no_submissions;nombre de soummissions à générer
 admin_param_records_found; %s enregistrements trouvés
 auth_account_creation;création d'un compte
 auth_cas_authentication;authentification par un serveur
@@ -21,13 +23,15 @@ base_disconnection;déconnexion
 base_exam;examen
 base_exercise;exercice
 base_filter;filtrer
+base_filters;filtres
 base_groups;groupes
 base_help;aide
 base_max;max
-base_mcq;qcm
+base_mcq;QCM
 base_move_down;descendre
 base_move_up;monter
 base_no;non
+base_output;sortie
 base_page;page
 base_parameters;paramètres
 base_progress;progression
@@ -265,6 +269,7 @@ op_lt;inférieur à
 op_notlike;ne contient pas
 page_title_admin;administration
 page_title_admin_database;base de données
+page_title_admin_random_form;génération de données aléatoires
 page_title_admin_submit;soumission
 page_title_auth;authentification
 page_title_exam_add;création
@@ -341,19 +346,12 @@ seq_qst_type_single;un seul choix
 seq_question_pack;pack de questions
 seq_warning_messages;messages d'avertissement
 seq_zip_file;fichier ZIP
-stats_answer_prefix;Réponse
-stats_answers_detail;Détail des réponses :
-stats_choose_exam;1. Choisir un examen :
-stats_choose_qst;2. Choisir une question :
-stats_evo_title;Évolution d'un étudiant sur un QCM
-stats_mcq_prefix;2. QCM ciblé :
-stats_qst_prefix;Question
-stats_select_exam;Sélectionnez un examen...
-stats_select_mcq;Sélectionnez un QCM...
-stats_select_qst;Sélectionnez une question...
-stats_select_student;Sélectionnez un étudiant...
-stats_student_prefix;1. Étudiant :
-stats_title;Tableau de bord des statistiques
+stats_data_outputted;données en sortie
+stats_sort_by_name_asc;nom ascendant
+stats_sort_by_name_desc;nom descendant
+stats_sort_by_score_asc;note ascendante
+stats_sort_by_score_desc;note descendante
+stats_sort_by;trier par
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse électronique modifiée avec succès.
 succ_login;Connexion réussie.

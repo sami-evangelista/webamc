@@ -9,6 +9,10 @@ def is_logged_in(ctx: context.Context) -> bool:
     return "usr_id" in ctx.req.session
 
 
+def is_root(ctx: context.Context) -> bool:
+    return is_logged_in(ctx) and usr_id(ctx) == 1
+
+
 def usr_id(ctx: context.Context) -> int:
     check_logged_in(ctx)
     return int(ctx.req.session["usr_id"])

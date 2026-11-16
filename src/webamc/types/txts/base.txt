@@ -15,6 +15,7 @@ base_disconnection
 base_exam
 base_exercise
 base_filter
+base_filters
 base_groups
 base_help
 base_max
@@ -22,6 +23,7 @@ base_mcq
 base_move_down
 base_move_up
 base_no
+base_output
 base_page
 base_parameters
 base_progress

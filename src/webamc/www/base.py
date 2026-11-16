@@ -78,7 +78,7 @@ menu_items: list[menu_item_t] = [
         "dev": True,
         "img": "stats",
         "txt": "page_title_stats",
-        "route": "/stats/page/dashboard"
+        "route": "/stats/page/main"
     },
     {
         "cond": session.is_admin,

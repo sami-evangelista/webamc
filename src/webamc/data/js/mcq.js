@@ -77,7 +77,7 @@ const mcq_save_review = function () {
         const success = function (result) {
             const args = {
                 'mode': 'view',
-                'sub_id': result['result']['sub_id']
+                'sub_id': result.data['sub_id']
             };
             base_relocate(base_encode_url(Constants.path_mcq_page_form, args));
         };

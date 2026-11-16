@@ -1,5 +1,6 @@
 page_title_admin
 page_title_admin_database
+page_title_admin_random_form
 page_title_admin_submit
 page_title_auth
 page_title_exam

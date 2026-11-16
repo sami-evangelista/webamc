@@ -1,4 +1,6 @@
 id;text
+admin_no_exams;XXX
+admin_no_submissions;XXX
 admin_param_records_found;XXX
 auth_account_creation;account creation
 auth_cas_authentication;authentication by a server
@@ -48,6 +50,7 @@ base_file_name;File name
 base_file_name;XXX
 base_file;XXX
 base_filter;filter
+base_filters;XXX
 base_filter;XXX
 base_groups;groups
 base_groups;XXX
@@ -67,6 +70,7 @@ base_move_up;move up
 base_move_up;XXX
 base_no;no
 base_no;XXX
+base_output;XXX
 base_page;page
 base_page;XXX
 base_parameters;parameters
@@ -334,6 +338,7 @@ op_lt;less than
 op_notlike;does not contain
 page_title_admin;administration
 page_title_admin_database;database
+page_title_admin_random_form;XXX
 page_title_admin_submit;submission
 page_title_auth;authentication
 page_title_exam_add;creation
@@ -449,6 +454,7 @@ stats_answer_prefix;answer
 stats_answers_detail;answers detail:
 stats_choose_exam;1. choose an exam:
 stats_choose_qst;2. choose a question:
+stats_data_outputted;XXX
 stats_evo_title;???
 stats_mcq_prefix;2. choose an MCQ:
 stats_qst_prefix;question
@@ -456,6 +462,11 @@ stats_select_exam;select an exam ...
 stats_select_mcq;select an MCQ ...
 stats_select_qst;select a question ...
 stats_select_student;select a student ...
+stats_sort_by_name_asc;XXX
+stats_sort_by_name_desc;XXX
+stats_sort_by_score_asc;XXX
+stats_sort_by_score_desc;XXX
+stats_sort_by;XXX
 stats_student_prefix;1. student:
 stats_title;statistics dashboard
 succ_account_created;Account successfuly created.

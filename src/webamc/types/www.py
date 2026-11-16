@@ -34,6 +34,7 @@ static_img_t = tp.Literal[
     "person-delete",
     "play",
     "project",
+    "random",
     "save",
     "settings",
     "signout",
@@ -49,8 +50,10 @@ static_img_t = tp.Literal[
 path_t = tp.Literal[
     "/",
     "/admin/oper/submit",
+    "/admin/oper/gen-random",
     "/admin/page/main",
     "/admin/page/table",
+    "/admin/page/random_form",
     "/auth/oper/login-local",
     "/auth/oper/login-cas",
     "/auth/oper/logout",
@@ -95,7 +98,8 @@ path_t = tp.Literal[
     "/ticket/oper/account-creation",
     "/ticket/oper/send",
     "/ticket/oper/password-change",
-    "/stats/page/dashboard",
+    "/stats/page/main",
+    "/stats/oper/get-data",
 ]
 
 mail_file_t = tp.Literal[
@@ -165,6 +169,7 @@ page_t = tp.Literal[
 sub_page_t = tp.Literal[
     "admin_database",
     "admin_submit",
+    "admin_random_form",
     "exam_add",
     "exam_database",
     "item_add",
@@ -182,6 +187,27 @@ mcq_form_mode_t = tp.Literal[
     "review",
     "view"
 ]
+
+stats_output_data_t = tp.Literal[
+    "exercise",
+    "question",
+    "mcq",
+    "user"
+]
+
+stats_sort_t = tp.Literal[
+    "name-asc",
+    "name-desc",
+    "score-asc",
+    "score-desc"
+]
+
+class stat_filters_t(tp.TypedDict):
+    exm_id: tp.Optional[int]
+    itm_id: tp.Optional[int]
+    usr_id: tp.Optional[int]
+    output_data: stats_output_data_t
+    sort_by: stats_sort_t
 
 class args_oper_t(tp.TypedDict):
     action: tp.NotRequired[project.action_t]
@@ -203,12 +229,15 @@ class args_oper_t(tp.TypedDict):
     loc_password: tp.NotRequired[str]
     move: tp.NotRequired[int]
     next_url: tp.NotRequired[str]
+    no_rnd_exams: tp.NotRequired[int]
+    no_rnd_submissions: tp.NotRequired[int]
     page_num: tp.NotRequired[int]
     prj_code: tp.NotRequired[str]
     prj_id: tp.NotRequired[int]
     project_data: tp.NotRequired[dict[str, tp.Any]]
     query: tp.NotRequired[db.db_query_t | list[db.db_query_t]]
     questions: tp.NotRequired[dict[int, dict[int, bool]]]
+    stat_filters: tp.NotRequired[stat_filters_t]
     student: tp.NotRequired[tp.Optional[int]]
     sub_content: tp.NotRequired[item.mcq_content_t]
     tbl_id: tp.NotRequired[int]

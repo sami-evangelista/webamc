@@ -4,6 +4,32 @@ let stats_mcq_chart_instance = null;
 let stats_raw_mcq_data = [];
 let stats_tags_chart_instance = null;
 let stats_raw_tags_data = [];
+let stats_chart = null;
+
+
+const stats_init = function () {
+}
+
+
+const stats_send = function () {
+    const data = {
+        'stat_filters': base_input_values("#div-inputs")
+    };
+    const url = Constants.path_stats_oper_get_data;
+    const success = function (response) {
+        const data = response.data;
+        if (stats_chart) {
+            stats_chart.destroy();
+        }
+        const bg_color = [];
+        for(const val of data['data']['datasets'][0].data) {
+            bg_color.push(base_ratio_color(val));
+        };
+        data['data']['datasets'][0]['backgroundColor'] = bg_color;
+        stats_chart = new Chart($('#chart').get(), response.data);
+    };
+    xhr_post_oper(url, data, success);
+}
 
 
 const handleQuestionChange = function (qstId) {

@@ -41,7 +41,7 @@ const admin_table_filter = function () {
     const url = Constants.path_admin_page_table;
     const data = {
         'tbl_id': $('#tbl').val(),
-        'page_num': $('#page_num').val(),
+        'page_num': base_input_value('page_num'),
         'filters': base_input_values('#table-filters')
     }
     xhr_post(url, success, data, 'html');
@@ -59,7 +59,7 @@ const admin_table_change = function () {
 
 
 const admin_table_navigate = function (move) {
-    var val = parseInt($('#page_num').val());
+    var val = base_input_value('page_num');
     const pages = $('#page_num option').length;
     val += move;
     if(val <= 0) {
@@ -69,4 +69,24 @@ const admin_table_navigate = function (move) {
     }
     $('#page_num').val(val);
     admin_table_filter();
+}
+
+
+const admin_submit_random = function () {
+    const computation = async function() { 
+        const success = function (response) {
+        };
+        const url = Constants.path_admin_oper_gen_random;
+        const data = base_input_values('#div-random-form');
+        await $.ajax({
+            url: url,
+            type: 'POST',
+            data: JSON.stringify(data),
+            success: success,
+	    error: xhr_error,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json'
+        });
+    };
+    base_launch_computation(computation);
 }

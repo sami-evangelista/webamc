@@ -1,29 +1,18 @@
 from webamc.www.all import *
+from webamc.www.exam import util as www_exam_util
 from webamc.db import tables, queries
-from webamc.util import fmt
 
 
 def page(ctx: context.Context, exm_id: int) -> he.Element:
-    def format_exam(exam: tables.Exam) -> str:
-        title = exam.exm_title
-        return title + " (" + fmt.fmt_datetime(exam.exm_start) + ")"
 
-    exams = list(queries.get_usr_exams(ctx.dbs, session.usr_id(ctx)))
-    if exams == list():
+    exams, select_exams = www_exam_util.get_exams_select(ctx)
+    if len(exams) == 0:
         return he.Txt("exam_info_no_exam_available")
 
     trs = list()
 
-    # select with exams
-    select_exams = he.Select(
-        he.Option(he.Str("-"), value=""),
-        *[he.Option(he.Str(format_exam(exam)), value=exam.exm_id)
-          for item, exam in exams],
-        id_="exm_id",
-        onchange="exam_dashboard_select()"
-    ).set_data(
-        "type", "integer"
-    )
+    # select with user exams
+    select_exams["onchange"] = "exam_dashboard_select()"
     trs.append([he.Txt("exam_select_an_exam"), select_exams])
 
     table = he.mktable(trs, class_="table-form")
