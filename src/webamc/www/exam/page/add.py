@@ -1,23 +1,19 @@
 from webamc.www.all import *
 from webamc.www.db import util as www_db_util
-from webamc.db import tables, util as db_util, desc
+from webamc.www.exam import util as www_exam_util
+from webamc.db import tables, desc
 
 
 def page(ctx: context.Context, exm_id: int) -> he.Element:
     usr_id = session.usr_id(ctx)
-    where = [
-        tables.Item.itm_is_mcq
-        & (tables.Item.itm_usr == usr_id)
-        & (tables.Item.itm_mcq_mode == types.MCQ_MODE_EXAM)
-    ]
     txt_mcq = base.field_label(desc.col_txt(tables.Exam.exm_mcq))
-    input_mcq = db_util.get_col_type(
-        tables.Exam.exm_mcq
-    ).get_input(
-        db_util.get_col(tables.Exam.exm_mcq),
-        dbs=ctx.dbs,
-        where=where
-    ).element()
+    input_mcq = www_exam_util.get_items_select(
+        ctx,
+        id_="exm_mcq",
+        null_allowed=False,
+        is_mcq=True,
+        mode=types.MCQ_MODE_EXAM
+    )
     if input_mcq.children == list():
         return he.P(he.Txt("info_no_mcq_available"))
 
@@ -30,9 +26,13 @@ def page(ctx: context.Context, exm_id: int) -> he.Element:
     txt_duration, input_duration = next(
         x for x in www_db_util.get_txt_and_input(ctx, tables.Exam.exm_duration)
     )
-    input_duration.set_attr("size", "4")
-    input_duration.set_attr("min", "1")
-    input_duration.set_attr("value", "60")
+    input_duration.set_attr(
+        "size", "4"
+    ).set_attr(
+        "min", "1"
+    ).set_attr(
+        "value", "60"
+    )
 
     elements = [
         txt_title, input_title,

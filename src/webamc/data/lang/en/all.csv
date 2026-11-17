@@ -457,16 +457,22 @@ stats_choose_qst;2. choose a question:
 stats_data_outputted;XXX
 stats_evo_title;???
 stats_mcq_prefix;2. choose an MCQ:
+stats_param_no_submissions_found;XXX
 stats_qst_prefix;question
 stats_select_exam;select an exam ...
 stats_select_mcq;select an MCQ ...
 stats_select_qst;select a question ...
 stats_select_student;select a student ...
+stats_sort_asc;XXX
 stats_sort_by_name_asc;XXX
 stats_sort_by_name_desc;XXX
+stats_sort_by_name;XXX
 stats_sort_by_score_asc;XXX
 stats_sort_by_score_desc;XXX
+stats_sort_by_score;XXX
 stats_sort_by;XXX
+stats_sort_desc;XXX
+stats_sort_order;XXX
 stats_student_prefix;1. student:
 stats_title;statistics dashboard
 succ_account_created;Account successfuly created.

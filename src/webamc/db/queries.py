@@ -141,7 +141,7 @@ def get_grps_usrs(
 def get_usr_exams(
         dbs: Session,
         usr_id: int
-) -> list[tuple[tables.Item, tables.Exam]]:
+) -> tp.Generator[tuple[tables.Item, tables.Exam]]:
     query = dbs.query(
         tables.Item,
         tables.Exam
@@ -151,7 +151,7 @@ def get_usr_exams(
     ).order_by(
         tables.Exam.exm_start.desc()
     )
-    return [row._tuple() for row in query]
+    yield from query
 
 
 def get_ticket(
@@ -380,16 +380,6 @@ def get_img(dbs: Session, iti_id: int, iti_uuid: str) -> tp.Optional[bytes]:
     return instance.iti_img
 
 
-def get_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
-    return dbs.query(
-        tables.ItemInstance
-    ).where(
-        tables.ItemInstance.iti_item == itm_id
-    ).order_by(
-        tables.ItemInstance.iti_num
-    ).all()
-
-
 def get_usr_grps(
         dbs: Session,
         usr: int,
@@ -463,14 +453,6 @@ def list_messages(
     return [row._tuple() for row in query]
 
 
-def has_messages(dbs: Session, usr_id: int) -> bool:
-    return dbs.query(
-        tables.Message
-    ).where(
-        tables.Message.msg_to == usr_id
-    ).first() is not None
-
-
 def get_registration_submission(
         dbs: Session,
         reg: tables.Registration
@@ -495,6 +477,16 @@ def get_item_instance(
         (tables.ItemInstance.iti_item == itm_id)
         & (tables.ItemInstance.iti_num == iti_num)
     ).first()
+
+
+def get_item_instances(dbs: Session, itm_id: int) -> list[tables.ItemInstance]:
+    return dbs.query(
+        tables.ItemInstance
+    ).where(
+        tables.ItemInstance.iti_item == itm_id
+    ).order_by(
+        tables.ItemInstance.iti_num
+    ).all()
 
 
 def get_usr_items(

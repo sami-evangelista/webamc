@@ -1,5 +1,14 @@
-#stats-canvas-container {
+#stats-div-chart-container {
+    padding-top: 40px;
     margin: auto;
     width: 900px;
     height: 600px;
+}
+
+.stats-item-statement {
+    border-radius: 6px;
+    border: 2px solid;
+    border-color: var(--color-struct);
+    padding: 4px;
+    margin: 20px;
 }

@@ -833,13 +833,16 @@ class Submission(Base):
         nullable=False
     )
     sub_content: Mapped[str] = mapped_column(
-        ct.McqContent
+        ct.McqContent,
+        nullable=False
     )
     sub_date_update: Mapped[datetime.datetime] = mapped_column(
-        ct.DateTime
+        ct.DateTime,
+        nullable=False
     )
     sub_visible: Mapped[bool] = mapped_column(
         ct.Boolean,
+        nullable=False,
         default=False
     )
     sub_exm_registration: Mapped[tp.Optional[int]] = mapped_column(

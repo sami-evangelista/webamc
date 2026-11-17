@@ -189,17 +189,21 @@ mcq_form_mode_t = tp.Literal[
 ]
 
 stats_output_data_t = tp.Literal[
+    "exam",
     "exercise",
     "question",
     "mcq",
     "user"
 ]
 
-stats_sort_t = tp.Literal[
-    "name-asc",
-    "name-desc",
-    "score-asc",
-    "score-desc"
+stats_sort_key_t = tp.Literal[
+    "name",
+    "score"
+]
+
+stats_sort_order_t = tp.Literal[
+    "asc",
+    "desc"
 ]
 
 class stat_filters_t(tp.TypedDict):
@@ -207,7 +211,8 @@ class stat_filters_t(tp.TypedDict):
     itm_id: tp.Optional[int]
     usr_id: tp.Optional[int]
     output_data: stats_output_data_t
-    sort_by: stats_sort_t
+    sort_key: stats_sort_key_t
+    sort_order: stats_sort_order_t
 
 class args_oper_t(tp.TypedDict):
     action: tp.NotRequired[project.action_t]

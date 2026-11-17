@@ -1,3 +1,9 @@
+:root {
+    --color-code-mcq: #4488CC;
+    --color-code-exercise: #88CC44;
+    --color-code-question:  #CC8844;
+}
+
 /* style for the group tree structure */
 .group-tree {
     list-style-type: none;

@@ -1,6 +1,8 @@
 stats_data_outputted
+stats_param_no_submissions_found
+stats_sort_asc
 stats_sort_by
-stats_sort_by_name_asc
-stats_sort_by_name_desc
-stats_sort_by_score_asc
-stats_sort_by_score_desc
+stats_sort_by_name
+stats_sort_by_score
+stats_sort_desc
+stats_sort_order

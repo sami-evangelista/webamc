@@ -445,7 +445,7 @@ def _form_exercise(
     exercise_elements: list[he.Element] = list()
 
     # getting instances from db
-    instances = queries.get_instances(ctx.dbs, item.itm_id)
+    instances = list(queries.get_item_instances(ctx.dbs, item.itm_id))
 
     # image checking
     if instances and instances[0].iti_img is not None:

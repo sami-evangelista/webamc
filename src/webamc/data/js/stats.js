@@ -13,20 +13,66 @@ const stats_init = function () {
 
 const stats_send = function () {
     const data = {
-        'stat_filters': base_input_values("#div-inputs")
+        'stat_filters': base_input_values("#stats-div-inputs")
     };
     const url = Constants.path_stats_oper_get_data;
     const success = function (response) {
-        const data = response.data;
+        const imgs = response.data.imgs;
+        const labels = response.data.labels;
+        const data = response.data.data;
+        const legends = response.data.legends;
         if (stats_chart) {
             stats_chart.destroy();
         }
         const bg_color = [];
-        for(const val of data['data']['datasets'][0].data) {
-            bg_color.push(base_ratio_color(val));
+        for(const val of data) {
+            bg_color.push(base_ratio_color(val / 100));
         };
-        data['data']['datasets'][0]['backgroundColor'] = bg_color;
-        stats_chart = new Chart($('#chart').get(), response.data);
+        const onclick = function (event, activeElements) {
+            if(activeElements.length > 0) {
+                const idx = activeElements[0].index;
+                let html = '<h2>' + labels[idx] + '</h2>';
+                if(imgs[idx] != null) {
+                    html += '<div class="stats-item-statement">'
+                        + imgs[idx] + '</div>';
+                }
+                html += legends[idx];
+                $('#stats-div-legend').html(html);
+                base_scroll_to('stats-div-legend');
+            }
+        };
+        const config = {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        data: data,
+                        backgroundColor: bg_color
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100
+                    }
+                },
+                onClick: onclick
+            }
+        };
+        $('#stats-div-legend').html('');
+        stats_chart = new Chart($('#stats-canvas-chart').get(), config);
     };
     xhr_post_oper(url, data, success);
 }

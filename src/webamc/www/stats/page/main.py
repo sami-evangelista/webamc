@@ -14,7 +14,7 @@ def page(ctx: context.Context) -> fa.Response:
     # div with filters
     exams, select_exam = www_exam_util.get_exams_select(ctx)
     select_usr = www_exam_util.get_usrs_select(ctx, grps)
-    select_mcq = he.Select(he.Option(he.Str("-"), value=""), id_="itm_id")
+    select_mcq = www_exam_util.get_items_select(ctx, is_mcq=True)
     trs = [
         (he.Txt("base_exam"), select_exam),
         (he.Txt("base_mcq"), select_mcq),
@@ -35,19 +35,24 @@ def page(ctx: context.Context) -> fa.Response:
         he.Option(he.Txt("base_question"), value="question"),
         he.Option(he.Txt("base_exercise"), value="exercise"),
         he.Option(he.Txt("base_mcq"), value="mcq"),
+        he.Option(he.Txt("base_exam"), value="exam"),
         he.Option(he.Txt("base_usr"), value="user"),
         id_="output_data"
     )
     select_sort_by = he.Select(
-        he.Option(he.Txt("stats_sort_by_name_asc"), value="name-asc"),
-        he.Option(he.Txt("stats_sort_by_name_desc"), value="name-desc"),
-        he.Option(he.Txt("stats_sort_by_score_asc"), value="score-asc"),
-        he.Option(he.Txt("stats_sort_by_score_desc"), value="score-desc"),
-        id_="sort_by"
+        he.Option(he.Txt("stats_sort_by_name"), value="name"),
+        he.Option(he.Txt("stats_sort_by_score"), value="score"),
+        id_="sort_key"
+    )
+    select_sort_order = he.Select(
+        he.Option(he.Txt("stats_sort_asc"), value="asc"),
+        he.Option(he.Txt("stats_sort_desc"), value="desc"),
+        id_="sort_order"
     )
     trs = [
         (he.Txt("stats_data_outputted"), select_data),
-        (he.Txt("stats_sort_by"), select_sort_by)
+        (he.Txt("stats_sort_by"), select_sort_by),
+        (he.Txt("stats_sort_order"), select_sort_order)
     ]
     table_outputs = he.mktable(
         trs,
@@ -72,17 +77,24 @@ def page(ctx: context.Context) -> fa.Response:
         div_output,
         a_create,
         class_="box",
-        id_="div-inputs",
+        id_="stats-div-inputs",
         style="display: flex;"
     )
 
     # canvas
-    canvas = he.Canvas(id_="chart")
+    canvas = he.Canvas(
+        id_="stats-canvas-chart"
+    )
     div_canvas = he.Div(
         canvas,
-        id_="stats-canvas-container"
+        id_="stats-div-chart-container"
     )
     script = he.Script("stats_init()")
 
-    body = he.ElementList(div_inputs, div_canvas, script)
+    # legend
+    div_legend = he.Div(
+        id_="stats-div-legend"
+    )
+
+    body = he.ElementList(div_inputs, div_canvas, div_legend, script)
     return base.page(ctx, "stats", body)

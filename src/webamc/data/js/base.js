@@ -286,3 +286,11 @@ const base_ratio_color = function (ratio) {
     const r = parseInt(rval).toString(16);
     return '#' + r.padStart(2, '0') + g.padStart(2, '0') + '00';
 }
+
+
+const base_scroll_to = function (id) {
+    const animation = {
+        scrollTop: $('#' + id).offset().top
+    };
+    $('html, body').animate(animation, 500);
+}

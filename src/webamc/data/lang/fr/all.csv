@@ -1,6 +1,6 @@
 id;text
 admin_no_exams;nombre d'examens à générer
-admin_no_submissions;nombre de soummissions à générer
+admin_no_submissions;nombre de soumissions à générer
 admin_param_records_found; %s enregistrements trouvés
 auth_account_creation;création d'un compte
 auth_cas_authentication;authentification par un serveur
@@ -347,11 +347,13 @@ seq_question_pack;pack de questions
 seq_warning_messages;messages d'avertissement
 seq_zip_file;fichier ZIP
 stats_data_outputted;données en sortie
-stats_sort_by_name_asc;nom ascendant
-stats_sort_by_name_desc;nom descendant
-stats_sort_by_score_asc;note ascendante
-stats_sort_by_score_desc;note descendante
-stats_sort_by;trier par
+stats_param_no_submissions_found;%s notes enregistrées
+stats_sort_asc;ascendant
+stats_sort_by;critère de tri
+stats_sort_by_name;nom
+stats_sort_by_score;note
+stats_sort_desc;descendant
+stats_sort_order;ordre de tri
 succ_account_created;Compte créé avec succès.
 succ_eaddr_changed;Adresse électronique modifiée avec succès.
 succ_login;Connexion réussie.

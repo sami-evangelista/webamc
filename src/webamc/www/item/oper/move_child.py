@@ -10,7 +10,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     ).order_by(
         tables.ItemRelation.itr_order
     )
-    relation = list(ctx.dbs.scalars(query))
+    relation = query.all()
     gen = (
         i for i, tr in enumerate(relation)
         if tr.itr_child == args["itr_child"]

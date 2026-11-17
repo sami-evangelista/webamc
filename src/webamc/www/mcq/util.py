@@ -12,7 +12,7 @@ def gen_mcq_content(
         result: types.mcq_content_t
 
         # get an instance of this item
-        instances = queries.get_instances(ctx.dbs, item.itm_id)
+        instances = list(queries.get_item_instances(ctx.dbs, item.itm_id))
         assert len(instances) > 0
         inst = random.choice(instances)
 
@@ -69,7 +69,9 @@ def gen_mcq_content(
         for item_qst in queries.gen_pack_questions(
                 ctx.dbs, item_pack, session.usr_id(ctx), qsts
         ):
-            instances = queries.get_instances(ctx.dbs, item_qst.itm_id)
+            instances = list(
+                queries.get_item_instances(ctx.dbs, item_qst.itm_id)
+            )
             assert len(instances) > 0
             inst = random.choice(instances)
 

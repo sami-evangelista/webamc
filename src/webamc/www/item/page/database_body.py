@@ -17,7 +17,7 @@ def page(
     if owner is None or owner.usr_id != session.usr_id(ctx):
         raise fa.HTTPException(status_code=403)
     item = queries.get_item(ctx.dbs, itm_id)
-    item_instances = queries.get_instances(ctx.dbs, item.itm_id)
+    item_instances = list(queries.get_item_instances(ctx.dbs, item.itm_id))
     item_instance = next(
         (iti for iti in item_instances if iti.iti_num == iti_num), None
     )
@@ -259,7 +259,10 @@ def _content_question(
         else:
             class_box = "wrong"
         div_status = he.Div(
-            class_=f"status-box status-box-answer status-{class_box}"
+            class_=(
+                "mcq-status-box mcq-status-box-answer "
+                f"mcq-status-{class_box}"
+            )
         )
         iti = queries.get_item_instance(ctx.dbs, cho.itm_id, iti_num)
         if iti is not None:

@@ -21,6 +21,7 @@ USR_DATA_COLS = 3
 COL_IDX_QUESTION_START = len(ROW_PREFIX_COLS)
 ROTATED_CHAR_WIDTH = 4
 CHAR_WIDTH_MULT = 1.6
+HEADER_ROWS = 2
 
 
 def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
@@ -107,7 +108,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
         headers.append(str(item.itm_code))
         max_header_len = max(max_header_len, len(str(item.itm_code)))
     ws.append(headers)
-    for row_idx in (1, 2):
+    for row_idx in range(1, HEADER_ROWS + 1):
         for col_idx, cell in enumerate(ws[row_idx], start=1):
             cell.font = header_font
             cell.fill = header_fill
@@ -170,7 +171,7 @@ def generate_excel_scores(ctx: context.Context, exm_id: int) -> fa.Response:
     # adjust column widths containing names, first name, ...
     for col_idx in range(1, USR_DATA_COLS + 1):
         max_length = 0
-        for row_idx in range(1, ws.max_row + 1):
+        for row_idx in range(HEADER_ROWS + 1, ws.max_row + 1):
             cell_value = ws.cell(row=row_idx, column=col_idx).value
             max_length = max(max_length, len(str(cell_value)))
         letter = get_column_letter(col_idx)

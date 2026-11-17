@@ -31,8 +31,8 @@ const item_load_grp = function (db_grp_id) {
         const args = {
             'grp_id': db_grp_id
         }
-        const path = base_encode_url(Constants.path_item_page_group, args);
-        xhr_get(path, success);
+        const url = base_encode_url(Constants.path_item_page_group, args);
+        xhr_get(url, success);
     }
 }
 
@@ -46,7 +46,7 @@ const item_db_on_children_update = function (db_itm_id) {
     const success = function (response) {
         $('#div-item-body-' + db_itm_id).html(response);
     };
-    xhr_get(path, success);
+    xhr_get(url, success);
 }
 
 
@@ -147,10 +147,10 @@ const item_db_code_click = function (db_itm_id, is_root, db_iti_num) {
                 'itm_id': db_itm_id,
                 'iti_num': target_instance
             };
-            const path = base_encode_url(
+            const url = base_encode_url(
                 Constants.path_item_page_database_body, args
             );
-            xhr_get(path, success);
+            xhr_get(url, success);
         }
     }
     return false;
