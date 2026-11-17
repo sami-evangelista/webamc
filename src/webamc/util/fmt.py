@@ -29,4 +29,4 @@ def fmt_title(s: str) -> str:
 def fmt_name(fst_name: str, name: str, fst_name_first: bool = True) -> str:
     if fst_name_first:
         return fst_name.title() + " " + name.upper()
-    return  name.upper() + " " + fst_name.title()
+    return name.upper() + " " + fst_name.title()

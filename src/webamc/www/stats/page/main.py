@@ -1,4 +1,4 @@
-from webamc.db import tables, queries
+from webamc.db import queries
 from webamc.www.all import *
 from webamc.www import session
 from webamc.www.exam import util as www_exam_util
@@ -6,13 +6,12 @@ from webamc.www.exam import util as www_exam_util
 
 def page(ctx: context.Context) -> fa.Response:
 
-    usr_id = session.usr_id(ctx)
     grps = set(
         g.grp_id for g in queries.get_submit_grps(ctx.dbs, session.usr_id(ctx))
     )
 
     # div with filters
-    exams, select_exam = www_exam_util.get_exams_select(ctx)
+    _, select_exam = www_exam_util.get_exams_select(ctx)
     select_usr = www_exam_util.get_usrs_select(ctx, grps)
     select_mcq = www_exam_util.get_items_select(ctx, is_mcq=True)
     trs = [

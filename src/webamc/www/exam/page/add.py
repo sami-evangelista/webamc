@@ -5,7 +5,6 @@ from webamc.db import tables, desc
 
 
 def page(ctx: context.Context, exm_id: int) -> he.Element:
-    usr_id = session.usr_id(ctx)
     txt_mcq = base.field_label(desc.col_txt(tables.Exam.exm_mcq))
     input_mcq = www_exam_util.get_items_select(
         ctx,

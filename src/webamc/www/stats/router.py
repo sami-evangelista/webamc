@@ -1,8 +1,4 @@
 from webamc.www.all import *
-from webamc.db import queries, tables
-from .model.args_mcq_overview_t import args_mcq_overview_t
-from .model.args_graph_t import args_graph_t
-from .model.args_evo_t import args_evo_t
 
 router = fa.APIRouter()
 
@@ -20,12 +16,12 @@ def oper_get_data(req: fa.Request, args: types.args_oper_t) -> fa.Response:
     with context.Context(req) as ctx:
         return get_data.data(ctx, args)
 
-"""
 @router.get("/stats/page/dashboard")
 def page_dashboard(
         req: fa.Request,
         exam_id: int | None = None
 ) -> fa.Response:
+    """
     from .page import stats_dashboard
     with context.Context(req) as ctx:
         return stats_dashboard.page(ctx, exam_id)
@@ -348,4 +344,5 @@ def oper_tags_data(req: fa.Request) -> fa.Response:
             "tag_ids": tag_ids,
             "counts": counts
         })
-"""
+    """
+    return base.wrap_code("succ")

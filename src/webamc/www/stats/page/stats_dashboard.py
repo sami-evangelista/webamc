@@ -1,5 +1,4 @@
 from webamc.www.all import *
-from webamc.db import tables, queries
 from webamc.www import session
 
 

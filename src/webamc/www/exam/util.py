@@ -22,7 +22,7 @@ def get_exam(
 def get_exams_select(
         ctx: context.Context,
         id_: str = "exm_id",
-        null_allowed: bool=True
+        null_allowed: bool = True
 ) -> tuple[list[tuple[tables.Item, tables.Exam]], he.Element]:
     def format_exam(exam: tables.Exam) -> str:
         title = exam.exm_title

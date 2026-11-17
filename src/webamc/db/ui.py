@@ -89,7 +89,7 @@ class Number(Input):
             self,
             col: sa.Column[tp.Any],
             js_type: str,
-            step: int | float=1
+            step: int | float = 1
     ) -> None:
         super().__init__(col, js_type)
         self.step = step

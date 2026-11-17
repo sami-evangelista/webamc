@@ -27,7 +27,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         & (tables.Item.itm_usr == session.usr_id(ctx))
         & (tables.Registration.reg_usr == tables.Usr.usr_id)
         & (tables.Submission.sub_exm_registration ==
-           tables.Registration.reg_id)           
+           tables.Registration.reg_id)
     )
     if filters["usr_id"] is not None:
         query_mcqs = query_mcqs.where(
@@ -85,7 +85,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         values[o] += float(score) / float(max_score)
         legends[o].append((sub.sub_date_update, usr.fmt()))
 
-    for sub_id, subres in subs_result.items():
+    for subres in subs_result.values():
         sub = subres["sub"]
         usr, exam = subs[sub]
         if output_data == "user":
@@ -97,7 +97,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
             def cond(item: tables.Item) -> bool:
                 if output_data in ("exam", "mcq"):
                     return item.itm_is_mcq
-                elif output_data == "question":
+                if output_data == "question":
                     return item.itm_type == types.ITEM_TYPE_QUESTION
                 return not item.itm_is_mcq and item.itm_type in {
                     types.ITEM_TYPE_EXERCISE,
@@ -116,11 +116,11 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     def get_label(obj: obj_t) -> str:
         if isinstance(obj, tables.Usr):
             return obj.fmt()
-        elif isinstance(obj, tables.Item):
+        if isinstance(obj, tables.Item):
             if obj.itm_title is not None:
                 return obj.itm_title
             return str(obj.itm_code)
-        elif isinstance(obj, tables.Exam):
+        if isinstance(obj, tables.Exam):
             return str(obj.exm_title)
         assert False
 
@@ -137,7 +137,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
     ) -> str:
         def fmt_legend(legend: tuple[datetime.datetime, str]) -> str:
             return fmt.fmt_datetime(legend[0]) + " - " + legend[1]
-        subs = sorted(submissions)
+        submissions = sorted(submissions)
         elements = he.ElementList(
             he.Txt("stats_param_no_submissions_found", str(len(submissions))),
             he.Ul(*(he.Li(he.Str(fmt_legend(sub))) for sub in submissions))
@@ -162,7 +162,7 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
                 tables.ItemInstance
             ).where(
                 (tables.ItemInstance.iti_item == o.itm_id)
-                & (tables.ItemInstance.iti_img != None)
+                & (tables.ItemInstance.iti_img.is_not(None))
             ).order_by(
                 tables.ItemInstance.iti_num
             ).first()
@@ -175,10 +175,10 @@ def data(ctx: context.Context, args: types.args_oper_t) -> fa.Response:
         return None
     imgs = [get_img(c[0]) for c in zipped]
 
-    data = {
+    response_data = {
         "imgs": imgs,
         "labels": [c[1] for c in zipped],
         "data": [100 * c[2] for c in zipped],
         "legends": [c[3] for c in zipped]
     }
-    return base.wrap_code("succ", data=data)
+    return base.wrap_code("succ", data=response_data)

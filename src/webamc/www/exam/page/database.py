@@ -1,6 +1,5 @@
 from webamc.www.all import *
 from webamc.www.exam import util as www_exam_util
-from webamc.db import tables, queries
 
 
 def page(ctx: context.Context, exm_id: int) -> he.Element:
